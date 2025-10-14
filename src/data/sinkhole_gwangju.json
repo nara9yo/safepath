@@ -1,0 +1,1786 @@
+[
+  {
+    "id": 1,
+    "latitude": 35.1268478,
+    "longitude": 126.7830296,
+    "name": "마커 1",
+    "description": "",
+    "address": "레이어도산동 1221-20"
+  },
+  {
+    "id": 2,
+    "latitude": 0.0,
+    "longitude": -128.0,
+    "name": "마커 2",
+    "description": "",
+    "address": "번지우산동 1600-1"
+  },
+  {
+    "id": 3,
+    "latitude": 35.1612884,
+    "longitude": 126.80616800000001,
+    "name": "동구 제봉로 남광주시장 정류장 앞 부근(남광주사거리 방면)",
+    "description": "",
+    "address": "번지소촌동 450-3"
+  },
+  {
+    "id": 4,
+    "latitude": 35.1612884,
+    "longitude": 126.806168,
+    "name": "동구 제봉로 남광주시장 정류장 앞 부근(남광주사거리 방면)",
+    "description": "",
+    "address": "번지월곡동 515-10"
+  },
+  {
+    "id": 5,
+    "latitude": 35.1453737,
+    "longitude": 126.7928794,
+    "name": "동구 제봉로 남광주시장 정류장 앞 부근(남광주사거리 방면)",
+    "description": "",
+    "address": "앞송정동 576-18"
+  },
+  {
+    "id": 6,
+    "latitude": 35.1716232,
+    "longitude": 126.8066467,
+    "name": "동구 제봉로 남광주시장 정류장 앞 부근(남광주사거리 방면)",
+    "description": "",
+    "address": "월곡동 497-4"
+  },
+  {
+    "id": 7,
+    "latitude": 35.1502641,
+    "longitude": 126.9152508,
+    "name": "월곡동 538-1번지 주변(일신아파트 버스정류장 주변)",
+    "description": "",
+    "address": "번지비아동 675-2"
+  },
+  {
+    "id": 8,
+    "latitude": 35.1393952,
+    "longitude": 126.7976219,
+    "name": "월곡동 538-1번지 주변(일신아파트 버스정류장 주변)",
+    "description": "",
+    "address": "번지소촌동 631-6"
+  },
+  {
+    "id": 9,
+    "latitude": 35.1399933,
+    "longitude": 126.922706,
+    "name": "월곡동 538-1번지 주변(일신아파트 버스정류장 주변)",
+    "description": "",
+    "address": "번지송정동 1001-9"
+  },
+  {
+    "id": 10,
+    "latitude": 35.1746378,
+    "longitude": 126.8072488,
+    "name": "월곡동 538-1번지 주변(일신아파트 버스정류장 주변)",
+    "description": "",
+    "address": "용봉동 1248-10"
+  },
+  {
+    "id": 11,
+    "latitude": 35.2229864,
+    "longitude": 126.8194106,
+    "name": "서구 죽봉대로 103앞 부근(광천동 58-20)",
+    "description": "",
+    "address": "주변송촌동 1-146"
+  },
+  {
+    "id": 12,
+    "latitude": 35.1462435,
+    "longitude": 126.78929010000002,
+    "name": "서구 죽봉대로 103앞 부근(광천동 58-20)",
+    "description": "",
+    "address": "번지소촌동 603-4"
+  },
+  {
+    "id": 13,
+    "latitude": 35.1462435,
+    "longitude": 126.7892901,
+    "name": "서구 죽봉대로 103앞 부근(광천동 58-20)",
+    "description": "",
+    "address": "번지월곡동 526-4"
+  },
+  {
+    "id": 14,
+    "latitude": 35.1374974,
+    "longitude": 126.79206200000002,
+    "name": "서구 죽봉대로 103앞 부근(광천동 58-20)",
+    "description": "",
+    "address": "번지월곡동 545-9"
+  },
+  {
+    "id": 15,
+    "latitude": 35.1374974,
+    "longitude": 126.792062,
+    "name": "유촌동 352(유덕1교차로 하부(상무중앙로))",
+    "description": "",
+    "address": "번지흑석동 506"
+  },
+  {
+    "id": 16,
+    "latitude": 35.1503065,
+    "longitude": 126.9151962,
+    "name": "유촌동 352(유덕1교차로 하부(상무중앙로))",
+    "description": "",
+    "address": "번지비아동 66-62"
+  },
+  {
+    "id": 17,
+    "latitude": 35.1777775,
+    "longitude": 126.8976966,
+    "name": "유촌동 352(유덕1교차로 하부(상무중앙로))",
+    "description": "",
+    "address": "번지운남동 769-4"
+  },
+  {
+    "id": 18,
+    "latitude": 35.1379109,
+    "longitude": 126.78134549999999,
+    "name": "유촌동 352(유덕1교차로 하부(상무중앙로))",
+    "description": "",
+    "address": "번지도산동 662-6"
+  },
+  {
+    "id": 19,
+    "latitude": 35.1379109,
+    "longitude": 126.7813455,
+    "name": "농성동 666-1번지 (화정로 259) 인근",
+    "description": "",
+    "address": "번지월곡동 620"
+  },
+  {
+    "id": 20,
+    "latitude": 35.14598779999999,
+    "longitude": 126.79153490000002,
+    "name": "화정동 929-1번지 인근 (화정남초 인근)",
+    "description": "",
+    "address": "번지양산동 283-20"
+  },
+  {
+    "id": 21,
+    "latitude": 35.14598779999999,
+    "longitude": 126.7915349,
+    "name": "농성동 666-1번지 (화정로 259) 인근",
+    "description": "",
+    "address": "주변안청동 740-1"
+  },
+  {
+    "id": 22,
+    "latitude": 35.1701218,
+    "longitude": 126.80762319999998,
+    "name": "화정동 929-1번지 인근 (화정남초 인근)",
+    "description": "",
+    "address": "우산동 232-1"
+  },
+  {
+    "id": 23,
+    "latitude": 35.1701218,
+    "longitude": 126.8076232,
+    "name": "농성동 666-1번지 (화정로 259) 인근",
+    "description": "",
+    "address": "마륵동 162-8"
+  },
+  {
+    "id": 24,
+    "latitude": 35.1694566,
+    "longitude": 126.8101519,
+    "name": "화정동 929-1번지 인근 (화정남초 인근)",
+    "description": "",
+    "address": "수기동 81"
+  },
+  {
+    "id": 25,
+    "latitude": 35.1843888,
+    "longitude": 126.81018560000001,
+    "name": "농성동 666-1번지 (화정로 259) 인근",
+    "description": "",
+    "address": "우산동 1582-4"
+  },
+  {
+    "id": 26,
+    "latitude": 35.1843888,
+    "longitude": 126.8101856,
+    "name": "화정동 929-1번지 인근 (화정남초 인근)",
+    "description": "",
+    "address": "학동 12-1"
+  },
+  {
+    "id": 27,
+    "latitude": 35.2204461,
+    "longitude": 126.82558520000002,
+    "name": "산수동 133-1(박양례 헤어스튜디오 앞)",
+    "description": "",
+    "address": "화정동 857-2"
+  },
+  {
+    "id": 28,
+    "latitude": 35.2204461,
+    "longitude": 126.8255852,
+    "name": "쌍촌동 1229번지 (쌍촌주공아파트) 인근",
+    "description": "",
+    "address": "쌍촌동 807-9"
+  },
+  {
+    "id": 29,
+    "latitude": 35.1782069,
+    "longitude": 126.8204745,
+    "name": "동구 문화전장로26번길 새마을금고 앞 부근",
+    "description": "",
+    "address": "일원진월동 331-64"
+  },
+  {
+    "id": 30,
+    "latitude": 35.12652289999999,
+    "longitude": 126.7929268,
+    "name": "산수동 133-1(박양례 헤어스튜디오 앞)",
+    "description": "",
+    "address": "앞비아동 86-3"
+  },
+  {
+    "id": 31,
+    "latitude": 35.1733299,
+    "longitude": 126.80821540000001,
+    "name": "쌍촌동 1229번지 (쌍촌주공아파트) 인근",
+    "description": "",
+    "address": "번지도천동 622-3"
+  },
+  {
+    "id": 32,
+    "latitude": 35.1733299,
+    "longitude": 126.8082154,
+    "name": "동구 문화전장로26번길 새마을금고 앞 부근",
+    "description": "",
+    "address": "번지월계동 896-4"
+  },
+  {
+    "id": 33,
+    "latitude": 35.20567719999999,
+    "longitude": 126.872406,
+    "name": "산수동 133-1(박양례 헤어스튜디오 앞)",
+    "description": "",
+    "address": "번지하남동 505-1"
+  },
+  {
+    "id": 34,
+    "latitude": 35.2132021,
+    "longitude": 126.8044731,
+    "name": "쌍촌동 1229번지 (쌍촌주공아파트) 인근",
+    "description": "",
+    "address": "번지오선동 270-49"
+  },
+  {
+    "id": 35,
+    "latitude": 35.1720096,
+    "longitude": 126.92226270000002,
+    "name": "동구 문화전장로26번길 새마을금고 앞 부근",
+    "description": "",
+    "address": "번지신촌동 1090-33"
+  },
+  {
+    "id": 36,
+    "latitude": 35.1720096,
+    "longitude": 126.9222627,
+    "name": "산수동 133-1(박양례 헤어스튜디오 앞)",
+    "description": "",
+    "address": "번지신가동 872-7"
+  },
+  {
+    "id": 37,
+    "latitude": 35.1453127,
+    "longitude": 126.84925299999999,
+    "name": "쌍촌동 1229번지 (쌍촌주공아파트) 인근",
+    "description": "",
+    "address": "번지오선동 547-10"
+  },
+  {
+    "id": 38,
+    "latitude": 35.1453127,
+    "longitude": 126.849253,
+    "name": "동구 문화전장로26번길 새마을금고 앞 부근",
+    "description": "",
+    "address": "번지신가동 918-4"
+  },
+  {
+    "id": 39,
+    "latitude": 35.14968,
+    "longitude": 126.91036149999998,
+    "name": "북구 빛고을대로 동림동 산 58-14부근",
+    "description": "",
+    "address": "번지소촌동 826"
+  },
+  {
+    "id": 40,
+    "latitude": 35.14968,
+    "longitude": 126.9103615,
+    "name": "남구 월산동 1058-1(돌고개역 부근)",
+    "description": "",
+    "address": "번지오선동 547-26"
+  },
+  {
+    "id": 41,
+    "latitude": 35.1299924,
+    "longitude": 126.9138017,
+    "name": "신가동 930-11(하남대로 281-1)",
+    "description": "",
+    "address": "번지송정동 579-4"
+  },
+  {
+    "id": 42,
+    "latitude": 35.16227170000001,
+    "longitude": 126.80783790000001,
+    "name": "북구 빛고을대로 동림동 산 58-14부근",
+    "description": "",
+    "address": "번지우산동 1582-4"
+  },
+  {
+    "id": 43,
+    "latitude": 35.16227170000001,
+    "longitude": 126.8078379,
+    "name": "남구 월산동 1058-1(돌고개역 부근)",
+    "description": "",
+    "address": "번지송정동 544-37"
+  },
+  {
+    "id": 44,
+    "latitude": 35.14014969999999,
+    "longitude": 126.9225699,
+    "name": "신가동 930-11(하남대로 281-1)",
+    "description": "",
+    "address": "번지산수동 133-1"
+  },
+  {
+    "id": 45,
+    "latitude": 35.1513147,
+    "longitude": 126.9139294,
+    "name": "북구 빛고을대로 동림동 산 58-14부근",
+    "description": "",
+    "address": "대인동 32-20"
+  },
+  {
+    "id": 46,
+    "latitude": 35.14136429999999,
+    "longitude": 126.87512119999998,
+    "name": "남구 월산동 1058-1(돌고개역 부근)",
+    "description": "",
+    "address": "학동 738-3"
+  },
+  {
+    "id": 47,
+    "latitude": 35.14136429999999,
+    "longitude": 126.8751212,
+    "name": "신가동 930-11(하남대로 281-1)",
+    "description": "",
+    "address": "학동 994"
+  },
+  {
+    "id": 48,
+    "latitude": 35.166265,
+    "longitude": 126.86381320000001,
+    "name": "북구 빛고을대로 동림동 산 58-14부근",
+    "description": "",
+    "address": "운림동 628"
+  },
+  {
+    "id": 49,
+    "latitude": 35.166265,
+    "longitude": 126.8638132,
+    "name": "남구 월산동 1058-1(돌고개역 부근)",
+    "description": "",
+    "address": "계림동 1070"
+  },
+  {
+    "id": 50,
+    "latitude": 35.1207349,
+    "longitude": 126.8972154,
+    "name": "신가동 930-11(하남대로 281-1)",
+    "description": "",
+    "address": "산수동 62-1"
+  },
+  {
+    "id": 51,
+    "latitude": 35.1238748,
+    "longitude": 126.894544,
+    "name": "화정동 852-9번지 (염주초 인근)",
+    "description": "",
+    "address": "수기동 80"
+  },
+  {
+    "id": 52,
+    "latitude": 35.221843100000015,
+    "longitude": 126.8250188,
+    "name": "서동 63-2(남구 서동로 12-1)",
+    "description": "",
+    "address": "하부화정동 852-9"
+  },
+  {
+    "id": 53,
+    "latitude": 35.22184310000001,
+    "longitude": 126.8250188,
+    "name": "두암동 594-1(군왕로 192-1)",
+    "description": "",
+    "address": "쌍촌동 807-9"
+  },
+  {
+    "id": 54,
+    "latitude": 35.2086154,
+    "longitude": 126.8138251,
+    "name": "화정동 852-9번지 (염주초 인근)",
+    "description": "",
+    "address": "번지농성동 666-1"
+  },
+  {
+    "id": 55,
+    "latitude": 35.2101658,
+    "longitude": 126.8421525,
+    "name": "서동 63-2(남구 서동로 12-1)",
+    "description": "",
+    "address": "인근쌍촌동 1229"
+  },
+  {
+    "id": 56,
+    "latitude": 35.1864301,
+    "longitude": 126.79571690000002,
+    "name": "두암동 594-1(군왕로 192-1)",
+    "description": "",
+    "address": "인근화정동 907-6"
+  },
+  {
+    "id": 57,
+    "latitude": 35.1864301,
+    "longitude": 126.7957169,
+    "name": "화정동 852-9번지 (염주초 인근)",
+    "description": "",
+    "address": "인근화정동 929-1"
+  },
+  {
+    "id": 58,
+    "latitude": 35.2027176,
+    "longitude": 126.7973024,
+    "name": "서동 63-2(남구 서동로 12-1)",
+    "description": "",
+    "address": "방면마륵동 171-12"
+  },
+  {
+    "id": 59,
+    "latitude": 35.1439452,
+    "longitude": 126.80198150000001,
+    "name": "두암동 594-1(군왕로 192-1)",
+    "description": "",
+    "address": "인근쌍촌동 877-6"
+  },
+  {
+    "id": 60,
+    "latitude": 35.1439452,
+    "longitude": 126.8019815,
+    "name": "화정동 852-9번지 (염주초 인근)",
+    "description": "",
+    "address": "인근화정동 1708"
+  },
+  {
+    "id": 61,
+    "latitude": 35.182059,
+    "longitude": 126.8274894,
+    "name": "서동 63-2(남구 서동로 12-1)",
+    "description": "",
+    "address": "인근치평동 754-1"
+  },
+  {
+    "id": 62,
+    "latitude": 35.2068632,
+    "longitude": 126.8068414,
+    "name": "두암동 594-1(군왕로 192-1)",
+    "description": "",
+    "address": "쌍촌동 1229"
+  },
+  {
+    "id": 63,
+    "latitude": 35.1797852,
+    "longitude": 126.8251572,
+    "name": "금남로4가역 1번출구 앞(국민은행)",
+    "description": "",
+    "address": "인근화정동 178-8"
+  },
+  {
+    "id": 64,
+    "latitude": 35.156487,
+    "longitude": 126.7886055,
+    "name": "월곡동 489-20(사암로 347)",
+    "description": "",
+    "address": "주변월산동 921-1"
+  },
+  {
+    "id": 65,
+    "latitude": 35.20694259999999,
+    "longitude": 126.80794829999999,
+    "name": "금남로4가역 1번출구 앞(국민은행)",
+    "description": "",
+    "address": "번지주월동 1283-1"
+  },
+  {
+    "id": 66,
+    "latitude": 35.20694259999999,
+    "longitude": 126.8079483,
+    "name": "월곡동 489-20(사암로 347)",
+    "description": "",
+    "address": "번지봉선동 1040-12"
+  },
+  {
+    "id": 67,
+    "latitude": 35.1406133,
+    "longitude": 126.79847899999999,
+    "name": "금남로4가역 1번출구 앞(국민은행)",
+    "description": "",
+    "address": "번지진월동 262-4"
+  },
+  {
+    "id": 68,
+    "latitude": 35.1406133,
+    "longitude": 126.798479,
+    "name": "월곡동 489-20(사암로 347)",
+    "description": "",
+    "address": "번지방림동 555-20"
+  },
+  {
+    "id": 69,
+    "latitude": 35.1623292,
+    "longitude": 126.8080436,
+    "name": "금남로4가역 1번출구 앞(국민은행)",
+    "description": "",
+    "address": "번지연제동 36"
+  },
+  {
+    "id": 70,
+    "latitude": 35.1389999,
+    "longitude": 126.8008195,
+    "name": "월곡동 489-20(사암로 347)",
+    "description": "",
+    "address": "운암동 1051-11"
+  },
+  {
+    "id": 71,
+    "latitude": 35.16065340000001,
+    "longitude": 126.93276729999998,
+    "name": "우산동 232-1(구두수선소 앞)",
+    "description": "",
+    "address": "앞양산동 205-1"
+  },
+  {
+    "id": 72,
+    "latitude": 35.16065340000001,
+    "longitude": 126.9327673,
+    "name": "학동 994(남광주역 3번출구앞)",
+    "description": "",
+    "address": "오치동 1036-1"
+  },
+  {
+    "id": 73,
+    "latitude": 35.1538041,
+    "longitude": 126.9150837,
+    "name": "우산동 232-1(구두수선소 앞)",
+    "description": "",
+    "address": "앞운암동 1578"
+  },
+  {
+    "id": 74,
+    "latitude": 35.132785,
+    "longitude": 126.9295959,
+    "name": "학동 994(남광주역 3번출구앞)",
+    "description": "",
+    "address": "동림동 26-1"
+  },
+  {
+    "id": 75,
+    "latitude": 35.1397497,
+    "longitude": 126.9226258,
+    "name": "우산동 232-1(구두수선소 앞)",
+    "description": "",
+    "address": "두암동 875-8"
+  },
+  {
+    "id": 76,
+    "latitude": 35.13254149999999,
+    "longitude": 126.9412023,
+    "name": "학동 994(남광주역 3번출구앞)",
+    "description": "",
+    "address": "월곡동 556-6"
+  },
+  {
+    "id": 77,
+    "latitude": 35.1634113,
+    "longitude": 126.92419400000001,
+    "name": "우산동 232-1(구두수선소 앞)",
+    "description": "",
+    "address": "주변산정동 999"
+  },
+  {
+    "id": 78,
+    "latitude": 35.1634113,
+    "longitude": 126.924194,
+    "name": "학동 994(남광주역 3번출구앞)",
+    "description": "",
+    "address": "주변신가동 756-4"
+  },
+  {
+    "id": 79,
+    "latitude": 35.140181,
+    "longitude": 126.92203920000001,
+    "name": "상무대로 쌍촌역에서 화정역 방면",
+    "description": "",
+    "address": "주변장덕동 972-2"
+  },
+  {
+    "id": 80,
+    "latitude": 35.140181,
+    "longitude": 126.9220392,
+    "name": "산수동 133-1(갈마로 18)",
+    "description": "",
+    "address": "주변월곡동 538-1"
+  },
+  {
+    "id": 81,
+    "latitude": 35.1562807,
+    "longitude": 126.93729010000001,
+    "name": "상무대로 쌍촌역에서 화정역 방면",
+    "description": "",
+    "address": "비아동 707-14"
+  },
+  {
+    "id": 82,
+    "latitude": 35.1562807,
+    "longitude": 126.9372901,
+    "name": "산수동 133-1(갈마로 18)",
+    "description": "",
+    "address": "주변월곡동 579-7"
+  },
+  {
+    "id": 83,
+    "latitude": 35.150783,
+    "longitude": 126.91447800000002,
+    "name": "Google 어스에서 지도 보기",
+    "description": "",
+    "address": "비아동 707-8"
+  },
+  {
+    "id": 84,
+    "latitude": 35.150783,
+    "longitude": 126.914478,
+    "name": "상무대로 쌍촌역에서 화정역 방면",
+    "description": "",
+    "address": "도천동 295-15"
+  },
+  {
+    "id": 85,
+    "latitude": 35.1411757,
+    "longitude": 126.92120060000002,
+    "name": "산수동 133-1(갈마로 18)",
+    "description": "",
+    "address": "도천동 621-15"
+  },
+  {
+    "id": 86,
+    "latitude": 35.1411757,
+    "longitude": 126.9212006,
+    "name": "상무대로 쌍촌역에서 화정역 방면",
+    "description": "",
+    "address": "주변월계동 847-1"
+  },
+  {
+    "id": 87,
+    "latitude": 35.149711,
+    "longitude": 126.91054290000001,
+    "name": "산수동 133-1(갈마로 18)",
+    "description": "",
+    "address": "수완동 929"
+  },
+  {
+    "id": 88,
+    "latitude": 35.149711,
+    "longitude": 126.9105429,
+    "name": "용봉동 1248-10번지 주변",
+    "description": "",
+    "address": "주변비아동 677-1"
+  },
+  {
+    "id": 89,
+    "latitude": 35.1221798,
+    "longitude": 126.9324638,
+    "name": "제봉로 27(전대병원 건너편)",
+    "description": "",
+    "address": "주변지산동 5-1"
+  },
+  {
+    "id": 90,
+    "latitude": 35.1382435,
+    "longitude": 126.9216229,
+    "name": "용봉동 1248-10번지 주변",
+    "description": "",
+    "address": "부근계림동 1072"
+  },
+  {
+    "id": 91,
+    "latitude": 35.1402858,
+    "longitude": 126.877891,
+    "name": "제봉로 27(전대병원 건너편)",
+    "description": "",
+    "address": "화정동 859-2"
+  },
+  {
+    "id": 92,
+    "latitude": 35.1481653,
+    "longitude": 126.8850427,
+    "name": "용봉동 1248-10번지 주변",
+    "description": "",
+    "address": "주변화정동 1020"
+  },
+  {
+    "id": 93,
+    "latitude": 35.14707019999999,
+    "longitude": 126.86967689999999,
+    "name": "제봉로 27(전대병원 건너편)",
+    "description": "",
+    "address": "광천동 58-20"
+  },
+  {
+    "id": 94,
+    "latitude": 35.14707019999999,
+    "longitude": 126.8696769,
+    "name": "용봉동 1248-10번지 주변",
+    "description": "",
+    "address": "유촌동 352"
+  },
+  {
+    "id": 95,
+    "latitude": 35.1431942,
+    "longitude": 126.8650888,
+    "name": "제봉로 27(전대병원 건너편)",
+    "description": "",
+    "address": "부근비아동 715-8"
+  },
+  {
+    "id": 96,
+    "latitude": 35.1380559,
+    "longitude": 126.87214090000002,
+    "name": "양산동 283-20번지 주변",
+    "description": "",
+    "address": "신가동 1002-16"
+  },
+  {
+    "id": 97,
+    "latitude": 35.1380559,
+    "longitude": 126.8721409,
+    "name": "비아동 707-14번지 주변",
+    "description": "",
+    "address": "농성동 454-3"
+  },
+  {
+    "id": 98,
+    "latitude": 35.151618,
+    "longitude": 126.86956199999999,
+    "name": "도천동 621-15번지 주변",
+    "description": "",
+    "address": "월산동 1058-1"
+  },
+  {
+    "id": 99,
+    "latitude": 35.151618,
+    "longitude": 126.869562,
+    "name": "우산동 1598-3번지 주변",
+    "description": "",
+    "address": "서동 63-2"
+  },
+  {
+    "id": 100,
+    "latitude": 35.1425638,
+    "longitude": 126.8414813,
+    "name": "화정동 863(염화로 93)",
+    "description": "",
+    "address": "우산동 1598-3"
+  },
+  {
+    "id": 101,
+    "latitude": 35.1461991,
+    "longitude": 126.85729870000002,
+    "name": "양산동 283-20번지 주변",
+    "description": "",
+    "address": "학동 115-1"
+  },
+  {
+    "id": 102,
+    "latitude": 35.1461991,
+    "longitude": 126.8572987,
+    "name": "비아동 707-14번지 주변",
+    "description": "",
+    "address": "산수동 133-1"
+  },
+  {
+    "id": 103,
+    "latitude": 35.1590608,
+    "longitude": 126.8773627,
+    "name": "도천동 621-15번지 주변",
+    "description": "",
+    "address": "서석동 421-1"
+  },
+  {
+    "id": 104,
+    "latitude": 35.1540498,
+    "longitude": 126.83303280000001,
+    "name": "우산동 1598-3번지 주변",
+    "description": "",
+    "address": "서석동 421-1"
+  },
+  {
+    "id": 105,
+    "latitude": 35.1540498,
+    "longitude": 126.8330328,
+    "name": "화정동 863(염화로 93)",
+    "description": "",
+    "address": "동명동 118-3"
+  },
+  {
+    "id": 106,
+    "latitude": 35.1491389,
+    "longitude": 126.86552030000001,
+    "name": "양산동 283-20번지 주변",
+    "description": "",
+    "address": "화정동 1035"
+  },
+  {
+    "id": 107,
+    "latitude": 35.1491389,
+    "longitude": 126.8655203,
+    "name": "비아동 707-14번지 주변",
+    "description": "",
+    "address": "양동 295"
+  },
+  {
+    "id": 108,
+    "latitude": 35.1558061,
+    "longitude": 126.8819441,
+    "name": "도천동 621-15번지 주변",
+    "description": "",
+    "address": "화정동 863"
+  },
+  {
+    "id": 109,
+    "latitude": 35.1474504,
+    "longitude": 126.8873287,
+    "name": "우산동 1598-3번지 주변",
+    "description": "",
+    "address": "진월동 291-1"
+  },
+  {
+    "id": 110,
+    "latitude": 35.1331071,
+    "longitude": 126.9037547,
+    "name": "화정동 863(염화로 93)",
+    "description": "",
+    "address": "봉선동 164-14"
+  },
+  {
+    "id": 111,
+    "latitude": 35.1273007,
+    "longitude": 126.91141380000002,
+    "name": "양산동 283-20번지 주변",
+    "description": "",
+    "address": "금곡동 435-2"
+  },
+  {
+    "id": 112,
+    "latitude": 35.1273007,
+    "longitude": 126.9114138,
+    "name": "비아동 707-14번지 주변",
+    "description": "",
+    "address": "매곡동 468-2"
+  },
+  {
+    "id": 113,
+    "latitude": 35.1192735,
+    "longitude": 126.89937750000001,
+    "name": "도천동 621-15번지 주변",
+    "description": "",
+    "address": "풍향동 599-77"
+  },
+  {
+    "id": 114,
+    "latitude": 35.1192735,
+    "longitude": 126.8993775,
+    "name": "우산동 1598-3번지 주변",
+    "description": "",
+    "address": "두암동 594-1"
+  },
+  {
+    "id": 115,
+    "latitude": 35.13027830000001,
+    "longitude": 126.9141745,
+    "name": "화정동 863(염화로 93)",
+    "description": "",
+    "address": "운암동 496-5"
+  },
+  {
+    "id": 116,
+    "latitude": 35.19865050000001,
+    "longitude": 126.8699776,
+    "name": "제봉로 10(이상명 내과)",
+    "description": "",
+    "address": "우산동 584"
+  },
+  {
+    "id": 117,
+    "latitude": 35.182272,
+    "longitude": 126.87297329999998,
+    "name": "진월동 331-64번지 앞",
+    "description": "",
+    "address": "장덕동 992-8"
+  },
+  {
+    "id": 118,
+    "latitude": 35.182272,
+    "longitude": 126.8729733,
+    "name": "남문로 소태역 주차장 입구",
+    "description": "",
+    "address": "오선동 548-5"
+  },
+  {
+    "id": 119,
+    "latitude": 35.23481410000001,
+    "longitude": 126.8479052,
+    "name": "화정동 907-6번지 인근",
+    "description": "",
+    "address": "월곡동 489-20"
+  },
+  {
+    "id": 120,
+    "latitude": 35.2133343,
+    "longitude": 126.87942050000001,
+    "name": "쌍촌동 877-6번지 인근",
+    "description": "",
+    "address": "신가동 930-11"
+  },
+  {
+    "id": 121,
+    "latitude": 35.2133343,
+    "longitude": 126.8794205,
+    "name": "화정동 178-8번지 주변",
+    "description": "",
+    "address": "월곡동 579-7"
+  },
+  {
+    "id": 122,
+    "latitude": 35.18670780000001,
+    "longitude": 126.9134824,
+    "name": "양산동 205-1(일신A)",
+    "description": "",
+    "address": "산정동 999"
+  },
+  {
+    "id": 123,
+    "latitude": 35.2345402,
+    "longitude": 126.84762090000001,
+    "name": "월곡동 556-6번지 주변",
+    "description": "",
+    "address": "장덕동 972-7"
+  },
+  {
+    "id": 124,
+    "latitude": 35.2345402,
+    "longitude": 126.8476209,
+    "name": "신가동 756-4번지 주변",
+    "description": "",
+    "address": "장덕동 976-1"
+  },
+  {
+    "id": 125,
+    "latitude": 35.1707317,
+    "longitude": 126.88226859999999,
+    "name": "장덕동 972-2번지 주변",
+    "description": "",
+    "address": "오선동 548-5"
+  },
+  {
+    "id": 126,
+    "latitude": 35.1707317,
+    "longitude": 126.8822686,
+    "name": "비아동 677-1번지 주변",
+    "description": "",
+    "address": "신안동 210-5"
+  },
+  {
+    "id": 127,
+    "latitude": 35.2039293,
+    "longitude": 126.8781766,
+    "name": "화정동 859-2번지 주변",
+    "description": "",
+    "address": "주월동 960-13"
+  },
+  {
+    "id": 128,
+    "latitude": 35.1857264,
+    "longitude": 126.86897140000002,
+    "name": "서구 농성동 454-3번지",
+    "description": "",
+    "address": "벽진동 22"
+  },
+  {
+    "id": 129,
+    "latitude": 35.1857264,
+    "longitude": 126.8689714,
+    "name": "제봉로 10(이상명 내과)",
+    "description": "",
+    "address": "양산동 401-33"
+  },
+  {
+    "id": 130,
+    "latitude": 35.1698416,
+    "longitude": 126.9281311,
+    "name": "진월동 331-64번지 앞",
+    "description": "",
+    "address": "화정동 899"
+  },
+  {
+    "id": 131,
+    "latitude": 35.1693589,
+    "longitude": 126.81173760000001,
+    "name": "남문로 소태역 주차장 입구",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 132,
+    "latitude": 35.1693589,
+    "longitude": 126.8117376,
+    "name": "화정동 907-6번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 133,
+    "latitude": 35.1710474,
+    "longitude": 126.8032905,
+    "name": "쌍촌동 877-6번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 134,
+    "latitude": 35.1779744,
+    "longitude": 126.8296447,
+    "name": "화정동 178-8번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 135,
+    "latitude": 35.1970522,
+    "longitude": 126.80509959999999,
+    "name": "양산동 205-1(일신A)",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 136,
+    "latitude": 35.1970522,
+    "longitude": 126.8050996,
+    "name": "월곡동 556-6번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 137,
+    "latitude": 35.1681651,
+    "longitude": 126.80891799999999,
+    "name": "신가동 756-4번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 138,
+    "latitude": 35.1681651,
+    "longitude": 126.808918,
+    "name": "장덕동 972-2번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 139,
+    "latitude": 35.22083980000001,
+    "longitude": 126.82453030000002,
+    "name": "비아동 677-1번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 140,
+    "latitude": 35.22083980000001,
+    "longitude": 126.8245303,
+    "name": "화정동 859-2번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 141,
+    "latitude": 35.1687149,
+    "longitude": 126.81656830000001,
+    "name": "서구 농성동 454-3번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 142,
+    "latitude": 35.1687149,
+    "longitude": 126.8165683,
+    "name": "제봉로 10(이상명 내과)",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 143,
+    "latitude": 35.2235344,
+    "longitude": 126.82129189999999,
+    "name": "진월동 331-64번지 앞",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 144,
+    "latitude": 35.2235344,
+    "longitude": 126.8212919,
+    "name": "남문로 소태역 주차장 입구",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 145,
+    "latitude": 35.2093897,
+    "longitude": 126.81717110000001,
+    "name": "화정동 907-6번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 146,
+    "latitude": 35.2093897,
+    "longitude": 126.8171711,
+    "name": "쌍촌동 877-6번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 147,
+    "latitude": 35.2095205,
+    "longitude": 126.8153132,
+    "name": "화정동 178-8번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 148,
+    "latitude": 35.2107462,
+    "longitude": 126.8389696,
+    "name": "양산동 205-1(일신A)",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 149,
+    "latitude": 35.1977354,
+    "longitude": 126.8243409,
+    "name": "월곡동 556-6번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 150,
+    "latitude": 35.2226135,
+    "longitude": 126.8185054,
+    "name": "신가동 756-4번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 151,
+    "latitude": 35.1491357,
+    "longitude": 126.94635560000002,
+    "name": "장덕동 972-2번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 152,
+    "latitude": 35.1491357,
+    "longitude": 126.9463556,
+    "name": "비아동 677-1번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 153,
+    "latitude": 35.1387011,
+    "longitude": 126.92203659999998,
+    "name": "화정동 859-2번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 154,
+    "latitude": 35.1387011,
+    "longitude": 126.9220366,
+    "name": "서구 농성동 454-3번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 155,
+    "latitude": 35.1449794,
+    "longitude": 126.9207656,
+    "name": "제봉로 10(이상명 내과)",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 156,
+    "latitude": 35.163347,
+    "longitude": 126.92435420000001,
+    "name": "진월동 331-64번지 앞",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 157,
+    "latitude": 35.163347,
+    "longitude": 126.9243542,
+    "name": "남문로 소태역 주차장 입구",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 158,
+    "latitude": 35.1397295,
+    "longitude": 126.8786138,
+    "name": "화정동 907-6번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 159,
+    "latitude": 35.1398096,
+    "longitude": 126.8816845,
+    "name": "쌍촌동 877-6번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 160,
+    "latitude": 35.1625105,
+    "longitude": 126.88305739999998,
+    "name": "화정동 178-8번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 161,
+    "latitude": 35.1625105,
+    "longitude": 126.8830574,
+    "name": "양산동 205-1(일신A)",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 162,
+    "latitude": 35.16292809999999,
+    "longitude": 126.8482486,
+    "name": "월곡동 556-6번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 163,
+    "latitude": 35.1816203,
+    "longitude": 126.85948860000002,
+    "name": "신가동 756-4번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 164,
+    "latitude": 35.1816203,
+    "longitude": 126.8594886,
+    "name": "장덕동 972-2번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 165,
+    "latitude": 35.2202546,
+    "longitude": 126.82054520000001,
+    "name": "비아동 677-1번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 166,
+    "latitude": 35.2202546,
+    "longitude": 126.8205452,
+    "name": "화정동 859-2번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 167,
+    "latitude": 35.1845723,
+    "longitude": 126.8335839,
+    "name": "서구 농성동 454-3번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 168,
+    "latitude": 35.16107179999999,
+    "longitude": 126.8876873,
+    "name": "도산동 1221-20번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 169,
+    "latitude": 35.1515139,
+    "longitude": 126.89547060000001,
+    "name": "금남로4가역 1번출구 앞",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 170,
+    "latitude": 35.1515139,
+    "longitude": 126.8954706,
+    "name": "신촌동 1090-33번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 171,
+    "latitude": 35.145363,
+    "longitude": 126.9039934,
+    "name": "필문대로 남광주고가 하부",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 172,
+    "latitude": 35.1601271,
+    "longitude": 126.80862010000001,
+    "name": "마륵동 171-12 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 173,
+    "latitude": 35.1601271,
+    "longitude": 126.8086201,
+    "name": "화정동 1708번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 174,
+    "latitude": 35.1876142,
+    "longitude": 126.8020483,
+    "name": "쌍촌동 1229번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 175,
+    "latitude": 35.2216006,
+    "longitude": 126.819731,
+    "name": "봉선동 1040-12번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 176,
+    "latitude": 35.1409727,
+    "longitude": 126.92142120000001,
+    "name": "화정동 1020번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 177,
+    "latitude": 35.1409727,
+    "longitude": 126.9214212,
+    "name": "필문대로 153번길 35",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 178,
+    "latitude": 35.1423227,
+    "longitude": 126.92029099999999,
+    "name": "북구 풍향동 599-77",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 179,
+    "latitude": 35.1423227,
+    "longitude": 126.920291,
+    "name": "도산동 1221-20번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 180,
+    "latitude": 35.1447462,
+    "longitude": 126.92625520000001,
+    "name": "금남로4가역 1번출구 앞",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 181,
+    "latitude": 35.1447462,
+    "longitude": 126.9262552,
+    "name": "신촌동 1090-33번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 182,
+    "latitude": 35.1447609,
+    "longitude": 126.92625630000002,
+    "name": "필문대로 남광주고가 하부",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 183,
+    "latitude": 35.1447609,
+    "longitude": 126.9262563,
+    "name": "마륵동 171-12 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 184,
+    "latitude": 35.1467741,
+    "longitude": 126.92795189999998,
+    "name": "화정동 1708번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 185,
+    "latitude": 35.1467741,
+    "longitude": 126.9279519,
+    "name": "쌍촌동 1229번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 186,
+    "latitude": 35.1580391,
+    "longitude": 126.93517799999998,
+    "name": "봉선동 1040-12번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 187,
+    "latitude": 35.1580391,
+    "longitude": 126.935178,
+    "name": "화정동 1020번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 188,
+    "latitude": 35.1403946,
+    "longitude": 126.88158810000002,
+    "name": "필문대로 153번길 35",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 189,
+    "latitude": 35.1403946,
+    "longitude": 126.8815881,
+    "name": "북구 풍향동 599-77",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 190,
+    "latitude": 35.1540776,
+    "longitude": 126.8982786,
+    "name": "기본 표시 영역으로 설정",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 191,
+    "latitude": 35.1428147,
+    "longitude": 126.87481800000002,
+    "name": "도산동 1221-20번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 192,
+    "latitude": 35.1428147,
+    "longitude": 126.874818,
+    "name": "금남로4가역 1번출구 앞",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 193,
+    "latitude": 35.1218355,
+    "longitude": 126.8981647,
+    "name": "신촌동 1090-33번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 194,
+    "latitude": 35.12677569999999,
+    "longitude": 126.9143582,
+    "name": "필문대로 남광주고가 하부",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 195,
+    "latitude": 35.1764206,
+    "longitude": 126.99669399999999,
+    "name": "마륵동 171-12 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 196,
+    "latitude": 35.1764206,
+    "longitude": 126.996694,
+    "name": "화정동 1708번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 197,
+    "latitude": 35.1882135,
+    "longitude": 126.8985604,
+    "name": "쌍촌동 1229번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 198,
+    "latitude": 35.1646263,
+    "longitude": 126.9213185,
+    "name": "봉선동 1040-12번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 199,
+    "latitude": 35.1781556,
+    "longitude": 126.93481690000002,
+    "name": "화정동 1020번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 200,
+    "latitude": 35.1781556,
+    "longitude": 126.9348169,
+    "name": "필문대로 153번길 35",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 201,
+    "latitude": 35.1729433,
+    "longitude": 126.8890441,
+    "name": "북구 풍향동 599-77",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 202,
+    "latitude": 35.1818177,
+    "longitude": 126.91919680000001,
+    "name": "Facebook으로 공유",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 203,
+    "latitude": 35.1818177,
+    "longitude": 126.9191968,
+    "name": "도산동 1221-20번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 204,
+    "latitude": 35.1885897,
+    "longitude": 126.80896480000001,
+    "name": "금남로4가역 1번출구 앞",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 205,
+    "latitude": 35.1885897,
+    "longitude": 126.8089648,
+    "name": "신촌동 1090-33번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 206,
+    "latitude": 35.207163900000005,
+    "longitude": 126.8119843,
+    "name": "필문대로 남광주고가 하부",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 207,
+    "latitude": 35.2071639,
+    "longitude": 126.8119843,
+    "name": "마륵동 171-12 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 208,
+    "latitude": 35.1754086,
+    "longitude": 126.80834529999998,
+    "name": "화정동 1708번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 209,
+    "latitude": 35.1754086,
+    "longitude": 126.8083453,
+    "name": "쌍촌동 1229번지 인근",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 210,
+    "latitude": 35.17937180000001,
+    "longitude": 126.82448660000001,
+    "name": "봉선동 1040-12번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 211,
+    "latitude": 35.17937180000001,
+    "longitude": 126.8244866,
+    "name": "화정동 1020번지 주변",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 212,
+    "latitude": 35.19705339999999,
+    "longitude": 126.8059227,
+    "name": "필문대로 153번길 35",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 213,
+    "latitude": 35.1960654,
+    "longitude": 126.80510199999999,
+    "name": "북구 풍향동 599-77",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 214,
+    "latitude": 35.1960654,
+    "longitude": 126.805102,
+    "name": "광주광역시 싱크홀 지도",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 215,
+    "latitude": 35.1711198,
+    "longitude": 126.90450220000001,
+    "name": "우산동 1600-1번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 216,
+    "latitude": 35.1711198,
+    "longitude": 126.9045022,
+    "name": "월곡동 515-10번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 217,
+    "latitude": 35.134171499999994,
+    "longitude": 126.89811379999999,
+    "name": "송정동 576-18번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 218,
+    "latitude": 35.13417149999999,
+    "longitude": 126.8981138,
+    "name": "송정동 1001-9번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 219,
+    "latitude": 35.1370274,
+    "longitude": 126.83763400000001,
+    "name": "진월동 한신아파트 일원",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 220,
+    "latitude": 35.1370274,
+    "longitude": 126.837634,
+    "name": "오선동 270-49번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 221,
+    "latitude": 35.1979799,
+    "longitude": 126.8807314,
+    "name": "오선동 547-10번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 222,
+    "latitude": 35.14661359999999,
+    "longitude": 126.8722576,
+    "name": "오선동 547-26번지",
+    "description": "",
+    "address": ""
+  },
+  {
+    "id": 223,
+    "latitude": 32.0,
+    "longitude": 64.0,
+    "name": "우산동 1582-4번지",
+    "description": "",
+    "address": ""
+  }
+]
