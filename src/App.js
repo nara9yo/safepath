@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import Map from './components/Map';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import MapView from './components/Map';
 import RouteSearch from './components/RouteSearch';
 import ModeToggle from './components/ModeToggle';
 import RouteDisplay from './components/RouteDisplay';
 import SinkholeList from './components/SinkholeList';
-import { detectSinkholesOnRoute, calculateDetourRoute, calculateInspectionRoute } from './utils/routeCalculator';
+import { detectSinkholesOnRoute, calculateDetourRoute, injectSinkholesIntoPath, computePathDistance } from './utils/routeCalculator';
 import Papa from 'papaparse';
 
 function App() {
@@ -14,11 +14,15 @@ function App() {
   const [route, setRoute] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState(null);
-  const [isSinkholeListVisible, setIsSinkholeListVisible] = useState(false);
   const [mapRef, setMapRef] = useState(null);
   const [selectedSinkhole, setSelectedSinkhole] = useState(null);
   const [selectedInputType, setSelectedInputType] = useState(null); // 'start' 또는 'end'
   const [sinkholes, setSinkholes] = useState([]);
+  const [inspectionRadiusKm, setInspectionRadiusKm] = useState(0.05); // 기본 50m
+  const [activeTab, setActiveTab] = useState('route'); // 'route' or 'sinkhole'
+  const [baseDirectionsRoute, setBaseDirectionsRoute] = useState(null); // Directions 원본 캐시
+  const forcedSinkholeIdsRef = useRef(new Set()); // 반경 축소 시에도 유지할 싱크홀 캐시
+  const radiusCacheRef = useRef(new Map()); // 반경별 경로 캐시
 
   // 지도 인스턴스 설정
   const handleMapReady = useCallback((mapInstance) => {
@@ -184,9 +188,19 @@ function App() {
     console.log('입력 타입 선택:', type);
   }, []);
 
+  // 반경 변경 등 재계산 시 강제 포함 집합에 id들을 추가
+  const addForcedSinkholes = useCallback((sinkholes) => {
+    const setRef = forcedSinkholeIdsRef.current;
+    for (const s of sinkholes || []) {
+      if (s && s.id != null) setRef.add(s.id);
+    }
+    // 포함 집합이 바뀌면 반경 캐시 무효화
+    radiusCacheRef.current = new Map();
+  }, []);
+
   // 싱크홀 클릭 시 처리 (모든 모드에서 동일하게 작동)
   const handleSinkholeClick = useCallback((sinkhole) => {
-    console.log('싱크홀 클릭:', sinkhole, '모드:', mode);
+    console.log('싱크홀 클릭:', sinkhole);
     
     if (mapRef && window.naver && window.naver.maps) {
       try {
@@ -204,12 +218,7 @@ function App() {
         maps: !!(window.naver && window.naver.maps)
       });
     }
-  }, [mapRef, mode]);
-
-  // 싱크홀 리스트 패널 토글
-  const toggleSinkholeList = useCallback(() => {
-    setIsSinkholeListVisible(prev => !prev);
-  }, []);
+  }, [mapRef]);
 
   // 경로 검색 함수
   const handleRouteSearch = async (start, end) => {
@@ -231,6 +240,11 @@ function App() {
         console.warn('네이버 Directions 실패, 백업 경로 사용:', e);
         route = generateBasicRoute(start, end);
       }
+
+      console.log('route', route);
+      setBaseDirectionsRoute(route);
+      forcedSinkholeIdsRef.current = new Set(); // 새 출발/도착 시 강제 포함 캐시 초기화
+      radiusCacheRef.current = new Map(); // 반경 캐시 초기화
       
       if (mode === 'normal') {
         // 일반 모드: 싱크홀 감지 후 우회 경로 제공
@@ -253,9 +267,32 @@ function App() {
           });
         }
       } else {
-        // 안전점검 모드: 싱크홀을 포함하는 경로 제공
-        const inspectionRoute = calculateInspectionRoute(start, end, sinkholes);
-        setRoute(inspectionRoute);
+        // 안전점검 모드: Directions 경로를 유지하되, 근접 싱크홀을 path 중간에 삽입하여 부드러움을 유지
+        const radius = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
+        const { path: injectedPath, detectedSinkholes } = injectSinkholesIntoPath(
+          route.path,
+          sinkholes,
+          radius,
+          forcedSinkholeIdsRef.current
+        );
+        const newDistance = computePathDistance(injectedPath);
+        setRoute({
+          path: injectedPath,
+          distance: newDistance || route.distance,
+          duration: route.duration,
+          hasSinkholes: detectedSinkholes.length > 0,
+          detectedSinkholes,
+          originalRoute: route
+        });
+        addForcedSinkholes(detectedSinkholes);
+        // 현재 반경 결과 캐시
+        radiusCacheRef.current.set(Number(radius.toFixed(2)), {
+          path: injectedPath,
+          distance: newDistance || route.distance,
+          duration: route.duration,
+          hasSinkholes: detectedSinkholes.length > 0,
+          detectedSinkholes
+        });
       }
     } catch (err) {
       setError('경로를 찾는 중 오류가 발생했습니다.');
@@ -264,6 +301,39 @@ function App() {
       setIsSearching(false);
     }
   };
+
+  // 반경 변경 시 API 재호출 없이 캐시 기반으로 재계산
+  useEffect(() => {
+    if (mode !== 'inspection') return;
+    if (!baseDirectionsRoute) return;
+
+    const radius = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
+    const key = Number(radius.toFixed(2));
+    const cached = radiusCacheRef.current.get(key);
+    if (cached) {
+      setRoute({ ...cached, originalRoute: baseDirectionsRoute });
+      return;
+    }
+
+    const { path: injectedPath, detectedSinkholes } = injectSinkholesIntoPath(
+      baseDirectionsRoute.path,
+      sinkholes,
+      radius,
+      forcedSinkholeIdsRef.current
+    );
+    const newDistance = computePathDistance(injectedPath);
+    const computed = {
+      path: injectedPath,
+      distance: newDistance || baseDirectionsRoute.distance,
+      duration: baseDirectionsRoute.duration,
+      hasSinkholes: detectedSinkholes.length > 0,
+      detectedSinkholes
+    };
+    setRoute({ ...computed, originalRoute: baseDirectionsRoute });
+    addForcedSinkholes(detectedSinkholes);
+    radiusCacheRef.current.set(key, computed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inspectionRadiusKm, mode, baseDirectionsRoute, sinkholes]);
 
   // (임시) 외부 길찾기 제거: 백업 경로 생성 함수만 사용
   const findRouteWithNaverDirections = async (start, end) => {
@@ -335,48 +405,67 @@ function App() {
 
   return (
     <div className="app">
+      <div className="control-panel">
+        <h1>🚧 싱크홀 안전 지도</h1>
+        <div className="tab-nav">
+          <button
+            className={`tab-btn ${activeTab === 'route' ? 'active' : ''}`}
+            onClick={() => setActiveTab('route')}
+          >
+            경로 검색
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'sinkhole' ? 'active' : ''}`}
+            onClick={() => setActiveTab('sinkhole')}
+          >
+            싱크홀 목록
+          </button>
+        </div>
+
+        <div className="tab-content">
+          {activeTab === 'route' && (
+            <>
+              <ModeToggle
+                mode={mode}
+                onModeChange={setMode}
+                inspectionRadiusKm={inspectionRadiusKm}
+                onInspectionRadiusChange={setInspectionRadiusKm}
+              />
+              <RouteSearch
+                startPoint={startPoint}
+                endPoint={endPoint}
+                onStartChange={setStartPoint}
+                onEndChange={setEndPoint}
+                onSearch={() => handleRouteSearch(startPoint, endPoint)}
+                isSearching={isSearching}
+                onInputTypeSelect={handleInputTypeSelect}
+              />
+              <RouteDisplay
+                route={route}
+                mode={mode}
+                error={error}
+              />
+            </>
+          )}
+          {activeTab === 'sinkhole' && (
+            <SinkholeList
+              sinkholes={sinkholes}
+              selectedSinkhole={selectedSinkhole}
+              onSinkholeClick={handleSinkholeClick}
+            />
+          )}
+        </div>
+      </div>
+
       <div className="map-container">
-        <Map 
-          sinkholes={mode === 'inspection' ? sinkholes : []}
+        <MapView
+          sinkholes={sinkholes}
           selectedSinkhole={selectedSinkhole}
           route={route}
           onLocationSelect={handleLocationSelect}
           onMapReady={handleMapReady}
           selectedInputType={selectedInputType}
-        />
-        
-        {/* 싱크홀 리스트 패널 */}
-        <SinkholeList
-          sinkholes={sinkholes}
-          selectedSinkhole={selectedSinkhole}
-          onSinkholeClick={handleSinkholeClick}
-          isVisible={isSinkholeListVisible}
-          onToggle={toggleSinkholeList}
-        />
-      </div>
-      
-      <div className="control-panel">
-        <h1>🚧 싱크홀 안전 지도</h1>
-        
-        <ModeToggle 
-          mode={mode} 
-          onModeChange={setMode}
-        />
-        
-        <RouteSearch 
-          startPoint={startPoint}
-          endPoint={endPoint}
-          onStartChange={setStartPoint}
-          onEndChange={setEndPoint}
-          onSearch={() => handleRouteSearch(startPoint, endPoint)}
-          isSearching={isSearching}
-          onInputTypeSelect={handleInputTypeSelect}
-        />
-        
-        <RouteDisplay 
-          route={route}
-          mode={mode}
-          error={error}
+          inspectionRadiusKm={inspectionRadiusKm}
         />
       </div>
     </div>

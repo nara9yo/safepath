@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
-const SinkholeList = ({ sinkholes, selectedSinkhole, onSinkholeClick, isVisible, onToggle }) => {
+const SinkholeList = ({ sinkholes, selectedSinkhole, onSinkholeClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
   
-  console.log('SinkholeList 렌더링:', { sinkholes: sinkholes?.length, isVisible });
+  useEffect(() => {
+    console.log('SinkholeList 렌더링:', { sinkholes: sinkholes?.length });
+  }, [sinkholes]);
   
   // 검색 필터링
   const filteredSinkholes = useMemo(() => {
@@ -27,26 +29,14 @@ const SinkholeList = ({ sinkholes, selectedSinkhole, onSinkholeClick, isVisible,
   };
   
   return (
-    <>
-      {/* 패널이 숨겨졌을 때 보이는 토글 버튼 */}
-      {!isVisible && (
-        <button className="panel-toggle-btn" onClick={onToggle}>
-          ☰
-        </button>
-      )}
-      
-      {/* 메인 패널 */}
-      <div className={`sinkhole-panel ${isVisible ? '' : 'hidden'}`}>
-        <div className="panel-header">
-          <h3>싱크홀 목록 {sinkholes?.length ? `(${sinkholes.length}개)` : ''}</h3>
-          <button className="toggle-btn" onClick={onToggle}>
-            ✕
-          </button>
-        </div>
+    <div className="sinkhole-panel">
+      <div className="panel-header">
+        <label>싱크홀 목록 {sinkholes?.length ? `(${sinkholes.length}개)` : ''}</label>
+      </div>
         
-        {/* 검색 바 */}
-        {sinkholes && sinkholes.length > 0 && (
-          <div className="search-bar">
+      {/* 검색 바 */}
+      {sinkholes && sinkholes.length > 0 && (
+        <div className="search-bar">
             <div className="search-input-wrapper">
               <span className="search-icon">🔍</span>
               <input
@@ -105,8 +95,7 @@ const SinkholeList = ({ sinkholes, selectedSinkhole, onSinkholeClick, isVisible,
           )}
         </div>
       </div>
-    </>
   );
 };
 
-export default SinkholeList;
+export default React.memo(SinkholeList);

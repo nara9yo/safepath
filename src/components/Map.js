@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 
-const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady, selectedInputType }) => {
+const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady, selectedInputType, inspectionRadiusKm }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
   const polylinesRef = useRef([]);
   const infoWindowsRef = useRef([]);
+  const circlesRef = useRef([]);
   const onLocationSelectRef = useRef(onLocationSelect);
   const selectedInputTypeRef = useRef(selectedInputType);
 
@@ -213,16 +214,15 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
 
     const path = route.path.map(point => new window.naver.maps.LatLng(point.lat, point.lng));
 
-    let strokeColor = '#2196F3';
+    let strokeColor = '#FF0000';
     let strokeWeight = 5;
     let strokeStyle = 'solid';
 
-    if (route.hasSinkholes) {
-      if (route.originalRoute) {
-        strokeColor = '#4CAF50';
-      } else {
-        strokeColor = '#FF9800';
-      }
+    // 원래 경로가 존재할 때는 메인 경로에 파란 실선을 사용하지 않음
+    if (route.originalRoute) {
+      strokeColor = route.hasSinkholes ? '#4CAF50' : '#FF9800';
+    } else if (route.hasSinkholes) {
+      strokeColor = '#FF9800';
     }
 
     const polyline = new window.naver.maps.Polyline({
@@ -241,7 +241,7 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
       const originalPolyline = new window.naver.maps.Polyline({
         path: originalPath,
         map: mapInstance.current,
-        strokeColor: '#FF5722',
+        strokeColor: '#FF0000',
         strokeWeight: 3,
         strokeOpacity: 0.6,
         strokeStyle: 'shortdash'
@@ -254,6 +254,44 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
     mapInstance.current.fitBounds(bounds);
 
   }, [route]);
+
+  // 경로에 포함된 싱크홀 반경 그라데이션 표시
+  useEffect(() => {
+    if (!mapInstance.current || !window.naver || !window.naver.maps) return;
+
+    // 기존 원형 제거
+    circlesRef.current.forEach(c => c.setMap(null));
+    circlesRef.current = [];
+
+    if (!route || !route.detectedSinkholes || route.detectedSinkholes.length === 0) return;
+
+    const radiusKm = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05; // 기본 50m
+    const radiusMeters = Math.max(1, Math.round(radiusKm * 1000));
+
+    const levels = [
+      { factor: 1.0, opacity: 0.25 },
+      { factor: 0.66, opacity: 0.15 },
+      { factor: 0.33, opacity: 0.08 }
+    ];
+
+    route.detectedSinkholes.forEach(s => {
+      if (!Number.isFinite(s.lat) || !Number.isFinite(s.lng)) return;
+      const center = new window.naver.maps.LatLng(s.lat, s.lng);
+      levels.forEach((lv) => {
+        const circle = new window.naver.maps.Circle({
+          map: mapInstance.current,
+          center,
+          radius: Math.max(1, Math.round(radiusMeters * lv.factor)),
+          strokeWeight: 0,
+          strokeOpacity: 0,
+          fillColor: '#FF9800',
+          fillOpacity: lv.opacity,
+          clickable: false
+        });
+        circlesRef.current.push(circle);
+      });
+    });
+  }, [route, inspectionRadiusKm]);
 
   return (
     <div 
