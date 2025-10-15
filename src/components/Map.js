@@ -1,13 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import HeatmapLegend from './HeatmapLegend';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
-const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady, selectedInputType, inspectionRadiusKm, activeTab, startPoint, endPoint }) => {
+const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady, selectedInputType, inspectionRadiusKm, activeTab, startPoint, endPoint, showHeatmap, heatmapGradient, showRouteHeatband, rescaleMethod, legendMin, legendMax }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
   const polylinesRef = useRef([]);
   const infoWindowsRef = useRef([]);
   const circlesRef = useRef([]);
+  const heatmapRef = useRef(null);
+  const routeHeatbandRef = useRef(null);
+  const isMovingRef = useRef(false);
   const onLocationSelectRef = useRef(onLocationSelect);
   const selectedInputTypeRef = useRef(selectedInputType);
   const contextMenuRef = useRef(null);
@@ -55,7 +59,7 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
       }
 
       const script = document.createElement('script');
-      script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&submodules=geocoder`;
+      script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&submodules=geocoder,visualization`;
       script.async = true;
       script.defer = true;
       script.onload = () => {
@@ -177,6 +181,14 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
         // idle 이벤트로 준비 완료 감지
         const idleListener = window.naver.maps.Event.addListener(mapInstance.current, 'idle', () => {
           console.log('📍 idle 이벤트 발생');
+          // 이동 종료 시 히트맵 복원
+          isMovingRef.current = false;
+          if (heatmapRef.current && showHeatmap) {
+            try { heatmapRef.current.setMap(mapInstance.current); } catch (e) {}
+          }
+          if (routeHeatbandRef.current && showRouteHeatband) {
+            try { routeHeatbandRef.current.setMap(mapInstance.current); } catch (e) {}
+          }
           setMapAsReady();
           window.naver.maps.Event.removeListener(idleListener);
         });
@@ -199,6 +211,180 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 지도 이동 중 성능 최적화: 히트맵 임시 숨김
+  useEffect(() => {
+    if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps) return;
+    const startHandler = window.naver.maps.Event.addListener(mapInstance.current, 'dragstart', () => {
+      isMovingRef.current = true;
+      if (heatmapRef.current) { try { heatmapRef.current.setMap(null); } catch (e) {} }
+      if (routeHeatbandRef.current) { try { routeHeatbandRef.current.setMap(null); } catch (e) {} }
+    });
+    const zoomHandler = window.naver.maps.Event.addListener(mapInstance.current, 'zoomstart', () => {
+      isMovingRef.current = true;
+      if (heatmapRef.current) { try { heatmapRef.current.setMap(null); } catch (e) {} }
+      if (routeHeatbandRef.current) { try { routeHeatbandRef.current.setMap(null); } catch (e) {} }
+    });
+    return () => {
+      window.naver.maps.Event.removeListener(startHandler);
+      window.naver.maps.Event.removeListener(zoomHandler);
+    };
+  }, [isMapReady]);
+
+  // 히트맵 데이터 변환 (weight 기준)
+  const toWeightedLocations = useCallback((items) => {
+    if (!items || !window.naver || !window.naver.maps) return [];
+    const weights = items.map(s => Number(s.weight) || 0).filter(w => Number.isFinite(w) && w >= 0).sort((a,b) => a-b);
+    let cap = 1;
+    if (weights.length) {
+      if (rescaleMethod === 'iqr') {
+        const q1 = weights[Math.floor(weights.length * 0.25)];
+        const q3 = weights[Math.floor(weights.length * 0.75)];
+        const iqr = Math.max(1, q3 - q1);
+        cap = Math.ceil(q3 + 1.5 * iqr);
+      } else if (rescaleMethod === 'none') {
+        cap = Math.ceil(weights[weights.length - 1]);
+      } else {
+        // p90
+        const p = 0.9;
+        const idx = Math.min(weights.length - 1, Math.max(0, Math.floor(weights.length * p)));
+        const p90 = weights[idx];
+        cap = Math.max(1, Math.ceil(p90 || 1));
+      }
+    }
+    return items.map(s => ({
+      location: new window.naver.maps.LatLng(s.lat, s.lng),
+      weight: Math.max(0, Math.min(cap, Number(s.weight) || 0))
+    }));
+  }, [rescaleMethod]);
+
+  // 히트맵 레이어 생성/업데이트
+  useEffect(() => {
+    if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps || !window.naver.maps.visualization) return;
+
+    // 생성 또는 옵션 업데이트
+    if (showHeatmap) {
+      const data = toWeightedLocations(sinkholes || []);
+      if (!heatmapRef.current) {
+        try {
+          heatmapRef.current = new window.naver.maps.visualization.HeatMap({
+            map: mapInstance.current,
+            data,
+            radius: 18,
+            opacity: 0.75,
+            gradient: heatmapGradient || undefined
+          });
+        } catch (e) {
+          console.error('❌ HeatMap 생성 실패:', e);
+        }
+      } else {
+        try {
+          heatmapRef.current.setData(data);
+          heatmapRef.current.setOptions({ gradient: heatmapGradient || undefined });
+          heatmapRef.current.setMap(mapInstance.current);
+        } catch (e) {
+          console.error('❌ HeatMap 업데이트 실패:', e);
+        }
+      }
+    } else {
+      if (heatmapRef.current) {
+        try { heatmapRef.current.setMap(null); } catch (e) {}
+      }
+    }
+
+    return () => {
+      // 언마운트 시 정리(맵 해제만 수행)
+      if (heatmapRef.current) {
+        try { heatmapRef.current.setMap(null); } catch (e) {}
+      }
+    };
+  }, [isMapReady, sinkholes, showHeatmap, heatmapGradient, rescaleMethod, toWeightedLocations]);
+
+  // 경로 히트밴드(경로 주변 위험 밀도)를 위한 보조 HeatMap
+  useEffect(() => {
+    if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps || !window.naver.maps.visualization) return;
+
+    if (!showRouteHeatband || !route || !route.path || route.path.length === 0) {
+      if (routeHeatbandRef.current) {
+        try { routeHeatbandRef.current.setMap(null); } catch (e) {}
+      }
+      return;
+    }
+
+    // 경로 샘플 포인트 생성 및 주변 싱크홀 밀도로 weight 부여
+    const sampleEveryMeters = 80; // 대략 샘플 간격(튜닝 가능)
+    const radiusKm = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
+    const routePoints = route.path;
+    const samples = [];
+    const toKm = (a, b) => {
+      const R = 6371;
+      const dLat = (b.lat - a.lat) * Math.PI / 180;
+      const dLng = (b.lng - a.lng) * Math.PI / 180;
+      const x = Math.sin(dLat/2) ** 2 + Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLng/2) ** 2;
+      return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+    };
+    const interpolate = (a, b, t) => ({ lat: a.lat + (b.lat - a.lat) * t, lng: a.lng + (b.lng - a.lng) * t });
+
+    for (let i = 0; i < routePoints.length - 1; i++) {
+      const a = routePoints[i];
+      const b = routePoints[i + 1];
+      const distKm = toKm(a, b);
+      const steps = Math.max(1, Math.floor((distKm * 1000) / sampleEveryMeters));
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        samples.push(interpolate(a, b, t));
+      }
+    }
+
+    const densityAt = (p) => {
+      let sum = 0;
+      for (const sh of sinkholes || []) {
+        const d = toKm(p, { lat: sh.lat, lng: sh.lng });
+        if (d <= radiusKm) {
+          const w = Number(sh.weight) || 0;
+          // 거리 기반 감쇠 (선형)
+          const atten = Math.max(0, 1 - (d / radiusKm));
+          sum += w * atten;
+        }
+      }
+      return sum;
+    };
+
+    const densities = samples.map(p => ({ p, val: densityAt(p) }));
+    const maxVal = densities.reduce((m, x) => Math.max(m, x.val), 0) || 1;
+    const data = densities.map(({ p, val }) => ({
+      location: new window.naver.maps.LatLng(p.lat, p.lng),
+      weight: Math.max(0, Math.min(maxVal, Math.round(val)))
+    }));
+
+    if (!routeHeatbandRef.current) {
+      try {
+        routeHeatbandRef.current = new window.naver.maps.visualization.HeatMap({
+          map: mapInstance.current,
+          data,
+          radius: 12,
+          opacity: 0.55,
+          gradient: heatmapGradient || undefined
+        });
+      } catch (e) {
+        console.error('❌ Route Heatband 생성 실패:', e);
+      }
+    } else {
+      try {
+        routeHeatbandRef.current.setData(data);
+        routeHeatbandRef.current.setOptions({ gradient: heatmapGradient || undefined });
+        routeHeatbandRef.current.setMap(mapInstance.current);
+      } catch (e) {
+        console.error('❌ Route Heatband 업데이트 실패:', e);
+      }
+    }
+
+    return () => {
+      if (routeHeatbandRef.current && !showRouteHeatband) {
+        try { routeHeatbandRef.current.setMap(null); } catch (e) {}
+      }
+    };
+  }, [isMapReady, route, sinkholes, showRouteHeatband, heatmapGradient, inspectionRadiusKm]);
 
   // 싱크홀 마커 표시
   useEffect(() => {
@@ -364,16 +550,16 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
               <p style="margin: 0 0 5px 0; font-weight: bold;">${sinkhole.name}</p>
               <p style="margin: 0 0 5px 0; font-size: 12px; color: #666;">${sinkhole.address || ''}</p>
               ${sinkhole.totalOccurrences > 1 ? `
-                <p style=\"margin: 0 0 5px 0; font-size: 12px; color: #d32f2f; font-weight: bold;\">
+                <p style="margin: 0 0 5px 0; font-size: 12px; color: #d32f2f; font-weight: bold;">
                   🔄 ${sinkhole.totalOccurrences}회 반복 발생
                 </p>
               ` : ''}
-              ${sizeLabel ? `<p style=\"margin: 0 0 5px 0; font-size: 12px; color: #555;\">${sizeLabel}</p>` : ''}
-              ${damageLabel ? `<p style=\"margin: 0 0 5px 0; font-size: 12px; color: #b71c1c;\">${damageLabel}</p>` : ''}
+              ${sizeLabel ? `<p style="margin: 0 0 5px 0; font-size: 12px; color: #555;">${sizeLabel}</p>` : ''}
+              ${damageLabel ? `<p style="margin: 0 0 5px 0; font-size: 12px; color: #b71c1c;">${damageLabel}</p>` : ''}
               <p style="margin: 0 0 5px 0; font-size: 12px; color: #1976d2; font-weight: bold;">
                 위험도: ${sinkhole.weight?.toFixed(1) || 'N/A'} (우선순위: ${sinkhole.priority || 'N/A'})
               </p>
-              ${sinkhole.description ? `<p style=\"margin: 0; font-size: 12px; color: #888;\">${sinkhole.description}</p>` : ''}
+              ${sinkhole.description ? `<p style="margin: 0; font-size: 12px; color: #888;">${sinkhole.description}</p>` : ''}
             </div>
           `
         });
@@ -620,10 +806,36 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
   return (
     <div 
       ref={mapRef} 
-      style={{ width: '100%', height: '100%' }}
-    />
+      style={{ width: '100%', height: '100%', position: 'relative' }}
+    >
+      {showHeatmap && Array.isArray(heatmapGradient) && heatmapGradient.length > 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            right: 12,
+            bottom: 12,
+            background: 'rgba(255,255,255,0.95)',
+            borderRadius: 8,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            zIndex: 10000,
+            pointerEvents: 'auto'
+          }}
+        >
+          <HeatmapLegend
+            gradient={heatmapGradient}
+            min={Number(legendMin ?? 0)}
+            max={Number(legendMax ?? 10)}
+            title="위험도"
+            barWidth={320}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 
 export default Map;
+
+
+
 

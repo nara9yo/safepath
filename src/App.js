@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import MapView from './components/Map';
 import RouteSearch from './components/RouteSearch';
 import ModeToggle from './components/ModeToggle';
+import { getGradientByName } from './utils/heatmapPresets';
 import RouteDisplay from './components/RouteDisplay';
 import SinkholeList from './components/SinkholeList';
 import RiskFilter from './components/RiskFilter';
@@ -33,6 +34,10 @@ function App() {
   
   // 위험도 필터 상태
   const [selectedRiskLevels, setSelectedRiskLevels] = useState(['low', 'medium', 'high', 'critical']);
+  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [heatmapPreset, setHeatmapPreset] = useState('severity');
+  const [showRouteHeatband, setShowRouteHeatband] = useState(false);
+  const [rescaleMethod, setRescaleMethod] = useState('p90');
 
   // 지역 필터 및 위험도 필터 적용
   const filteredSinkholes = useMemo(() => {
@@ -80,6 +85,15 @@ function App() {
     // 싱크홀 목록 탭에서는 지역 필터 + 위험도 필터 모두 적용
     return filteredSinkholes;
   }, [activeTab, sinkholes, filteredSinkholes, selectedRiskLevels]);
+
+  // 히트맵 범례용 min/max (weight 기준)
+  const legendDomain = useMemo(() => {
+    const arr = (displayedSinkholes || []).map(s => Number(s.weight) || 0).filter(Number.isFinite);
+    if (!arr.length) return { min: 0, max: 10 };
+    const min = Math.min(...arr);
+    const max = Math.max(...arr);
+    return { min: Math.floor(min), max: Math.ceil(max) };
+  }, [displayedSinkholes]);
 
   // 지도 인스턴스 설정
   const handleMapReady = useCallback((mapInstance) => {
@@ -514,6 +528,14 @@ function App() {
                 onModeChange={setMode}
                 inspectionRadiusKm={inspectionRadiusKm}
                 onInspectionRadiusChange={setInspectionRadiusKm}
+                showHeatmap={showHeatmap}
+                onShowHeatmapChange={setShowHeatmap}
+                heatmapPreset={heatmapPreset}
+                onHeatmapPresetChange={setHeatmapPreset}
+                showRouteHeatband={showRouteHeatband}
+                onShowRouteHeatbandChange={setShowRouteHeatband}
+                rescaleMethod={rescaleMethod}
+                onRescaleMethodChange={setRescaleMethod}
               />
               <RiskFilter
                 selectedRiskLevels={selectedRiskLevels}
@@ -568,6 +590,12 @@ function App() {
           activeTab={activeTab}
           startPoint={startPoint}
           endPoint={endPoint}
+          showHeatmap={showHeatmap}
+          heatmapGradient={getGradientByName(heatmapPreset)}
+          showRouteHeatband={showRouteHeatband}
+          rescaleMethod={rescaleMethod}
+          legendMin={legendDomain.min}
+          legendMax={legendDomain.max}
         />
       </div>
     </div>
