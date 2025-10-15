@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import MapView from './components/Map';
 import RouteSearch from './components/RouteSearch';
 import ModeToggle from './components/ModeToggle';
@@ -23,6 +23,45 @@ function App() {
   const [baseDirectionsRoute, setBaseDirectionsRoute] = useState(null); // Directions 원본 캐시
   const forcedSinkholeIdsRef = useRef(new Set()); // 반경 축소 시에도 유지할 싱크홀 캐시
   const radiusCacheRef = useRef(new Map()); // 반경별 경로 캐시
+  
+  // 지역 필터 상태
+  const [selectedSido, setSelectedSido] = useState('');
+  const [selectedSigungu, setSelectedSigungu] = useState('');
+  const [selectedDong, setSelectedDong] = useState('');
+
+  // 지역 필터 적용
+  const filteredSinkholes = useMemo(() => {
+    if (!sinkholes) return [];
+    
+    let result = sinkholes;
+    
+    if (selectedSido) {
+      result = result.filter(s => s.sido === selectedSido);
+    }
+    if (selectedSigungu) {
+      result = result.filter(s => s.sigungu === selectedSigungu);
+    }
+    if (selectedDong) {
+      result = result.filter(s => s.dong === selectedDong);
+    }
+    
+    return result;
+  }, [sinkholes, selectedSido, selectedSigungu, selectedDong]);
+
+  // 필터 변경 시 캐시 초기화
+  useEffect(() => {
+    radiusCacheRef.current = new Map();
+  }, [selectedSido, selectedSigungu, selectedDong]);
+
+  // 지도에 표시할 싱크홀 (탭에 따라 다르게)
+  const displayedSinkholes = useMemo(() => {
+    // 경로 검색 탭에서는 모든 싱크홀 표시
+    if (activeTab === 'route') {
+      return sinkholes;
+    }
+    // 싱크홀 목록 탭에서는 필터링된 싱크홀만 표시
+    return filteredSinkholes;
+  }, [activeTab, sinkholes, filteredSinkholes]);
 
   // 지도 인스턴스 설정
   const handleMapReady = useCallback((mapInstance) => {
@@ -128,7 +167,8 @@ function App() {
           const name = `#${sagoNo || index + 1} 싱크홀`;
           const siDo = row.siDo || row.sido || row.SIDO;
           const siGunGu = row.siGunGu || row.sigungu || row.SIGUNGU;
-          const addressParts = [siDo, siGunGu, row.dong, row.addr].filter(Boolean);
+          const dong = row.dong || row.DONG;
+          const addressParts = [siDo, siGunGu, dong, row.addr].filter(Boolean);
           const address = addressParts.join(' ');
           const sizeW = row.sinkWidth ?? row.SINKWIDTH;
           const sizeE = row.sinkExtend ?? row.SINKEXTEND;
@@ -152,7 +192,10 @@ function App() {
             lng: Number.isFinite(lng) ? lng : 0,
             name,
             description,
-            address
+            address,
+            sido: siDo || '',
+            sigungu: siGunGu || '',
+            dong: dong || ''
           };
         };
 
@@ -247,7 +290,7 @@ function App() {
       radiusCacheRef.current = new Map(); // 반경 캐시 초기화
       
       if (mode === 'normal') {
-        // 일반 모드: 싱크홀 감지 후 우회 경로 제공
+        // 일반 모드: 싱크홀 감지 후 우회 경로 제공 (전체 싱크홀 대상)
         const detectedSinkholes = detectSinkholesOnRoute(route.path, sinkholes, 0.05); // 50m = 0.05km
         
         if (detectedSinkholes.length > 0) {
@@ -267,7 +310,7 @@ function App() {
           });
         }
       } else {
-        // 안전점검 모드: Directions 경로를 유지하되, 근접 싱크홀을 path 중간에 삽입하여 부드러움을 유지
+        // 안전점검 모드: Directions 경로를 유지하되, 근접 싱크홀을 path 중간에 삽입하여 부드러움을 유지 (전체 싱크홀 대상)
         const radius = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
         const { path: injectedPath, detectedSinkholes } = injectSinkholesIntoPath(
           route.path,
@@ -302,7 +345,7 @@ function App() {
     }
   };
 
-  // 반경 변경 시 API 재호출 없이 캐시 기반으로 재계산
+  // 반경 변경 시 API 재호출 없이 캐시 기반으로 재계산 (전체 싱크홀 대상)
   useEffect(() => {
     if (mode !== 'inspection') return;
     if (!baseDirectionsRoute) return;
@@ -452,6 +495,12 @@ function App() {
               sinkholes={sinkholes}
               selectedSinkhole={selectedSinkhole}
               onSinkholeClick={handleSinkholeClick}
+              selectedSido={selectedSido}
+              selectedSigungu={selectedSigungu}
+              selectedDong={selectedDong}
+              onSidoChange={setSelectedSido}
+              onSigunguChange={setSelectedSigungu}
+              onDongChange={setSelectedDong}
             />
           )}
         </div>
@@ -459,7 +508,7 @@ function App() {
 
       <div className="map-container">
         <MapView
-          sinkholes={sinkholes}
+          sinkholes={displayedSinkholes}
           selectedSinkhole={selectedSinkhole}
           route={route}
           onLocationSelect={handleLocationSelect}
