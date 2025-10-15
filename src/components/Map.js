@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
 const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady, selectedInputType, inspectionRadiusKm, activeTab, startPoint, endPoint }) => {
   const mapRef = useRef(null);
@@ -240,6 +241,58 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
 
       try {
         const position = new window.naver.maps.LatLng(sinkhole.lat, sinkhole.lng);
+        
+        // 가중치에 따른 시각적 스타일 가져오기
+        const visualStyle = getSinkholeVisualStyle(sinkhole);
+        
+        // 펄스 애니메이션을 위한 CSS 스타일 (더 강한 효과)
+        const pulseAnimation = visualStyle.pulse ? `
+          @keyframes pulse {
+            0% { 
+              transform: scale(1); 
+              opacity: ${visualStyle.opacity}; 
+              box-shadow: ${visualStyle.shadow || '0 2px 6px rgba(0,0,0,0.3)'};
+            }
+            50% { 
+              transform: scale(1.2); 
+              opacity: 1; 
+              box-shadow: 0 0 20px rgba(255,0,0,0.6), ${visualStyle.shadow || '0 2px 6px rgba(0,0,0,0.3)'};
+            }
+            100% { 
+              transform: scale(1); 
+              opacity: ${visualStyle.opacity}; 
+              box-shadow: ${visualStyle.shadow || '0 2px 6px rgba(0,0,0,0.3)'};
+            }
+          }
+          animation: pulse 1.5s infinite;
+        ` : '';
+        
+        // 고위험 마커를 위한 추가 효과
+        const criticalEffect = visualStyle.riskLevel === 'critical' ? `
+          @keyframes criticalPulse {
+            0% { 
+              transform: scale(1) rotate(0deg); 
+              filter: drop-shadow(${visualStyle.glow || 'none'});
+            }
+            25% { 
+              transform: scale(1.1) rotate(5deg); 
+              filter: drop-shadow(0 0 15px rgba(106,27,154,1));
+            }
+            50% { 
+              transform: scale(1.3) rotate(0deg); 
+              filter: drop-shadow(0 0 20px rgba(106,27,154,1));
+            }
+            75% { 
+              transform: scale(1.1) rotate(-5deg); 
+              filter: drop-shadow(0 0 15px rgba(106,27,154,1));
+            }
+            100% { 
+              transform: scale(1) rotate(0deg); 
+              filter: drop-shadow(${visualStyle.glow || 'none'});
+            }
+          }
+          animation: criticalPulse 2s infinite;
+        ` : '';
 
         const marker = new window.naver.maps.Marker({
           position,
@@ -247,20 +300,80 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
           title: sinkhole.name,
           icon: {
             content: `
-              <div style="width:24px;height:24px;border-radius:50%;background:#e74c3c;border:2px solid #c0392b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;">!</div>
+              <div style="
+                width: ${visualStyle.size}px;
+                height: ${visualStyle.size}px;
+                border-radius: 50%;
+                background: ${visualStyle.color};
+                border: ${visualStyle.borderWidth}px solid ${visualStyle.borderColor};
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: ${Math.max(12, visualStyle.size * 0.5)}px;
+                box-shadow: ${visualStyle.shadow || '0 2px 6px rgba(0,0,0,0.3)'};
+                opacity: ${visualStyle.opacity};
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                ${visualStyle.glow && visualStyle.glow !== 'none' ? `filter: drop-shadow(${visualStyle.glow});` : ''}
+                ${pulseAnimation}
+                ${criticalEffect}
+              ">
+                ${visualStyle.icon}
+              </div>
             `,
-            anchor: new window.naver.maps.Point(12, 12)
+            anchor: new window.naver.maps.Point(visualStyle.size / 2, visualStyle.size / 2)
           },
-          zIndex: 100
+          zIndex: visualStyle.riskLevel === 'critical' ? 300 : 
+                 visualStyle.riskLevel === 'high' ? 250 : 
+                 visualStyle.riskLevel === 'medium' ? 200 : 150
         });
+
+        // 위험도에 따른 인포윈도우 색상
+        const riskColorMap = {
+          low: '#4CAF50',
+          medium: '#FF9800', 
+          high: '#F44336',
+          critical: '#9C27B0'
+        };
+        const effectiveRiskLevel = sinkhole.riskLevel || visualStyle.riskLevel || 'low';
+        const riskColor = riskColorMap[effectiveRiskLevel] || '#e74c3c';
+
+        const sizeLabel = (() => {
+          const w = Number(sinkhole.sinkWidth) || 0;
+          const e = Number(sinkhole.sinkExtend) || 0;
+          const d = Number(sinkhole.sinkDepth) || 0;
+          if (w === 0 && e === 0 && d === 0) return '';
+          return `최대규모: ${w}×${e}×${d}`;
+        })();
+
+        const damageLabel = (() => {
+          const death = Number(sinkhole.deathCnt) || 0;
+          const injury = Number(sinkhole.injuryCnt) || 0;
+          const vehicle = Number(sinkhole.vehicleCnt) || 0;
+          if (death + injury + vehicle === 0) return '';
+          return `피해: 사망 ${death} · 부상 ${injury} · 차량 ${vehicle}`;
+        })();
 
         const infoWindow = new window.naver.maps.InfoWindow({
           content: `
-            <div style="padding: 10px; min-width: 200px;">
-              <h4 style="margin: 0 0 5px 0; color: #e74c3c;">⚠️ 싱크홀</h4>
+            <div style="padding: 10px; min-width: 250px;">
+              <h4 style="margin: 0 0 5px 0; color: ${riskColor};">
+                ${visualStyle.icon} 싱크홀 (${String(effectiveRiskLevel).toUpperCase()})
+              </h4>
               <p style="margin: 0 0 5px 0; font-weight: bold;">${sinkhole.name}</p>
               <p style="margin: 0 0 5px 0; font-size: 12px; color: #666;">${sinkhole.address || ''}</p>
-              ${sinkhole.description ? `<p style="margin: 0; font-size: 12px; color: #888;">${sinkhole.description}</p>` : ''}
+              ${sinkhole.totalOccurrences > 1 ? `
+                <p style=\"margin: 0 0 5px 0; font-size: 12px; color: #d32f2f; font-weight: bold;\">
+                  🔄 ${sinkhole.totalOccurrences}회 반복 발생
+                </p>
+              ` : ''}
+              ${sizeLabel ? `<p style=\"margin: 0 0 5px 0; font-size: 12px; color: #555;\">${sizeLabel}</p>` : ''}
+              ${damageLabel ? `<p style=\"margin: 0 0 5px 0; font-size: 12px; color: #b71c1c;\">${damageLabel}</p>` : ''}
+              <p style="margin: 0 0 5px 0; font-size: 12px; color: #1976d2; font-weight: bold;">
+                위험도: ${sinkhole.weight?.toFixed(1) || 'N/A'} (우선순위: ${sinkhole.priority || 'N/A'})
+              </p>
+              ${sinkhole.description ? `<p style=\"margin: 0; font-size: 12px; color: #888;\">${sinkhole.description}</p>` : ''}
             </div>
           `
         });

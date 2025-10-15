@@ -1,6 +1,7 @@
-// 경로상 싱크홀 감지 함수
+// 경로상 싱크홀 감지 함수 (가중치 고려)
 export const detectSinkholesOnRoute = (route, sinkholes, radius = 0.05) => { // 50m = 0.05km
   const detectedSinkholes = [];
+  let totalRiskScore = 0;
   
   console.log('🔍 싱크홀 감지 시작:', { 
     routePoints: route.length, 
@@ -12,27 +13,53 @@ export const detectSinkholesOnRoute = (route, sinkholes, radius = 0.05) => { // 
   for (let i = 0; i < route.length - 1; i++) {
     const start = route[i];
     const end = route[i + 1];
-    
-    sinkholes.forEach(sinkhole => {
+
+    for (let j = 0; j < sinkholes.length; j++) {
+      const sinkhole = sinkholes[j];
       // 싱크홀이 경로 구간 근처에 있는지 확인
       const distance = calculateDistanceToLine(start, end, sinkhole);
-      
+
       if (distance <= radius) {
         // 중복 제거
         if (!detectedSinkholes.find(s => s.id === sinkhole.id)) {
-          console.log('⚠️ 싱크홀 감지:', { 
-            id: sinkhole.id, 
-            name: sinkhole.name, 
-            distance: (distance * 1000).toFixed(1) + 'm' 
+          // 가중치를 고려한 위험도 점수 계산
+          const riskScore = calculateSinkholeRiskScore(sinkhole, distance, radius);
+          totalRiskScore += riskScore;
+
+          console.log('⚠️ 싱크홀 감지:', {
+            id: sinkhole.id,
+            name: sinkhole.name,
+            distance: (distance * 1000).toFixed(1) + 'm',
+            weight: sinkhole.weight || 1,
+            riskScore: riskScore.toFixed(2),
+            riskLevel: sinkhole.riskLevel || 'low'
           });
-          detectedSinkholes.push(sinkhole);
+
+          detectedSinkholes.push({
+            ...sinkhole,
+            riskScore,
+            distanceFromRoute: distance
+          });
         }
       }
-    });
+    }
   }
   
-  console.log('✅ 싱크홀 감지 완료:', detectedSinkholes.length + '개');
-  return detectedSinkholes;
+  // 경로 전체의 위험도 평가
+  const routeRiskLevel = evaluateRouteRiskLevel(totalRiskScore, detectedSinkholes.length);
+  
+  console.log('✅ 싱크홀 감지 완료:', {
+    count: detectedSinkholes.length,
+    totalRiskScore: totalRiskScore.toFixed(2),
+    routeRiskLevel
+  });
+  
+  return {
+    sinkholes: detectedSinkholes,
+    totalRiskScore,
+    routeRiskLevel,
+    riskSummary: generateRiskSummary(detectedSinkholes, totalRiskScore)
+  };
 };
 
 // 점과 선분 사이의 최단 거리 계산
@@ -78,6 +105,99 @@ const calculateDistance = (lat1, lng1, lat2, lng2) => {
             Math.sin(dLng/2) * Math.sin(dLng/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c;
+};
+
+/**
+ * 싱크홀의 위험도 점수를 계산 (거리와 가중치 고려)
+ * @param {Object} sinkhole - 싱크홀 객체
+ * @param {number} distance - 경로로부터의 거리 (km)
+ * @param {number} maxRadius - 최대 감지 반경 (km)
+ * @returns {number} 위험도 점수
+ */
+const calculateSinkholeRiskScore = (sinkhole, distance, maxRadius) => {
+  // 기본 가중치 (발생 횟수, 크기, 피해 등이 반영된 값)
+  const baseWeight = sinkhole.weight || 1;
+  
+  // 거리 가중치 (가까울수록 높은 점수)
+  const distanceWeight = Math.max(0, 1 - (distance / maxRadius));
+  
+  // 위험도 등급별 추가 가중치
+  const riskLevelMultiplier = {
+    'low': 1,
+    'medium': 1.5,
+    'high': 2.5,
+    'critical': 4
+  };
+  
+  const levelMultiplier = riskLevelMultiplier[sinkhole.riskLevel] || 1;
+  
+  // 반복 발생 가중치
+  const occurrenceMultiplier = sinkhole.totalOccurrences > 1 ? 
+    Math.min(1 + (sinkhole.totalOccurrences - 1) * 0.3, 2) : 1;
+  
+  // 최종 위험도 점수
+  const riskScore = baseWeight * distanceWeight * levelMultiplier * occurrenceMultiplier;
+  
+  return Math.round(riskScore * 100) / 100;
+};
+
+/**
+ * 경로 전체의 위험도 등급을 평가
+ * @param {number} totalRiskScore - 총 위험도 점수
+ * @param {number} sinkholeCount - 감지된 싱크홀 수
+ * @returns {string} 위험도 등급
+ */
+const evaluateRouteRiskLevel = (totalRiskScore, sinkholeCount) => {
+  if (sinkholeCount === 0) return 'safe';
+  
+  // 싱크홀 수에 따른 기본 위험도
+  let baseLevel = 'low';
+  if (sinkholeCount >= 5) baseLevel = 'high';
+  else if (sinkholeCount >= 3) baseLevel = 'medium';
+  
+  // 총 위험도 점수에 따른 조정
+  if (totalRiskScore >= 20) return 'critical';
+  if (totalRiskScore >= 10) return 'high';
+  if (totalRiskScore >= 5) return 'medium';
+  
+  return baseLevel;
+};
+
+/**
+ * 위험도 요약 정보 생성
+ * @param {Array} detectedSinkholes - 감지된 싱크홀 배열
+ * @param {number} totalRiskScore - 총 위험도 점수
+ * @returns {Object} 위험도 요약 정보
+ */
+const generateRiskSummary = (detectedSinkholes, totalRiskScore) => {
+  const riskLevelCounts = {
+    low: 0,
+    medium: 0,
+    high: 0,
+    critical: 0
+  };
+  
+  let totalOccurrences = 0;
+  let maxWeight = 0;
+  let closestDistance = Infinity;
+  
+  detectedSinkholes.forEach(sinkhole => {
+    riskLevelCounts[sinkhole.riskLevel] = (riskLevelCounts[sinkhole.riskLevel] || 0) + 1;
+    totalOccurrences += sinkhole.totalOccurrences || 1;
+    maxWeight = Math.max(maxWeight, sinkhole.weight || 1);
+    closestDistance = Math.min(closestDistance, sinkhole.distanceFromRoute || Infinity);
+  });
+  
+  return {
+    totalSinkholes: detectedSinkholes.length,
+    totalOccurrences,
+    totalRiskScore: Math.round(totalRiskScore * 100) / 100,
+    riskLevelCounts,
+    maxWeight: Math.round(maxWeight * 100) / 100,
+    closestDistance: closestDistance === Infinity ? null : Math.round(closestDistance * 1000), // 미터 단위
+    averageRiskScore: detectedSinkholes.length > 0 ? 
+      Math.round((totalRiskScore / detectedSinkholes.length) * 100) / 100 : 0
+  };
 };
 
 // 우회 경로 계산 (POC용)

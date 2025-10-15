@@ -4,7 +4,9 @@ import RouteSearch from './components/RouteSearch';
 import ModeToggle from './components/ModeToggle';
 import RouteDisplay from './components/RouteDisplay';
 import SinkholeList from './components/SinkholeList';
+import RiskFilter from './components/RiskFilter';
 import { detectSinkholesOnRoute, calculateDetourRoute, injectSinkholesIntoPath, computePathDistance } from './utils/routeCalculator';
+import { enhanceSinkholesWithWeight } from './utils/sinkholeAnalyzer';
 import Papa from 'papaparse';
 
 function App() {
@@ -28,13 +30,17 @@ function App() {
   const [selectedSido, setSelectedSido] = useState('');
   const [selectedSigungu, setSelectedSigungu] = useState('');
   const [selectedDong, setSelectedDong] = useState('');
+  
+  // 위험도 필터 상태
+  const [selectedRiskLevels, setSelectedRiskLevels] = useState(['low', 'medium', 'high', 'critical']);
 
-  // 지역 필터 적용
+  // 지역 필터 및 위험도 필터 적용
   const filteredSinkholes = useMemo(() => {
     if (!sinkholes) return [];
     
     let result = sinkholes;
     
+    // 지역 필터 적용
     if (selectedSido) {
       result = result.filter(s => s.sido === selectedSido);
     }
@@ -45,23 +51,35 @@ function App() {
       result = result.filter(s => s.dong === selectedDong);
     }
     
+    // 위험도 필터 적용
+    if (selectedRiskLevels.length > 0) {
+      result = result.filter(s => {
+        const riskLevel = s.riskLevel || 'low';
+        return selectedRiskLevels.includes(riskLevel);
+      });
+    }
+    
     return result;
-  }, [sinkholes, selectedSido, selectedSigungu, selectedDong]);
+  }, [sinkholes, selectedSido, selectedSigungu, selectedDong, selectedRiskLevels]);
 
   // 필터 변경 시 캐시 초기화
   useEffect(() => {
     radiusCacheRef.current = new Map();
-  }, [selectedSido, selectedSigungu, selectedDong]);
+  }, [selectedSido, selectedSigungu, selectedDong, selectedRiskLevels]);
 
   // 지도에 표시할 싱크홀 (탭에 따라 다르게)
   const displayedSinkholes = useMemo(() => {
-    // 경로 검색 탭에서는 모든 싱크홀 표시
+    // 경로 검색 탭에서는 위험도 필터만 적용
     if (activeTab === 'route') {
-      return sinkholes;
+      if (selectedRiskLevels.length === 0) return [];
+      return sinkholes.filter(s => {
+        const riskLevel = s.riskLevel || 'low';
+        return selectedRiskLevels.includes(riskLevel);
+      });
     }
-    // 싱크홀 목록 탭에서는 필터링된 싱크홀만 표시
+    // 싱크홀 목록 탭에서는 지역 필터 + 위험도 필터 모두 적용
     return filteredSinkholes;
-  }, [activeTab, sinkholes, filteredSinkholes]);
+  }, [activeTab, sinkholes, filteredSinkholes, selectedRiskLevels]);
 
   // 지도 인스턴스 설정
   const handleMapReady = useCallback((mapInstance) => {
@@ -195,7 +213,15 @@ function App() {
             address,
             sido: siDo || '',
             sigungu: siGunGu || '',
-            dong: dong || ''
+            dong: dong || '',
+            // 원시 크기 값 보존 (클러스터 가중치/표시에 활용)
+            sinkWidth: Number(sizeW) || 0,
+            sinkExtend: Number(sizeE) || 0,
+            sinkDepth: Number(sizeD) || 0,
+            // 피해 지표를 가중치 계산에 활용하기 위해 보존
+            deathCnt: Number(death) || 0,
+            injuryCnt: Number(injury) || 0,
+            vehicleCnt: Number(vehicle) || 0
           };
         };
 
@@ -203,7 +229,15 @@ function App() {
           .map(toSinkhole)
           .filter(item => item.lat !== 0 && item.lng !== 0);
 
-        setSinkholes(mapped);
+        // 싱크홀 가중치 분석 및 클러스터링 적용
+        const enhancedSinkholes = enhanceSinkholesWithWeight(mapped, 0.01); // 10m 반경으로 클러스터링
+        console.log('🔍 싱크홀 분석 완료:', {
+          원본: mapped.length,
+          클러스터: enhancedSinkholes.length,
+          고위험: enhancedSinkholes.filter(s => s.riskLevel === 'critical' || s.riskLevel === 'high').length
+        });
+        
+        setSinkholes(enhancedSinkholes);
       } catch (e) {
         console.error('CSV 로드 실패:', e);
         setError('싱크홀 데이터를 불러오는 중 오류가 발생했습니다.');
@@ -292,22 +326,28 @@ function App() {
       if (mode === 'normal') {
         // 일반 모드: 싱크홀 감지 후 우회 경로 제공 (전체 싱크홀 대상, 근거리 기준 적용)
         const radius = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
-        const detectedSinkholes = detectSinkholesOnRoute(route.path, sinkholes, radius);
+        const detectionResult = detectSinkholesOnRoute(route.path, sinkholes, radius);
         
-        if (detectedSinkholes.length > 0) {
+        if (detectionResult.sinkholes.length > 0) {
           // 싱크홀이 발견되면 우회 경로 계산
-          const detourRoute = calculateDetourRoute(start, end, detectedSinkholes);
+          const detourRoute = calculateDetourRoute(start, end, detectionResult.sinkholes);
           setRoute({
             ...detourRoute,
             originalRoute: route,
-            detectedSinkholes: detectedSinkholes,
-            hasSinkholes: true
+            detectedSinkholes: detectionResult.sinkholes,
+            hasSinkholes: true,
+            totalRiskScore: detectionResult.totalRiskScore,
+            routeRiskLevel: detectionResult.routeRiskLevel,
+            riskSummary: detectionResult.riskSummary
           });
         } else {
           // 싱크홀이 없으면 기본 경로 사용
           setRoute({
             ...route,
-            hasSinkholes: false
+            hasSinkholes: false,
+            totalRiskScore: 0,
+            routeRiskLevel: 'safe',
+            riskSummary: { totalSinkholes: 0, totalOccurrences: 0, totalRiskScore: 0 }
           });
         }
       } else {
@@ -475,6 +515,11 @@ function App() {
                 inspectionRadiusKm={inspectionRadiusKm}
                 onInspectionRadiusChange={setInspectionRadiusKm}
               />
+              <RiskFilter
+                selectedRiskLevels={selectedRiskLevels}
+                onRiskLevelChange={setSelectedRiskLevels}
+                sinkholes={sinkholes}
+              />
               <RouteSearch
                 startPoint={startPoint}
                 endPoint={endPoint}
@@ -492,17 +537,21 @@ function App() {
             </>
           )}
           {activeTab === 'sinkhole' && (
-            <SinkholeList
-              sinkholes={sinkholes}
-              selectedSinkhole={selectedSinkhole}
-              onSinkholeClick={handleSinkholeClick}
-              selectedSido={selectedSido}
-              selectedSigungu={selectedSigungu}
-              selectedDong={selectedDong}
-              onSidoChange={setSelectedSido}
-              onSigunguChange={setSelectedSigungu}
-              onDongChange={setSelectedDong}
-            />
+            <>
+              <SinkholeList
+                sinkholes={sinkholes}
+                selectedSinkhole={selectedSinkhole}
+                onSinkholeClick={handleSinkholeClick}
+                selectedSido={selectedSido}
+                selectedSigungu={selectedSigungu}
+                selectedDong={selectedDong}
+                onSidoChange={setSelectedSido}
+                onSigunguChange={setSelectedSigungu}
+                onDongChange={setSelectedDong}
+                selectedRiskLevels={selectedRiskLevels}
+                onRiskLevelChange={setSelectedRiskLevels}
+              />
+            </>
           )}
         </div>
       </div>
@@ -526,4 +575,3 @@ function App() {
 }
 
 export default App;
-
