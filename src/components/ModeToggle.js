@@ -23,24 +23,27 @@ const ModeToggle = ({ mode, onModeChange, inspectionRadiusKm, onInspectionRadius
         }
       </div>
 
-      {mode === 'inspection' && (
-        <div className="inspection-radius" style={{ marginTop: 12 }}>
-          <label htmlFor="inspection-radius" style={{ display: 'block', marginBottom: 6 }}>
-            근거리 기준: {radiusMeters}m
-          </label>
-          <input
-            id="inspection-radius"
-            type="range"
-            min={0.01}
-            max={0.2}
-            step={0.01}
-            value={Number(inspectionRadiusKm || 0)}
-            onChange={(e) => onInspectionRadiusChange(Number(e.target.value))}
-            style={{ width: '100%' }}
-          />
-          <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>10m ~ 200m</div>
+      <div className="inspection-radius" style={{ marginTop: 12 }}>
+        <label htmlFor="inspection-radius" style={{ display: 'block', marginBottom: 6 }}>
+          근거리 기준: {radiusMeters}m
+        </label>
+        <input
+          id="inspection-radius"
+          type="range"
+          min={0.01}
+          max={0.2}
+          step={0.01}
+          value={Number(inspectionRadiusKm || 0)}
+          onChange={(e) => onInspectionRadiusChange(Number(e.target.value))}
+          style={{ width: '100%' }}
+        />
+        <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+          {mode === 'normal' 
+            ? '10m ~ 200m (싱크홀 감지 범위)' 
+            : '10m ~ 200m'
+          }
         </div>
-      )}
+      </div>
     </div>
   );
 };

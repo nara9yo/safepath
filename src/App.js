@@ -290,8 +290,9 @@ function App() {
       radiusCacheRef.current = new Map(); // 반경 캐시 초기화
       
       if (mode === 'normal') {
-        // 일반 모드: 싱크홀 감지 후 우회 경로 제공 (전체 싱크홀 대상)
-        const detectedSinkholes = detectSinkholesOnRoute(route.path, sinkholes, 0.05); // 50m = 0.05km
+        // 일반 모드: 싱크홀 감지 후 우회 경로 제공 (전체 싱크홀 대상, 근거리 기준 적용)
+        const radius = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
+        const detectedSinkholes = detectSinkholesOnRoute(route.path, sinkholes, radius);
         
         if (detectedSinkholes.length > 0) {
           // 싱크홀이 발견되면 우회 경로 계산
@@ -515,6 +516,9 @@ function App() {
           onMapReady={handleMapReady}
           selectedInputType={selectedInputType}
           inspectionRadiusKm={inspectionRadiusKm}
+          activeTab={activeTab}
+          startPoint={startPoint}
+          endPoint={endPoint}
         />
       </div>
     </div>
