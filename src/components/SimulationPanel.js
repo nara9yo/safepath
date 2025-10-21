@@ -497,12 +497,10 @@ const SimulationPanel = ({
                   const riskInfo = getRiskInfo(sinkhole.riskLevel, sinkhole.risk);
                   const subwayInfo = getSubwayInfluenceInfo(sinkhole.subwayInfluenceLevel || 'none');
                   
-                  // 기본 상태에서는 싱크홀 목록과 동일한 방식으로 표시
-                  // 시뮬레이션에서는 싱크홀 목록과 동일한 데이터 사용
-                  const baseWeight = parseFloat(sinkhole.originalWeight) || 0;
-                  const subwayWeight = parseFloat(sinkhole.subwayWeight) || 0;
                   const totalWeight = sinkhole.risk;
-                  const subwayContribution = subwayWeight; // 지하철 영향 가중치
+                  // 위험도 계산 로직을 시뮬레이션 결과에 맞게 단순화
+                  const baseWeight = totalWeight - (sinkhole.subwayWeight || 0);
+                  const subwayContribution = sinkhole.subwayWeight || 0;
                   
                   // 지하철 거리 정보 (천 단위 콤마 적용)
                   const subwayDistance = sinkhole.subwayDistance ? 

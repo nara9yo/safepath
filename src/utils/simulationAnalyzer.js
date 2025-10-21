@@ -1,13 +1,10 @@
-import {
-  getRiskLevelFromWeight,
-  RISK_CALCULATION_THRESHOLDS
-} from './constants';
+import { getRiskLevelFromWeight, RISK_CALCULATION_THRESHOLDS } from './constants';
 
 // 시뮬레이션 파라미터 기본값 (기본 상태에서는 기존 로직과 동일한 결과를 위해 1.0으로 설정)
 export const SIMULATION_DEFAULTS = {
   SINKHOLE: {
-    SIZE_WEIGHT_MULTIPLIER: 1.0,
-    DAMAGE_WEIGHT_MULTIPLIER: 1.0,
+    SIZE_WEIGHT_MULTIPLIER: 3.0,
+    DAMAGE_WEIGHT_MULTIPLIER: 3.0,
     TIME_WEIGHT_MULTIPLIER: 1.0,
     FREQUENCY_WEIGHT_MULTIPLIER: 1.0
   },
@@ -142,32 +139,19 @@ export const generateSimulationData = (sinkholes, subwayStations, sinkholeParams
     const subwayInfluenceWeight = calculateSimulationSubwayWeight(minDistance, subwayParams);
     const subwayInfluenceLevel = getSubwayInfluenceLevel(minDistance, subwayParams);
     
+    // 항상 재계산을 수행하여 일관성을 보장
+    const sizeWeight = calculateSizeWeight(sinkhole);
+    const damageWeight = calculateDamageWeight(sinkhole);
+    const timeWeight = calculateTimeWeight(sinkhole);
+    const frequencyWeight = calculateFrequencyWeight(sinkhole);
     
-    // 기본 상태에서는 기존 weight 사용 (이미 지하철 영향이 포함된 값)
-    let finalWeight = sinkhole.weight || 0;
-    
-    // 파라미터가 기본값(1.0)이 아닌 경우에만 재계산
-    const isDefaultParams = 
-      sinkholeParams.SIZE_WEIGHT_MULTIPLIER === 1.0 &&
-      sinkholeParams.DAMAGE_WEIGHT_MULTIPLIER === 1.0 &&
-      sinkholeParams.TIME_WEIGHT_MULTIPLIER === 1.0 &&
-      sinkholeParams.FREQUENCY_WEIGHT_MULTIPLIER === 1.0;
-    
-    if (!isDefaultParams) {
-      // 파라미터가 변경된 경우에만 재계산
-      const sizeWeight = calculateSizeWeight(sinkhole);
-      const damageWeight = calculateDamageWeight(sinkhole);
-      const timeWeight = calculateTimeWeight(sinkhole);
-      const frequencyWeight = calculateFrequencyWeight(sinkhole);
-      
-      let baseWeight = 1;
-      finalWeight = baseWeight * 
-        (1 + sizeWeight * sinkholeParams.SIZE_WEIGHT_MULTIPLIER + 
-         damageWeight * sinkholeParams.DAMAGE_WEIGHT_MULTIPLIER) * 
-        timeWeight * sinkholeParams.TIME_WEIGHT_MULTIPLIER * 
-        frequencyWeight * sinkholeParams.FREQUENCY_WEIGHT_MULTIPLIER + 
-        subwayInfluenceWeight;
-    }
+    let baseWeight = 1;
+    const finalWeight = baseWeight * 
+      (1 + sizeWeight * sinkholeParams.SIZE_WEIGHT_MULTIPLIER + 
+       damageWeight * sinkholeParams.DAMAGE_WEIGHT_MULTIPLIER) * 
+      timeWeight * sinkholeParams.TIME_WEIGHT_MULTIPLIER * 
+      frequencyWeight * sinkholeParams.FREQUENCY_WEIGHT_MULTIPLIER + 
+      subwayInfluenceWeight;
     
     const riskLevel = getRiskLevelFromWeight(finalWeight);
     
@@ -181,8 +165,8 @@ export const generateSimulationData = (sinkholes, subwayStations, sinkholeParams
       subwayInfluenceLevel,
       subwayDistance: minDistance,
       // 싱크홀 목록과 동일한 표시를 위한 정보 추가
-      originalWeight: sinkhole.originalWeight || 0,
-      subwayWeight: sinkhole.subwayWeight || 0
+      originalWeight: sinkhole.originalWeight,
+      subwayWeight: sinkhole.subwayWeight
     };
   }).filter(s => s.finalWeight !== undefined && !isNaN(s.finalWeight) && isFinite(s.finalWeight));
 };
@@ -211,7 +195,8 @@ export const calculateTopRiskSinkholes = (simulationData) => {
         subwayInfluenceLevel: sinkhole.subwayInfluenceLevel,
         subwayDistance: sinkhole.subwayDistance,
         maxSize: maxSizeText,
-        date: sinkhole.sagoDate || sinkhole.사고일시 || '알수없음'
+        date: sinkhole.sagoDate || sinkhole.사고일시 || '알수없음',
+        subwayWeight: sinkhole.subwayWeight || 0 // subwayWeight는 계속 전달
       };
     })
     .sort((a, b) => b.risk - a.risk)
