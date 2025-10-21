@@ -35,7 +35,7 @@ export const clusterSinkholes = (sinkholes, clusterRadius = 0.01) => {
     if (processed.has(index)) return;
     
     const cluster = {
-      id: `cluster_${sinkhole.id || index}`,
+      id: `${sinkhole.id || index}`,
       occurrences: [sinkhole],
       centerLat: sinkhole.lat,
       centerLng: sinkhole.lng,

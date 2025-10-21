@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import HeatmapLegend from './HeatmapLegend';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
-const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGradient, legendMin, legendMax, mapType: externalMapType = 'terrain' }) => {
+const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, markerRiskFilter = 'all', showHeatmap, heatmapGradient, legendMin, legendMax, mapType: externalMapType = 'terrain' }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
@@ -11,6 +11,37 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
   const isMovingRef = useRef(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapType, setMapType] = useState(externalMapType);
+
+  // 위험도 필터링 함수
+  const filterSinkholesByRisk = useCallback((sinkholes, riskFilter) => {
+    if (!sinkholes || riskFilter === 'all') return sinkholes;
+    
+    // 실제 데이터 범위 계산
+    const weights = sinkholes.map(s => Number(s.weight) || 0).filter(Number.isFinite);
+    if (weights.length === 0) return sinkholes;
+    
+    const min = Math.min(...weights);
+    const max = Math.max(...weights);
+    const rangeSize = max - min;
+    const quarterRange = rangeSize / 4;
+    
+    return sinkholes.filter(sinkhole => {
+      const weight = sinkhole.weight || 0;
+      
+      switch (riskFilter) {
+        case 'low':
+          return weight >= min && weight < (min + quarterRange);
+        case 'medium':
+          return weight >= (min + quarterRange) && weight < (min + quarterRange * 2);
+        case 'high':
+          return weight >= (min + quarterRange * 2) && weight < (min + quarterRange * 3);
+        case 'critical':
+          return weight >= (min + quarterRange * 3) && weight <= max;
+        default:
+          return true;
+      }
+    });
+  }, []);
 
   // 지도 유형 변경 핸들러
   const handleMapTypeChange = useCallback((newMapType) => {
@@ -124,12 +155,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
 
         // idle 이벤트로 준비 완료 감지
         const idleListener = window.naver.maps.Event.addListener(mapInstance.current, 'idle', () => {
-          console.log('📍 idle 이벤트 발생');
-          // 이동 종료 시 히트맵 복원
-          isMovingRef.current = false;
-          if (heatmapRef.current && showHeatmap) {
-            try { heatmapRef.current.setMap(mapInstance.current); } catch (e) {}
-          }
+          console.log('📍 idle 이벤트 발생 - 지도 준비 완료');
           setMapAsReady();
           window.naver.maps.Event.removeListener(idleListener);
         });
@@ -202,7 +228,10 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
         try {
           heatmapRef.current.setData(data);
           heatmapRef.current.setOptions({ gradient: heatmapGradient || undefined });
-          heatmapRef.current.setMap(mapInstance.current);
+          // 지도 이동 중이 아닐 때만 히트맵을 지도에 표시
+          if (!isMovingRef.current) {
+            heatmapRef.current.setMap(mapInstance.current);
+          }
         } catch (e) {
           console.error('❌ HeatMap 업데이트 실패:', e);
         }
@@ -221,6 +250,27 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
     };
   }, [isMapReady, sinkholes, showHeatmap, heatmapGradient, toWeightedLocations]);
 
+  // 지도 이동 종료 시 히트맵 복원
+  useEffect(() => {
+    if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps) return;
+
+    const idleListener = window.naver.maps.Event.addListener(mapInstance.current, 'idle', () => {
+      console.log('📍 idle 이벤트 발생 - 히트맵 복원 체크');
+      isMovingRef.current = false;
+      if (heatmapRef.current && showHeatmap) {
+        try { 
+          heatmapRef.current.setMap(mapInstance.current);
+          console.log('✅ 히트맵 복원 완료');
+        } catch (e) {
+          console.error('❌ 히트맵 복원 실패:', e);
+        }
+      }
+    });
+
+    return () => {
+      window.naver.maps.Event.removeListener(idleListener);
+    };
+  }, [isMapReady, showHeatmap]);
 
   // 싱크홀 마커 표시
   useEffect(() => {
@@ -247,15 +297,23 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
     markersRef.current = [];
     infoWindowsRef.current = [];
 
+    // 마커 표시가 비활성화된 경우 마커를 생성하지 않음
+    if (!showMarkers) {
+      console.log('ℹ️ 마커 표시 비활성화됨');
+      return;
+    }
+
     if (!sinkholes || sinkholes.length === 0) {
       console.log('ℹ️ 표시할 싱크홀 없음');
       return;
     }
 
-    console.log(`📍 ${sinkholes.length}개 싱크홀 마커 생성 중...`);
+    // 위험도 필터 적용
+    const filteredSinkholes = filterSinkholesByRisk(sinkholes, markerRiskFilter);
+    console.log(`📍 ${filteredSinkholes.length}개 싱크홀 마커 생성 중... (필터: ${markerRiskFilter})`);
     let createdCount = 0;
 
-    sinkholes.forEach((sinkhole) => {
+    filteredSinkholes.forEach((sinkhole) => {
       if (!Number.isFinite(sinkhole.lat) || !Number.isFinite(sinkhole.lng)) {
         console.warn('⚠️ 유효하지 않은 좌표:', sinkhole);
         return;
@@ -316,6 +374,35 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
           animation: criticalPulse 2s infinite;
         ` : '';
 
+        // 히트맵 위험도에 따른 마커 색상 계산
+        const getHeatmapColor = (weight) => {
+          // weight 값에 따라 0-1 사이의 정규화된 값 계산
+          const normalizedWeight = Math.min(Math.max((weight || 0) / 10, 0), 1);
+          
+          // 히트맵과 동일한 색상 그라데이션 적용
+          if (normalizedWeight < 0.25) {
+            // 낮음: 녹색 계열
+            const intensity = normalizedWeight / 0.25;
+            return `rgba(${76 + (255-76) * intensity}, ${175 + (255-175) * intensity}, ${80 + (255-80) * intensity}, 0.7)`;
+          } else if (normalizedWeight < 0.5) {
+            // 중간: 노란색 계열
+            const intensity = (normalizedWeight - 0.25) / 0.25;
+            return `rgba(255, ${152 + (255-152) * intensity}, 0, 0.7)`;
+          } else if (normalizedWeight < 0.75) {
+            // 높음: 주황색 계열
+            const intensity = (normalizedWeight - 0.5) / 0.25;
+            return `rgba(255, ${152 - 152 * intensity}, 0, 0.7)`;
+          } else {
+            // 치명적: 빨간색 계열
+            const intensity = (normalizedWeight - 0.75) / 0.25;
+            return `rgba(255, ${0 - 0 * intensity}, ${0 - 0 * intensity}, 0.7)`;
+          }
+        };
+
+
+        const markerColor = getHeatmapColor(sinkhole.weight);
+        const markerSize = 24; // 마커 크기 추가 증가 (20px → 24px)
+
         const marker = new window.naver.maps.Marker({
           position,
           map: mapInstance.current,
@@ -323,43 +410,29 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
           icon: {
             content: `
               <div style="
-                width: ${visualStyle.size}px;
-                height: ${visualStyle.size}px;
+                width: ${markerSize}px;
+                height: ${markerSize}px;
                 border-radius: 50%;
-                background: ${visualStyle.color};
-                border: ${visualStyle.borderWidth}px solid ${visualStyle.borderColor};
-                color: #fff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                font-size: ${Math.max(12, visualStyle.size * 0.5)}px;
-                box-shadow: ${visualStyle.shadow || '0 2px 6px rgba(0,0,0,0.3)'};
-                opacity: ${visualStyle.opacity};
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-                ${visualStyle.glow && visualStyle.glow !== 'none' ? `filter: drop-shadow(${visualStyle.glow});` : ''}
+                background: ${markerColor};
+                border: 1px solid black;
+                box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+                opacity: 1.0;
+                transition: all 0.3s ease;
+                cursor: pointer;
                 ${pulseAnimation}
                 ${criticalEffect}
               ">
-                ${visualStyle.icon}
               </div>
             `,
-            anchor: new window.naver.maps.Point(visualStyle.size / 2, visualStyle.size / 2)
+            anchor: new window.naver.maps.Point(markerSize / 2, markerSize / 2)
           },
           zIndex: visualStyle.riskLevel === 'critical' ? 300 : 
                  visualStyle.riskLevel === 'high' ? 250 : 
                  visualStyle.riskLevel === 'medium' ? 200 : 150
         });
 
-        // 위험도에 따른 인포윈도우 색상
-        const riskColorMap = {
-          low: '#4CAF50',
-          medium: '#FF9800', 
-          high: '#F44336',
-          critical: '#9C27B0'
-        };
+        // 위험도 레벨 확인
         const effectiveRiskLevel = sinkhole.riskLevel || visualStyle.riskLevel || 'low';
-        const riskColor = riskColorMap[effectiveRiskLevel] || '#e74c3c';
 
         const sizeLabel = (() => {
           const w = Number(sinkhole.sinkWidth) || 0;
@@ -369,33 +442,153 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
           return `최대규모: ${w}×${e}×${d}`;
         })();
 
-        const damageLabel = (() => {
-          const death = Number(sinkhole.deathCnt) || 0;
-          const injury = Number(sinkhole.injuryCnt) || 0;
-          const vehicle = Number(sinkhole.vehicleCnt) || 0;
-          if (death + injury + vehicle === 0) return '';
-          return `피해: 사망 ${death} · 부상 ${injury} · 차량 ${vehicle}`;
-        })();
+
+        // 위험도별 색상 정의
+        const getRiskColor = (riskLevel) => {
+          const colors = {
+            low: '#4CAF50',
+            medium: '#FF9800', 
+            high: '#F44336',
+            critical: '#9C27B0'
+          };
+          return colors[riskLevel] || '#4CAF50';
+        };
+
+        const getRiskLabel = (riskLevel) => {
+          const labels = {
+            low: '낮음',
+            medium: '중간',
+            high: '높음',
+            critical: '치명적'
+          };
+          return labels[riskLevel] || '낮음';
+        };
+
+        const riskColor = getRiskColor(effectiveRiskLevel);
+        const riskLabel = getRiskLabel(effectiveRiskLevel);
 
         const infoWindow = new window.naver.maps.InfoWindow({
           content: `
-            <div style="padding: 10px; min-width: 250px;">
-              <h4 style="margin: 0 0 5px 0; color: ${riskColor};">
-                ${visualStyle.icon} 싱크홀 (${String(effectiveRiskLevel).toUpperCase()})
-              </h4>
-              <p style="margin: 0 0 5px 0; font-weight: bold;">${sinkhole.name}</p>
-              <p style="margin: 0 0 5px 0; font-size: 12px; color: #666;">${sinkhole.address || ''}</p>
-              ${sinkhole.totalOccurrences > 1 ? `
-                <p style="margin: 0 0 5px 0; font-size: 12px; color: #d32f2f; font-weight: bold;">
-                  🔄 ${sinkhole.totalOccurrences}회 반복 발생
-                </p>
-              ` : ''}
-              ${sizeLabel ? `<p style="margin: 0 0 5px 0; font-size: 12px; color: #555;">${sizeLabel}</p>` : ''}
-              ${damageLabel ? `<p style="margin: 0 0 5px 0; font-size: 12px; color: #b71c1c;">${damageLabel}</p>` : ''}
-              <p style="margin: 0 0 5px 0; font-size: 12px; color: #1976d2; font-weight: bold;">
-                위험도: ${sinkhole.weight?.toFixed(1) || 'N/A'} (우선순위: ${sinkhole.priority || 'N/A'})
-              </p>
-              ${sinkhole.description ? `<p style="margin: 0; font-size: 12px; color: #888;">${sinkhole.description}</p>` : ''}
+            <div style="
+              padding: 20px; 
+              min-width: 300px; 
+              background: white; 
+              border-radius: 12px; 
+              box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+              border: 1px solid #f0f0f0;
+            ">
+              <!-- 싱크홀 이름 -->
+              <h3 style="
+                margin: 0 0 16px 0; 
+                font-size: 18px; 
+                font-weight: 700; 
+                color: #333;
+                text-align: center;
+                padding-bottom: 12px;
+                border-bottom: 2px solid #e0e0e0;
+              ">
+                ${sinkhole.name}
+              </h3>
+              
+              <!-- 정보 목록 -->
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- 주소 -->
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="
+                    font-size: 13px; 
+                    font-weight: 600; 
+                    color: #666; 
+                    min-width: 60px;
+                    flex-shrink: 0;
+                  ">주소</span>
+                  <span style="
+                    font-size: 13px; 
+                    color: #333; 
+                    line-height: 1.4;
+                    flex: 1;
+                  ">${sinkhole.address || '정보 없음'}</span>
+                </div>
+                
+                <!-- 위치 -->
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="
+                    font-size: 13px; 
+                    font-weight: 600; 
+                    color: #666; 
+                    min-width: 60px;
+                    flex-shrink: 0;
+                  ">위치</span>
+                  <span style="
+                    font-size: 13px; 
+                    color: #333; 
+                    font-family: 'Monaco', 'Menlo', monospace;
+                  ">${sinkhole.lat?.toFixed(6) || 'N/A'}, ${sinkhole.lng?.toFixed(6) || 'N/A'}</span>
+                </div>
+                
+                <!-- 위험도 -->
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="
+                    font-size: 13px; 
+                    font-weight: 600; 
+                    color: #666; 
+                    min-width: 60px;
+                    flex-shrink: 0;
+                  ">위험도</span>
+                  <div style="
+                    display: flex; 
+                    align-items: center; 
+                    gap: 6px;
+                    padding: 4px 8px;
+                    background: ${riskColor}15;
+                    border-radius: 6px;
+                    border: 1px solid ${riskColor}30;
+                  ">
+                    <span style="
+                      font-size: 13px; 
+                      color: #333;
+                      font-weight: 600;
+                    ">${sinkhole.weight?.toFixed(2) || 'N/A'}</span>
+                    <span style="
+                      font-size: 12px; 
+                      color: ${riskColor};
+                      font-weight: 700;
+                      text-transform: uppercase;
+                    ">${riskLabel}</span>
+                  </div>
+                </div>
+                
+                <!-- 발생횟수 -->
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="
+                    font-size: 13px; 
+                    font-weight: 600; 
+                    color: #666; 
+                    min-width: 60px;
+                    flex-shrink: 0;
+                  ">발생횟수</span>
+                  <span style="
+                    font-size: 13px; 
+                    color: #333;
+                  ">${sinkhole.totalOccurrences || 1}회</span>
+                </div>
+                
+                <!-- 최대규모 -->
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="
+                    font-size: 13px; 
+                    font-weight: 600; 
+                    color: #666; 
+                    min-width: 60px;
+                    flex-shrink: 0;
+                  ">최대규모</span>
+                  <span style="
+                    font-size: 13px; 
+                    color: #333;
+                    font-family: 'Monaco', 'Menlo', monospace;
+                  ">${sizeLabel || '정보 없음'}</span>
+                </div>
+              </div>
             </div>
           `
         });
@@ -414,7 +607,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
     });
 
     console.log(`✅ ${createdCount}개 싱크홀 마커 생성 완료`);
-  }, [sinkholes, isMapReady]);
+  }, [sinkholes, isMapReady, showMarkers, markerRiskFilter, filterSinkholesByRisk]);
 
   // 선택된 싱크홀 표시 (인포윈도우 열기 및 지도 중심 이동)
   useEffect(() => {

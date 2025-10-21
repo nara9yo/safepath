@@ -4,10 +4,15 @@ import ModeToggle from './ModeToggle';
 const MapSettings = ({
   mapType,
   onMapTypeChange,
+  showMarkers,
+  onShowMarkersChange,
+  markerRiskFilter,
+  onMarkerRiskFilterChange,
   showHeatmap,
   onShowHeatmapChange,
   heatmapPreset,
-  onHeatmapPresetChange
+  onHeatmapPresetChange,
+  sinkholes = []
 }) => {
   const mapTypes = [
     { id: 'terrain', name: '지형', icon: '🏔️' },
@@ -16,35 +21,109 @@ const MapSettings = ({
     { id: 'hybrid', name: '하이브리드', icon: '🌍' }
   ];
 
+  // 실제 데이터 범위 계산
+  const getDataRange = () => {
+    const weights = sinkholes.map(s => Number(s.weight) || 0).filter(Number.isFinite);
+    if (weights.length === 0) return { min: 1, max: 10 };
+    
+    const min = Math.min(...weights);
+    const max = Math.max(...weights);
+    return { min: Math.floor(min), max: Math.ceil(max) };
+  };
+
+  const dataRange = getDataRange();
+  const rangeSize = dataRange.max - dataRange.min;
+  const quarterRange = rangeSize / 4;
+
+  const riskLevels = [
+    { id: 'all', name: '전체', range: `${dataRange.min.toFixed(1)} ~ ${dataRange.max.toFixed(1)}` },
+    { id: 'low', name: '낮음', range: `${dataRange.min.toFixed(1)} ~ ${(dataRange.min + quarterRange).toFixed(1)}` },
+    { id: 'medium', name: '중간', range: `${(dataRange.min + quarterRange).toFixed(1)} ~ ${(dataRange.min + quarterRange * 2).toFixed(1)}` },
+    { id: 'high', name: '높음', range: `${(dataRange.min + quarterRange * 2).toFixed(1)} ~ ${(dataRange.min + quarterRange * 3).toFixed(1)}` },
+    { id: 'critical', name: '치명적', range: `${(dataRange.min + quarterRange * 3).toFixed(1)} ~ ${dataRange.max.toFixed(1)}` }
+  ];
+
   return (
-    <div className="map-settings">
-      <div className="settings-section">
-        <h3 className="settings-title">🗺️ 지도 유형</h3>
-        <div className="map-type-options">
+    <div className="map-settings-text">
+      <div className="settings-row">
+        <span className="settings-label">지도 유형:</span>
+        <div className="text-buttons">
           {mapTypes.map((type) => (
             <button
               key={type.id}
-              className={`map-type-option ${mapType === type.id ? 'selected' : ''}`}
+              className={`text-button ${mapType === type.id ? 'active' : ''}`}
               onClick={() => onMapTypeChange(type.id)}
             >
-              <span className="map-type-icon">{type.icon}</span>
-              <span className="map-type-name">{type.name}</span>
-              {mapType === type.id && (
-                <span className="map-type-check">✓</span>
-              )}
+              {type.name}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="settings-section">
-        <h3 className="settings-title">🔥 히트맵 설정</h3>
-        <ModeToggle
-          showHeatmap={showHeatmap}
-          onShowHeatmapChange={onShowHeatmapChange}
-          heatmapPreset={heatmapPreset}
-          onHeatmapPresetChange={onHeatmapPresetChange}
-        />
+      <div className="settings-row">
+        <span className="settings-label">싱크홀 지점:</span>
+        <div className="text-controls">
+          <div className="switch-container">
+            <input
+              type="checkbox"
+              id="markers-switch"
+              checked={!!showMarkers}
+              onChange={(e) => onShowMarkersChange?.(e.target.checked)}
+              className="switch-input"
+            />
+            <label htmlFor="markers-switch" className="switch-label">
+              <span className="switch-slider"></span>
+            </label>
+          </div>
+          
+          {showMarkers && (
+            <div className="risk-filter-container">
+              <select
+                value={markerRiskFilter || 'all'}
+                onChange={(e) => onMarkerRiskFilterChange?.(e.target.value)}
+                className="risk-filter-select"
+              >
+                {riskLevels.map((level) => (
+                  <option key={level.id} value={level.id}>
+                    {level.name} ({level.range})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="settings-row">
+        <span className="settings-label">히트맵:</span>
+        <div className="text-controls">
+          <div className="switch-container">
+            <input
+              type="checkbox"
+              id="heatmap-switch"
+              checked={!!showHeatmap}
+              onChange={(e) => onShowHeatmapChange?.(e.target.checked)}
+              className="switch-input"
+            />
+            <label htmlFor="heatmap-switch" className="switch-label">
+              <span className="switch-slider"></span>
+            </label>
+          </div>
+          
+          {showHeatmap && (
+            <select
+              value={heatmapPreset || 'severity'}
+              onChange={(e) => onHeatmapPresetChange?.(e.target.value)}
+              className="text-select"
+            >
+              <option value="severity">위험도</option>
+              <option value="default">기본</option>
+              <option value="recentness">최근성</option>
+              <option value="colorBlind">색각이상</option>
+              <option value="highContrast">고대비</option>
+            </select>
+          )}
+        </div>
       </div>
     </div>
   );

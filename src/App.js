@@ -22,13 +22,46 @@ function App() {
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [heatmapPreset, setHeatmapPreset] = useState('severity');
   
+  // 싱크홀 마커 표시 상태
+  const [showMarkers, setShowMarkers] = useState(true);
+  
+  // 마커 위험도 필터 상태 (지도 설정용)
+  const [markerRiskFilter, setMarkerRiskFilter] = useState('all');
+  
   // 지역 필터 상태
   const [selectedSido, setSelectedSido] = useState('');
   const [selectedSigungu, setSelectedSigungu] = useState('');
   const [selectedDong, setSelectedDong] = useState('');
   
-  // 위험도 필터 상태
+  // 위험도 필터 상태 (싱크홀 목록용)
   const [selectedRiskLevels, setSelectedRiskLevels] = useState(['low', 'medium', 'high', 'critical']);
+
+  // 마커 위험도 필터 변경 시 싱크홀 목록 필터 동기화
+  const handleMarkerRiskFilterChange = useCallback((newFilter) => {
+    setMarkerRiskFilter(newFilter);
+    
+    // 마커 필터를 싱크홀 목록 필터로 변환
+    if (newFilter === 'all') {
+      setSelectedRiskLevels(['low', 'medium', 'high', 'critical']);
+    } else {
+      setSelectedRiskLevels([newFilter]);
+    }
+  }, []);
+
+  // 싱크홀 목록 위험도 필터 변경 시 마커 필터 동기화
+  const handleRiskLevelChange = useCallback((newRiskLevels) => {
+    setSelectedRiskLevels(newRiskLevels);
+    
+    // 싱크홀 목록 필터를 마커 필터로 변환
+    if (newRiskLevels.length === 0 || newRiskLevels.length === 4) {
+      setMarkerRiskFilter('all');
+    } else if (newRiskLevels.length === 1) {
+      setMarkerRiskFilter(newRiskLevels[0]);
+    } else {
+      // 여러 위험도가 선택된 경우 'all'로 설정
+      setMarkerRiskFilter('all');
+    }
+  }, []);
 
   // 지역 필터 및 위험도 필터 적용
   const filteredSinkholes = useMemo(() => {
@@ -283,10 +316,15 @@ function App() {
             <MapSettings
               mapType={mapType}
               onMapTypeChange={setMapType}
+              showMarkers={showMarkers}
+              onShowMarkersChange={setShowMarkers}
+              markerRiskFilter={markerRiskFilter}
+              onMarkerRiskFilterChange={handleMarkerRiskFilterChange}
               showHeatmap={showHeatmap}
               onShowHeatmapChange={setShowHeatmap}
               heatmapPreset={heatmapPreset}
               onHeatmapPresetChange={setHeatmapPreset}
+              sinkholes={sinkholes}
             />
           )}
           
@@ -302,7 +340,7 @@ function App() {
               onSigunguChange={setSelectedSigungu}
               onDongChange={setSelectedDong}
               selectedRiskLevels={selectedRiskLevels}
-              onRiskLevelChange={setSelectedRiskLevels}
+              onRiskLevelChange={handleRiskLevelChange}
             />
           )}
         </TabPanel>
@@ -313,6 +351,8 @@ function App() {
           sinkholes={displayedSinkholes}
           selectedSinkhole={selectedSinkhole}
           onMapReady={handleMapReady}
+          showMarkers={showMarkers}
+          markerRiskFilter={markerRiskFilter}
           showHeatmap={showHeatmap}
           heatmapGradient={getGradientByName(heatmapPreset)}
           legendMin={legendDomain.min}
