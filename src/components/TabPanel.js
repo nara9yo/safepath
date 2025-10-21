@@ -20,7 +20,7 @@ const TabPanel = ({
           </button>
         ))}
       </div>
-      <div className="tab-content">
+      <div className="tab-content" data-tab={activeTab}>
         {children}
       </div>
     </div>

@@ -441,6 +441,7 @@ function App() {
               sinkholes={sinkholes}
               subwayStations={subwayStations}
               onSimulationDataChange={setSimulationData}
+              onSinkholeClick={handleSinkholeClick} // 클릭 핸들러 전달
             />
           )}
         </TabPanel>

@@ -10,7 +10,8 @@ import SimulationInfoPopup from './SimulationInfoPopup';
 const SimulationPanel = ({
   sinkholes = [],
   subwayStations = [],
-  onSimulationDataChange
+  onSimulationDataChange,
+  onSinkholeClick // 새로 추가된 prop
 }) => {
   // 시뮬레이션 파라미터 상태
   const [sinkholeParams, setSinkholeParams] = useState(SIMULATION_DEFAULTS.SINKHOLE);
@@ -20,6 +21,9 @@ const SimulationPanel = ({
   const [showStats, setShowStats] = useState(true);
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   const [popupCategory, setPopupCategory] = useState('sinkhole-factors');
+  const [isSinkholeSectionExpanded, setIsSinkholeSectionExpanded] = useState(true);
+  const [isSubwaySectionExpanded, setIsSubwaySectionExpanded] = useState(true);
+  const [isSettingsExpanded, setIsSettingsExpanded] = useState(true);
   
   // 필터 상태
   const [selectedRiskFilter, setSelectedRiskFilter] = useState(null);
@@ -137,247 +141,280 @@ const SimulationPanel = ({
   
   return (
     <div className="simulation-panel">
-      <div className="simulation-header">
+      <div 
+        className={`simulation-header clickable ${!isSettingsExpanded ? 'collapsed' : ''}`}
+        onClick={() => setIsSettingsExpanded(!isSettingsExpanded)}
+      >
         <h3>🎛️ 시뮬레이션 설정</h3>
         <div className="simulation-controls">
           <button 
             className={`reset-btn ${isModified ? 'modified' : ''}`}
-            onClick={handleReset}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleReset();
+            }}
             title="기본값으로 리셋"
           >
             🔄 리셋
           </button>
+          <span className="parameter-toggle-icon">{isSettingsExpanded ? '▼' : '▶'}</span>
         </div>
       </div>
       
-      {/* 싱크홀 파라미터 */}
-      <div className="parameter-group">
-        <div className="parameter-group-header">
-          <h4 className="parameter-group-title">🚧 싱크홀 위험도 요인</h4>
-          <button 
-            className="parameter-info-btn"
-            onClick={() => {
-              setPopupCategory('sinkhole-factors');
-              setShowInfoPopup(true);
-            }}
-            title="싱크홀 위험도 요인 설명 보기"
-          >
-            i
-          </button>
-        </div>
-        
-        <div className="parameter-item">
-          <label className="parameter-label">
-            크기 가중치 영향도
-            <span className="parameter-value">{sinkholeParams.SIZE_WEIGHT_MULTIPLIER.toFixed(1)}</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="5"
-            step="0.1"
-            value={sinkholeParams.SIZE_WEIGHT_MULTIPLIER}
-            onChange={(e) => handleSinkholeParamChange('SIZE_WEIGHT_MULTIPLIER', e.target.value)}
-            className="parameter-slider"
-          />
-          <div className="parameter-range">0.0 - 5.0</div>
-        </div>
-        
-        <div className="parameter-item">
-          <label className="parameter-label">
-            피해 가중치 영향도
-            <span className="parameter-value">{sinkholeParams.DAMAGE_WEIGHT_MULTIPLIER.toFixed(1)}</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="5"
-            step="0.1"
-            value={sinkholeParams.DAMAGE_WEIGHT_MULTIPLIER}
-            onChange={(e) => handleSinkholeParamChange('DAMAGE_WEIGHT_MULTIPLIER', e.target.value)}
-            className="parameter-slider"
-          />
-          <div className="parameter-range">0.0 - 5.0</div>
-        </div>
-        
-        <div className="parameter-item">
-          <label className="parameter-label">
-            시간 가중치 영향도
-            <span className="parameter-value">{sinkholeParams.TIME_WEIGHT_MULTIPLIER.toFixed(1)}</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="3"
-            step="0.1"
-            value={sinkholeParams.TIME_WEIGHT_MULTIPLIER}
-            onChange={(e) => handleSinkholeParamChange('TIME_WEIGHT_MULTIPLIER', e.target.value)}
-            className="parameter-slider"
-          />
-          <div className="parameter-range">0.0 - 3.0</div>
-        </div>
-        
-        <div className="parameter-item">
-          <label className="parameter-label">
-            반복 발생 가중치 영향도
-            <span className="parameter-value">{sinkholeParams.FREQUENCY_WEIGHT_MULTIPLIER.toFixed(1)}</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="3"
-            step="0.1"
-            value={sinkholeParams.FREQUENCY_WEIGHT_MULTIPLIER}
-            onChange={(e) => handleSinkholeParamChange('FREQUENCY_WEIGHT_MULTIPLIER', e.target.value)}
-            className="parameter-slider"
-          />
-          <div className="parameter-range">0.0 - 3.0</div>
-        </div>
-      </div>
-      
-      {/* 지하철 파라미터 */}
-      <div className="parameter-group">
-        <div className="parameter-group-header">
-          <h4 className="parameter-group-title">🚇 지하철 영향도 요인</h4>
-          <button 
-            className="parameter-info-btn"
-            onClick={() => {
-              setPopupCategory('subway-factors');
-              setShowInfoPopup(true);
-            }}
-            title="지하철 영향도 요인 설명 보기"
-          >
-            i
-          </button>
-        </div>
-        
-        <div className="parameter-item">
-          <label className="parameter-label">
-            1차 영향권 (100m) 가중치
-            <span className="parameter-value">{subwayParams.LEVEL1_WEIGHT.toFixed(1)}</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={subwayParams.LEVEL1_WEIGHT}
-            onChange={(e) => handleSubwayParamChange('LEVEL1_WEIGHT', e.target.value)}
-            className="parameter-slider"
-          />
-          <div className="parameter-range">0.0 - 1.0</div>
-        </div>
-        
-        <div className="parameter-item">
-          <label className="parameter-label">
-            2차 영향권 (300m) 가중치
-            <span className="parameter-value">{subwayParams.LEVEL2_WEIGHT.toFixed(1)}</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="0.8"
-            step="0.1"
-            value={subwayParams.LEVEL2_WEIGHT}
-            onChange={(e) => handleSubwayParamChange('LEVEL2_WEIGHT', e.target.value)}
-            className="parameter-slider"
-          />
-          <div className="parameter-range">0.0 - 0.8</div>
-        </div>
-        
-        <div className="parameter-item">
-          <label className="parameter-label">
-            3차 영향권 (500m) 가중치
-            <span className="parameter-value">{subwayParams.LEVEL3_WEIGHT.toFixed(1)}</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="0.5"
-            step="0.1"
-            value={subwayParams.LEVEL3_WEIGHT}
-            onChange={(e) => handleSubwayParamChange('LEVEL3_WEIGHT', e.target.value)}
-            className="parameter-slider"
-          />
-          <div className="parameter-range">0.0 - 0.5</div>
-        </div>
-        
-        {/* 거리 설정 섹션 */}
-        <div className="parameter-subsection">
-          <h5 className="parameter-subsection-title">영향권 거리 설정</h5>
-          
-          <div className="parameter-item">
-            <label className="parameter-label">
-              <div className="distance-values">
-                <span className="distance-value">1차: {subwayParams.LEVEL1_DISTANCE}m</span>
-                <span className="distance-value">2차: {subwayParams.LEVEL2_DISTANCE}m</span>
-                <span className="distance-value">3차: {subwayParams.LEVEL2_DISTANCE + 200}m+</span>
+      {isSettingsExpanded && (
+        <div className="settings-content">
+          {/* 싱크홀 파라미터 */}
+          <div className="parameter-group">
+            <div 
+              className="parameter-group-header clickable"
+              onClick={() => setIsSinkholeSectionExpanded(!isSinkholeSectionExpanded)}
+            >
+              <h4 className="parameter-group-title">🚧 싱크홀 위험도 요인</h4>
+              <div className="parameter-header-controls">
+                <button 
+                  className="parameter-info-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // 헤더 클릭 이벤트 전파 방지
+                    setPopupCategory('sinkhole-factors');
+                    setShowInfoPopup(true);
+                  }}
+                  title="싱크홀 위험도 요인 설명 보기"
+                >
+                  i
+                </button>
+                <span className="parameter-toggle-icon">{isSinkholeSectionExpanded ? '▼' : '▶'}</span>
               </div>
-            </label>
-            <div className="dual-range-container">
-              <div className="dual-range-track">
-                {/* 색상 영역 표시 - 실제 핸들 위치에 맞춤 */}
-                <div className="dual-range-fill" style={{
-                  left: '0%',
-                  width: `${((subwayParams.LEVEL1_DISTANCE - 50) / 950) * 100}%`,
-                  backgroundColor: '#DC143C'
-                }}></div>
-                <div className="dual-range-fill" style={{
-                  left: `${((subwayParams.LEVEL1_DISTANCE - 50) / 950) * 100}%`,
-                  width: `${((subwayParams.LEVEL2_DISTANCE - subwayParams.LEVEL1_DISTANCE) / 950) * 100}%`,
-                  backgroundColor: '#FF6B35'
-                }}></div>
-                <div className="dual-range-fill" style={{
-                  left: `${((subwayParams.LEVEL2_DISTANCE - 50) / 950) * 100}%`,
-                  width: `${((1000 - subwayParams.LEVEL2_DISTANCE) / 950) * 100}%`,
-                  backgroundColor: '#FFD700'
-                }}></div>
-              </div>
-              <input
-                type="range"
-                min="50"
-                max="1000"
-                step="10"
-                value={subwayParams.LEVEL1_DISTANCE}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  if (value < subwayParams.LEVEL2_DISTANCE - 50) {
-                    handleSubwayParamChange('LEVEL1_DISTANCE', value);
-                  }
-                }}
-                className="dual-range-input range-input-1"
-                style={{ zIndex: 3 }}
-              />
-              <input
-                type="range"
-                min="50"
-                max="1000"
-                step="10"
-                value={subwayParams.LEVEL2_DISTANCE}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  if (value > subwayParams.LEVEL1_DISTANCE + 50) {
-                    handleSubwayParamChange('LEVEL2_DISTANCE', value);
-                  }
-                }}
-                className="dual-range-input range-input-2"
-                style={{ zIndex: 2 }}
-              />
             </div>
-            <div className="parameter-range">50m - 1000m (최소 50m 간격)</div>
+            
+            {isSinkholeSectionExpanded && (
+              <div className="parameter-content">
+                <div className="parameter-item">
+                  <label className="parameter-label">
+                    크기 가중치 영향도
+                    <span className="parameter-value">{sinkholeParams.SIZE_WEIGHT_MULTIPLIER.toFixed(1)}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={sinkholeParams.SIZE_WEIGHT_MULTIPLIER}
+                    onChange={(e) => handleSinkholeParamChange('SIZE_WEIGHT_MULTIPLIER', e.target.value)}
+                    className="parameter-slider"
+                  />
+                  <div className="parameter-range">0.0 - 5.0</div>
+                </div>
+                
+                <div className="parameter-item">
+                  <label className="parameter-label">
+                    피해 가중치 영향도
+                    <span className="parameter-value">{sinkholeParams.DAMAGE_WEIGHT_MULTIPLIER.toFixed(1)}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={sinkholeParams.DAMAGE_WEIGHT_MULTIPLIER}
+                    onChange={(e) => handleSinkholeParamChange('DAMAGE_WEIGHT_MULTIPLIER', e.target.value)}
+                    className="parameter-slider"
+                  />
+                  <div className="parameter-range">0.0 - 5.0</div>
+                </div>
+                
+                <div className="parameter-item">
+                  <label className="parameter-label">
+                    시간 가중치 영향도
+                    <span className="parameter-value">{sinkholeParams.TIME_WEIGHT_MULTIPLIER.toFixed(1)}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="3"
+                    step="0.1"
+                    value={sinkholeParams.TIME_WEIGHT_MULTIPLIER}
+                    onChange={(e) => handleSinkholeParamChange('TIME_WEIGHT_MULTIPLIER', e.target.value)}
+                    className="parameter-slider"
+                  />
+                  <div className="parameter-range">0.0 - 3.0</div>
+                </div>
+                
+                <div className="parameter-item">
+                  <label className="parameter-label">
+                    반복 발생 가중치 영향도
+                    <span className="parameter-value">{sinkholeParams.FREQUENCY_WEIGHT_MULTIPLIER.toFixed(1)}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="3"
+                    step="0.1"
+                    value={sinkholeParams.FREQUENCY_WEIGHT_MULTIPLIER}
+                    onChange={(e) => handleSinkholeParamChange('FREQUENCY_WEIGHT_MULTIPLIER', e.target.value)}
+                    className="parameter-slider"
+                  />
+                  <div className="parameter-range">0.0 - 3.0</div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* 지하철 파라미터 */}
+          <div className="parameter-group">
+            <div 
+              className="parameter-group-header clickable"
+              onClick={() => setIsSubwaySectionExpanded(!isSubwaySectionExpanded)}
+            >
+              <h4 className="parameter-group-title">🚇 지하철 영향도 요인</h4>
+              <div className="parameter-header-controls">
+                <button 
+                  className="parameter-info-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // 헤더 클릭 이벤트 전파 방지
+                    setPopupCategory('subway-factors');
+                    setShowInfoPopup(true);
+                  }}
+                  title="지하철 영향도 요인 설명 보기"
+                >
+                  i
+                </button>
+                <span className="parameter-toggle-icon">{isSubwaySectionExpanded ? '▼' : '▶'}</span>
+              </div>
+            </div>
+            
+            {isSubwaySectionExpanded && (
+              <div className="parameter-content">
+                <div className="parameter-item">
+                  <label className="parameter-label">
+                    1차 영향권 (100m) 가중치
+                    <span className="parameter-value">{subwayParams.LEVEL1_WEIGHT.toFixed(1)}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={subwayParams.LEVEL1_WEIGHT}
+                    onChange={(e) => handleSubwayParamChange('LEVEL1_WEIGHT', e.target.value)}
+                    className="parameter-slider"
+                  />
+                  <div className="parameter-range">0.0 - 1.0</div>
+                </div>
+                
+                <div className="parameter-item">
+                  <label className="parameter-label">
+                    2차 영향권 (300m) 가중치
+                    <span className="parameter-value">{subwayParams.LEVEL2_WEIGHT.toFixed(1)}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="0.8"
+                    step="0.1"
+                    value={subwayParams.LEVEL2_WEIGHT}
+                    onChange={(e) => handleSubwayParamChange('LEVEL2_WEIGHT', e.target.value)}
+                    className="parameter-slider"
+                  />
+                  <div className="parameter-range">0.0 - 0.8</div>
+                </div>
+                
+                <div className="parameter-item">
+                  <label className="parameter-label">
+                    3차 영향권 (500m) 가중치
+                    <span className="parameter-value">{subwayParams.LEVEL3_WEIGHT.toFixed(1)}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="0.5"
+                    step="0.1"
+                    value={subwayParams.LEVEL3_WEIGHT}
+                    onChange={(e) => handleSubwayParamChange('LEVEL3_WEIGHT', e.target.value)}
+                    className="parameter-slider"
+                  />
+                  <div className="parameter-range">0.0 - 0.5</div>
+                </div>
+                
+                {/* 거리 설정 섹션 */}
+                <div className="parameter-subsection">
+                  <h5 className="parameter-subsection-title">영향권 거리 설정</h5>
+                  
+                  <div className="parameter-item">
+                    <label className="parameter-label">
+                      <div className="distance-values">
+                        <span className="distance-value">1차: {subwayParams.LEVEL1_DISTANCE}m</span>
+                        <span className="distance-value">2차: {subwayParams.LEVEL2_DISTANCE}m</span>
+                        <span className="distance-value">3차: {subwayParams.LEVEL2_DISTANCE + 200}m+</span>
+                      </div>
+                    </label>
+                    <div className="dual-range-container">
+                      <div className="dual-range-track">
+                        {/* 색상 영역 표시 - 실제 핸들 위치에 맞춤 */}
+                        <div className="dual-range-fill" style={{
+                          left: '0%',
+                          width: `${((subwayParams.LEVEL1_DISTANCE - 50) / 950) * 100}%`,
+                          backgroundColor: '#DC143C'
+                        }}></div>
+                        <div className="dual-range-fill" style={{
+                          left: `${((subwayParams.LEVEL1_DISTANCE - 50) / 950) * 100}%`,
+                          width: `${((subwayParams.LEVEL2_DISTANCE - subwayParams.LEVEL1_DISTANCE) / 950) * 100}%`,
+                          backgroundColor: '#FF6B35'
+                        }}></div>
+                        <div className="dual-range-fill" style={{
+                          left: `${((subwayParams.LEVEL2_DISTANCE - 50) / 950) * 100}%`,
+                          width: `${((1000 - subwayParams.LEVEL2_DISTANCE) / 950) * 100}%`,
+                          backgroundColor: '#FFD700'
+                        }}></div>
+                      </div>
+                      <input
+                        type="range"
+                        min="50"
+                        max="1000"
+                        step="10"
+                        value={subwayParams.LEVEL1_DISTANCE}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (value < subwayParams.LEVEL2_DISTANCE - 50) {
+                            handleSubwayParamChange('LEVEL1_DISTANCE', value);
+                          }
+                        }}
+                        className="dual-range-input range-input-1"
+                        style={{ zIndex: 3 }}
+                      />
+                      <input
+                        type="range"
+                        min="50"
+                        max="1000"
+                        step="10"
+                        value={subwayParams.LEVEL2_DISTANCE}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (value > subwayParams.LEVEL1_DISTANCE + 50) {
+                            handleSubwayParamChange('LEVEL2_DISTANCE', value);
+                          }
+                        }}
+                        className="dual-range-input range-input-2"
+                        style={{ zIndex: 2 }}
+                      />
+                    </div>
+                    <div className="parameter-range">50m - 1000m (최소 50m 간격)</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
       
       {/* 통계 섹션 */}
-      <div className="stats-section">
+      <div className={`stats-section ${!isSettingsExpanded ? 'collapsed' : ''}`}>
         <div className="stats-header" onClick={() => setShowStats(!showStats)}>
           <h4 className="stats-title">📊 시뮬레이션 결과</h4>
           <span className="stats-toggle">{showStats ? '▼' : '▶'}</span>
         </div>
         
         {showStats && stats && stats.weightStats && (
-          <div className="stats-content">
+          <div className="stats-scroll-content">
             {/* 기본 통계 */}
             <div className="stats-cards">
               <div className="stat-card">
@@ -510,7 +547,8 @@ const SimulationPanel = ({
                     <div
                       key={sinkhole.id}
                       className="sinkhole-item"
-                      style={{ cursor: 'default' }} // 클릭 비활성화
+                      onClick={() => onSinkholeClick && onSinkholeClick(sinkhole)}
+                      style={{ cursor: 'pointer' }}
                     >
                       <div className="sinkhole-icon">
                         <div 
@@ -532,7 +570,7 @@ const SimulationPanel = ({
                         </div>
                       </div>
                       <div className="sinkhole-info">
-                        <h4 className="sinkhole-name">
+                        <h4 className="sinkhole-name" style={{ color: riskInfo.color }}>
                           {sinkhole.name}
                           <span className="rank-badge">#{index + 1}</span>
                         </h4>

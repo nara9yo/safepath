@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import RiskFilter from './RiskFilter';
 import RegionFilter from './RegionFilter';
 import SubwayInfluenceFilter from './SubwayInfluenceFilter';
@@ -22,7 +22,7 @@ const SinkholeList = ({
   selectedInfluenceLevels,
   onInfluenceLevelChange
 }) => {
-  // 접기/펼치기 로컬 상태는 RegionFilter로 이동하여 미사용 변수 제거
+  const [isFilterSectionExpanded, setIsFilterSectionExpanded] = useState(true);
   
   useEffect(() => {
   }, [sinkholes]);
@@ -38,38 +38,48 @@ const SinkholeList = ({
     <div className="sinkhole-panel">
       {/* 필터 목록 섹션 */}
       <div className="filter-section-container">
-        <div className="filter-section-title">필터 목록</div>
+        <div 
+          className="filter-list-header clickable"
+          onClick={() => setIsFilterSectionExpanded(!isFilterSectionExpanded)}
+        >
+          <div className="filter-section-title">필터 목록</div>
+          <span className="filter-toggle-icon">{isFilterSectionExpanded ? '▼' : '▶'}</span>
+        </div>
         
-        {/* 위험도 필터 */}
-        <RiskFilter 
-          selectedRiskLevels={selectedRiskLevels}
-          onRiskLevelChange={onRiskLevelChange}
-          sinkholes={allSinkholes}
-          defaultExpanded={false}
-        />
-        
-        {/* 지하철 영향도 필터 */}
-        {allSinkholes && allSinkholes.length > 0 && (
-          <SubwayInfluenceFilter
-            selectedInfluenceLevels={selectedInfluenceLevels}
-            onInfluenceLevelChange={onInfluenceLevelChange}
-            sinkholes={allSinkholes}
-            defaultExpanded={false}
-          />
-        )}
-        
-        {/* 지역 필터 */}
-        {allSinkholes && allSinkholes.length > 0 && (
-          <RegionFilter
-            sinkholes={allSinkholes}
-            selectedSido={selectedSido}
-            selectedSigungu={selectedSigungu}
-            selectedDong={selectedDong}
-            onSidoChange={onSidoChange}
-            onSigunguChange={onSigunguChange}
-            onDongChange={onDongChange}
-            defaultExpanded={false}
-          />
+        {isFilterSectionExpanded && (
+          <div className="filters-wrapper">
+            {/* 위험도 필터 */}
+            <RiskFilter 
+              selectedRiskLevels={selectedRiskLevels}
+              onRiskLevelChange={onRiskLevelChange}
+              sinkholes={allSinkholes}
+              defaultExpanded={false}
+            />
+            
+            {/* 지하철 영향도 필터 */}
+            {allSinkholes && allSinkholes.length > 0 && (
+              <SubwayInfluenceFilter
+                selectedInfluenceLevels={selectedInfluenceLevels}
+                onInfluenceLevelChange={onInfluenceLevelChange}
+                sinkholes={allSinkholes}
+                defaultExpanded={false}
+              />
+            )}
+            
+            {/* 지역 필터 */}
+            {allSinkholes && allSinkholes.length > 0 && (
+              <RegionFilter
+                sinkholes={allSinkholes}
+                selectedSido={selectedSido}
+                selectedSigungu={selectedSigungu}
+                selectedDong={selectedDong}
+                onSidoChange={onSidoChange}
+                onSigunguChange={onSigunguChange}
+                onDongChange={onDongChange}
+                defaultExpanded={false}
+              />
+            )}
+          </div>
         )}
       </div>
       
@@ -114,7 +124,6 @@ const SinkholeList = ({
                 
                 // 위험도 계산 (기본 위험도 + 지하철 영향 가중치)
                 const baseWeight = parseFloat(sinkhole.baseRisk) || 0;
-                const subwayWeight = parseFloat(sinkhole.subwayWeight) || 0;
                 const totalWeight = parseFloat(sinkhole.finalRisk) || 0;
                 const subwayContribution = totalWeight - baseWeight; // 지하철로 인한 추가 가중치
                 const weightIncrease = baseWeight > 0 ? ((subwayContribution / baseWeight) * 100).toFixed(1) : 0;
