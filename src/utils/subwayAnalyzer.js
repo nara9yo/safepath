@@ -142,19 +142,19 @@ export const applySubwayRiskWeights = (sinkholes, subwayStations) => {
     const distance = getDistanceToSubwayLine(sinkhole.lat, sinkhole.lng, subwayStations);
     const subwayWeight = calculateSubwayRiskWeight(distance);
     
-    // 기존 가중치에 지하철 가중치를 곱하여 적용
-    const originalWeight = Number(sinkhole.weight) || 0;
-    const enhancedWeight = originalWeight * (1 + subwayWeight);
+    // baseRisk에 지하철 가중치를 곱하여 finalRisk 계산
+    const baseRisk = Number(sinkhole.baseRisk) || 0;
+    const finalRisk = baseRisk * (1 + subwayWeight);
     
     // 지하철 영향도 레벨 결정 (통합 상수 사용)
     const subwayInfluenceLevel = getSubwayInfluenceLevel(distance);
     
     return {
       ...sinkhole,
-      originalWeight,
+      baseRisk, // originalWeight -> baseRisk
       subwayWeight,
       subwayDistance: distance,
-      weight: enhancedWeight,
+      finalRisk: finalRisk, // weight -> finalRisk
       hasSubwayRisk: subwayWeight > 0,
       subwayInfluenceLevel
     };

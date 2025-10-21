@@ -183,7 +183,7 @@ export const calculateSinkholeWeight = (cluster) => {
   const riskLevel = getRiskLevelFromWeight(finalWeight);
   
   return {
-    weight: Math.round(finalWeight * 100) / 100,
+    baseRisk: Math.round(finalWeight * 100) / 100, // weight -> baseRisk
     baseWeight,
     sizeWeight: Math.round(sizeWeight * 100) / 100,
     damageWeight: Math.round(damageWeight * 100) / 100,
@@ -229,14 +229,18 @@ export const enhanceSinkholesWithWeight = (sinkholes, clusterRadius = 0.01) => {
         cluster.totalDamage.deaths > 0 || cluster.totalDamage.injuries > 0 || cluster.totalDamage.vehicles > 0
           ? `총피해: 사망${cluster.totalDamage.deaths} 부상${cluster.totalDamage.injuries} 차량${cluster.totalDamage.vehicles}`
           : '',
-        `위험도: ${weightInfo.riskLevel} (가중치: ${weightInfo.weight})`
+        `위험도: ${weightInfo.riskLevel} (가중치: ${weightInfo.baseRisk})`
       ].filter(Boolean).join(' | '),
       
       // 가중치 정보 추가
-      weight: weightInfo.weight,
+      baseRisk: weightInfo.baseRisk, // weight -> baseRisk
       riskLevel: weightInfo.riskLevel,
       priority: weightInfo.priority,
+      
+      // 클러스터링 정보 명시적 전달
       totalOccurrences: cluster.totalOccurrences,
+      maxSize: `${cluster.maxSize.width.toFixed(1)}m x ${cluster.maxSize.extend.toFixed(1)}m x ${cluster.maxSize.depth.toFixed(1)}m`,
+      
       occurrences: cluster.occurrences,
       
       // 기존 필드들 유지
@@ -249,7 +253,7 @@ export const enhanceSinkholesWithWeight = (sinkholes, clusterRadius = 0.01) => {
   });
   
   // 위험도 순으로 정렬 (높은 위험도가 먼저)
-  return enhancedSinkholes.sort((a, b) => b.weight - a.weight);
+  return enhancedSinkholes.sort((a, b) => b.baseRisk - a.baseRisk);
 };
 
 /**

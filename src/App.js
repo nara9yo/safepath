@@ -140,23 +140,22 @@ function App() {
   // 지도에 표시할 싱크홀 (시뮬레이션 탭일 때는 시뮬레이션 데이터 사용)
   const displayedSinkholes = useMemo(() => {
     if (activeTab === 'simulation' && simulationData.length > 0) {
-      return simulationData;
+      return simulationData.map(s => ({ ...s, weight: s.finalWeight })); // 호환성을 위해 weight 추가
     }
-    return filteredSinkholes;
+    return filteredSinkholes.map(s => ({ ...s, weight: s.finalRisk })); // 호환성을 위해 weight 추가
   }, [activeTab, simulationData, filteredSinkholes]);
 
   // 히트맵 범례용 min/max (weight 기준)
   const legendDomain = useMemo(() => {
     const arr = (displayedSinkholes || []).map(s => {
-      // 시뮬레이션 데이터는 finalWeight 사용, 일반 데이터는 weight 사용
-      const weight = activeTab === 'simulation' ? s.finalWeight : s.weight;
-      return Number(weight) || 0;
+      // 이제 displayedSinkholes에 항상 weight가 있음
+      return Number(s.weight) || 0;
     }).filter(Number.isFinite);
     if (!arr.length) return { min: 0, max: 10 };
     const min = Math.min(...arr);
     const max = Math.max(...arr);
     return { min: Math.floor(min), max: Math.ceil(max) };
-  }, [displayedSinkholes, activeTab]);
+  }, [displayedSinkholes]);
 
   // 지도 인스턴스 설정
   const handleMapReady = useCallback((mapInstance) => {

@@ -109,15 +109,15 @@ const SinkholeList = ({
                   };
                 };
                 
-                const riskInfo = getRiskInfo(sinkhole.riskLevel, sinkhole.weight);
+                const riskInfo = getRiskInfo(sinkhole.riskLevel, sinkhole.finalRisk);
                 const subwayInfo = getSubwayInfluenceInfo(sinkhole.subwayInfluenceLevel);
                 
                 // 위험도 계산 (기본 위험도 + 지하철 영향 가중치)
-                const baseWeight = parseFloat(sinkhole.originalWeight) || 0;
+                const baseWeight = parseFloat(sinkhole.baseRisk) || 0;
                 const subwayWeight = parseFloat(sinkhole.subwayWeight) || 0;
-                const totalWeight = parseFloat(sinkhole.weight) || 0;
+                const totalWeight = parseFloat(sinkhole.finalRisk) || 0;
                 const subwayContribution = totalWeight - baseWeight; // 지하철로 인한 추가 가중치
-                const weightIncrease = subwayWeight > 0 ? ((subwayContribution / baseWeight) * 100).toFixed(1) : 0;
+                const weightIncrease = baseWeight > 0 ? ((subwayContribution / baseWeight) * 100).toFixed(1) : 0;
                 
                 // 지하철 거리 정보 (천 단위 콤마 적용)
                 const subwayDistance = sinkhole.subwayDistance ? 
@@ -149,7 +149,7 @@ const SinkholeList = ({
                       </div>
                     </div>
                     <div className="sinkhole-info">
-                      <h4 className="sinkhole-name">
+                      <h4 className="sinkhole-name" style={{ color: riskInfo.color }}>
                         {sinkhole.name}
                         {isSelected && <span className="selected-badge">선택됨</span>}
                       </h4>
@@ -178,7 +178,7 @@ const SinkholeList = ({
                         </div>
                       </div>
                       <div className="sinkhole-summary">
-                        <span className="summary-item">발생횟수: {sinkhole.occurrenceCount || 1}회</span>
+                        <span className="summary-item">발생횟수: {sinkhole.totalOccurrences || 1}회</span>
                         <span className="summary-separator"> | </span>
                         <span className="summary-item">최대규모: {sinkhole.maxSize || 'N/A'}</span>
                         <span className="summary-separator"> | </span>

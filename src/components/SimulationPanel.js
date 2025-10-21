@@ -493,14 +493,14 @@ const SimulationPanel = ({
                       description: style.description
                     };
                   };
-                  
-                  const riskInfo = getRiskInfo(sinkhole.riskLevel, sinkhole.risk);
+
+                  const riskInfo = getRiskInfo(sinkhole.riskLevel, sinkhole.finalWeight);
                   const subwayInfo = getSubwayInfluenceInfo(sinkhole.subwayInfluenceLevel || 'none');
                   
-                  const totalWeight = sinkhole.risk;
+                  const totalWeight = sinkhole.finalWeight || 0;
                   // 위험도 계산 로직을 시뮬레이션 결과에 맞게 단순화
-                  const baseWeight = totalWeight - (sinkhole.subwayWeight || 0);
-                  const subwayContribution = sinkhole.subwayWeight || 0;
+                  const baseWeight = sinkhole.sinkholeRisk || 0;
+                  const subwayContribution = totalWeight - baseWeight;
                   
                   // 지하철 거리 정보 (천 단위 콤마 적용)
                   const subwayDistance = sinkhole.subwayDistance ? 
@@ -553,7 +553,7 @@ const SimulationPanel = ({
                               className="influence-value"
                               style={{ color: subwayInfo.color, fontWeight: 'bold' }}
                             >
-                              {subwayDistance}, 가중치: {subwayContribution.toFixed(2)}
+                              {subwayDistance}, 가중치: {(totalWeight - baseWeight).toFixed(2)}
                             </span>
                           </div>
                         </div>

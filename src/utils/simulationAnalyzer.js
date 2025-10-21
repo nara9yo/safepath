@@ -3,18 +3,18 @@ import { getRiskLevelFromWeight, RISK_CALCULATION_THRESHOLDS } from './constants
 // 시뮬레이션 파라미터 기본값 (기본 상태에서는 기존 로직과 동일한 결과를 위해 1.0으로 설정)
 export const SIMULATION_DEFAULTS = {
   SINKHOLE: {
-    SIZE_WEIGHT_MULTIPLIER: 3.0,
-    DAMAGE_WEIGHT_MULTIPLIER: 3.0,
+    SIZE_WEIGHT_MULTIPLIER: 1.0,
+    DAMAGE_WEIGHT_MULTIPLIER: 1.0,
     TIME_WEIGHT_MULTIPLIER: 1.0,
     FREQUENCY_WEIGHT_MULTIPLIER: 1.0
   },
   SUBWAY: {
     LEVEL1_WEIGHT: 0.8,
-    LEVEL2_WEIGHT: 0.5,
-    LEVEL3_WEIGHT: 0.2,
+    LEVEL2_WEIGHT: 0.4,
+    LEVEL3_WEIGHT: 0.1,
     LEVEL1_DISTANCE: 100,
     LEVEL2_DISTANCE: 300,
-    LEVEL3_DISTANCE: 1000
+    LEVEL3_DISTANCE: 500
   }
 };
 
@@ -110,11 +110,25 @@ export const calculateTimeWeight = (sinkhole) => {
 };
 
 export const calculateFrequencyWeight = (sinkhole) => {
-  return 1.0;
+  const { totalOccurrences, firstOccurrence, lastOccurrence } = sinkhole;
+  let frequencyWeight = 1;
+
+  if (firstOccurrence && lastOccurrence && totalOccurrences > 1) {
+    const firstDate = new Date(firstOccurrence);
+    const lastDate = new Date(lastOccurrence);
+    const periodDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+
+    if (periodDays > 0) {
+      const frequency = totalOccurrences / (periodDays / 30); // 월당 발생률
+      const maxWeightMultiplier = RISK_CALCULATION_THRESHOLDS.CLUSTERING.MAX_WEIGHT_MULTIPLIER;
+      frequencyWeight = Math.min(1 + (frequency * 0.5), maxWeightMultiplier);
+    }
+  }
+  return frequencyWeight;
 };
 
 export const calculateSimulationSubwayWeight = (distance, params) => {
-  const { LEVEL1_DISTANCE, LEVEL2_DISTANCE, LEVEL3_DISTANCE, LEVEL1_WEIGHT, LEVEL2_WEIGHT } = params;
+  const { LEVEL1_DISTANCE, LEVEL2_DISTANCE, LEVEL3_DISTANCE, LEVEL1_WEIGHT, LEVEL2_WEIGHT, LEVEL3_WEIGHT } = params;
   if (distance <= LEVEL1_DISTANCE) return LEVEL1_WEIGHT;
   if (distance <= LEVEL2_DISTANCE) {
     const ratio = (distance - LEVEL1_DISTANCE) / (LEVEL2_DISTANCE - LEVEL1_DISTANCE);
@@ -122,7 +136,7 @@ export const calculateSimulationSubwayWeight = (distance, params) => {
   }
   if (distance <= LEVEL3_DISTANCE) {
     const ratio = (distance - LEVEL2_DISTANCE) / (LEVEL3_DISTANCE - LEVEL2_DISTANCE);
-    return LEVEL2_WEIGHT - (ratio * LEVEL2_WEIGHT);
+    return LEVEL2_WEIGHT - (ratio * (LEVEL2_WEIGHT - LEVEL3_WEIGHT));
   }
   return 0.0;
 };
@@ -143,15 +157,25 @@ export const generateSimulationData = (sinkholes, subwayStations, sinkholeParams
     const sizeWeight = calculateSizeWeight(sinkhole);
     const damageWeight = calculateDamageWeight(sinkhole);
     const timeWeight = calculateTimeWeight(sinkhole);
-    const frequencyWeight = calculateFrequencyWeight(sinkhole);
+    // frequencyWeight는 totalOccurrences를 기반으로 해야 하므로 아래에서 직접 계산
     
-    let baseWeight = 1;
-    const finalWeight = baseWeight * 
+    // 클러스터링된 데이터의 발생 횟수를 baseWeight로 사용
+    let baseWeight = sinkhole.totalOccurrences || 1;
+    
+    // frequencyWeight도 totalOccurrences를 반영해야 하지만, 
+    // sinkholeAnalyzer와 동일한 로직을 적용하기 복잡하므로
+    // 우선 baseWeight만 반영하여 핵심 불일치 문제 해결
+    const frequencyWeight = calculateFrequencyWeight(sinkhole);
+
+    // sinkholeAnalyzer.js의 로직과 유사하게 수정
+    // (1 + sizeWeight + damageWeight) 구조를 유지하고, 여기에 사용자 파라미터를 곱함
+    const sinkholeRisk = baseWeight * 
       (1 + sizeWeight * sinkholeParams.SIZE_WEIGHT_MULTIPLIER + 
        damageWeight * sinkholeParams.DAMAGE_WEIGHT_MULTIPLIER) * 
       timeWeight * sinkholeParams.TIME_WEIGHT_MULTIPLIER * 
-      frequencyWeight * sinkholeParams.FREQUENCY_WEIGHT_MULTIPLIER + 
-      subwayInfluenceWeight;
+      frequencyWeight * sinkholeParams.FREQUENCY_WEIGHT_MULTIPLIER;
+
+    const finalWeight = sinkholeRisk * (1 + subwayInfluenceWeight);
     
     const riskLevel = getRiskLevelFromWeight(finalWeight);
     
@@ -165,8 +189,8 @@ export const generateSimulationData = (sinkholes, subwayStations, sinkholeParams
       subwayInfluenceLevel,
       subwayDistance: minDistance,
       // 싱크홀 목록과 동일한 표시를 위한 정보 추가
-      originalWeight: sinkhole.originalWeight,
-      subwayWeight: sinkhole.subwayWeight
+      sinkholeRisk: sinkholeRisk, // 순수 싱크홀 위험도 추가
+      subwayWeight: subwayInfluenceWeight
     };
   }).filter(s => s.finalWeight !== undefined && !isNaN(s.finalWeight) && isFinite(s.finalWeight));
 };
@@ -189,17 +213,18 @@ export const calculateTopRiskSinkholes = (simulationData) => {
       return {
         id: sinkhole.id || `${sinkhole.lat}_${sinkhole.lng}`,
         name: sinkhole.name || sinkhole.사고명 || '알수없음',
-        location: `${sinkhole.sigungu || '알수없음'} ${sinkhole.dong || '알수없음'}`,
-        risk: sinkhole.finalWeight,
+        location: sinkhole.address || `${sinkhole.sigungu || '알수없음'} ${sinkhole.dong || '알수없음'}`,
+        finalWeight: sinkhole.finalWeight, // finalWeight 추가
+        sinkholeRisk: sinkhole.sinkholeRisk, // sinkholeRisk 추가
         riskLevel: sinkhole.riskLevel,
         subwayInfluenceLevel: sinkhole.subwayInfluenceLevel,
         subwayDistance: sinkhole.subwayDistance,
         maxSize: maxSizeText,
         date: sinkhole.sagoDate || sinkhole.사고일시 || '알수없음',
-        subwayWeight: sinkhole.subwayWeight || 0 // subwayWeight는 계속 전달
+        subwayWeight: sinkhole.subwayWeight || 0
       };
     })
-    .sort((a, b) => b.risk - a.risk)
+    .sort((a, b) => b.finalWeight - a.finalWeight) // risk -> finalWeight
     .slice(0, 5);
 };
 
