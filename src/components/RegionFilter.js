@@ -9,7 +9,7 @@ const RegionFilter = ({
   onSigunguChange,
   onDongChange,
   defaultExpanded = false,
-  title = '지역 필터'
+  title = '지역'
 }) => {
   const [isExpanded, setIsExpanded] = useState(!!defaultExpanded);
 

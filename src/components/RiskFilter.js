@@ -5,7 +5,7 @@ const RiskFilter = ({
   onRiskLevelChange, 
   sinkholes = [],
   defaultExpanded = true,
-  title = '위험도 필터'
+  title = '위험도'
 }) => {
   const [isExpanded, setIsExpanded] = useState(!!defaultExpanded);
   // 위험도별 싱크홀 개수 계산
@@ -27,33 +27,33 @@ const RiskFilter = ({
     return counts;
   }, [sinkholes]);
   
-  // 위험도 옵션 정의
+  // 위험도 옵션 정의 (범례 색상과 동일하게 설정)
   const riskLevelOptions = [
     {
       value: 'low',
       label: '낮음',
-      color: '#2E7D32',
+      color: '#2E7D32', // 진한 초록색
       icon: '🟢',
       description: '안전한 수준'
     },
     {
       value: 'medium', 
       label: '중간',
-      color: '#E65100',
+      color: '#E65100', // 진한 주황색
       icon: '🟠',
       description: '주의 필요'
     },
     {
       value: 'high',
       label: '높음',
-      color: '#C62828', 
+      color: '#C62828', // 진한 빨간색
       icon: '🔴',
       description: '위험한 수준'
     },
     {
       value: 'critical',
       label: '치명적',
-      color: '#6A1B9A',
+      color: '#6A1B9A', // 진한 보라색
       icon: '💥',
       description: '매우 위험'
     }
@@ -131,12 +131,29 @@ const RiskFilter = ({
                   onClick={() => handleRiskLevelToggle(option.value)}
                   style={{
                     borderLeftColor: option.color,
-                    backgroundColor: isSelected ? `${option.color}15` : 'transparent'
+                    borderColor: isSelected ? option.color : '#e0e0e0',
+                    backgroundColor: isSelected ? `${option.color}15` : 'white'
                   }}
                 >
                   <div className="risk-level-main">
                     <div className="risk-level-info">
-                      <span className="risk-level-icon">{option.icon}</span>
+                      <div 
+                        className="risk-level-icon"
+                        style={{
+                          backgroundColor: option.color,
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '10px',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {option.value === 'low' ? 'L' : option.value === 'medium' ? 'M' : option.value === 'high' ? 'H' : 'C'}
+                      </div>
                       <div className="risk-level-details">
                         <div className="risk-level-label">{option.label}</div>
                         <div className="risk-level-description">{option.description}</div>

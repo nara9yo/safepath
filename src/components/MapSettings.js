@@ -78,8 +78,13 @@ const MapSettings = ({
               <span className="switch-slider"></span>
             </label>
           </div>
-          
-          {showMarkers && (
+        </div>
+      </div>
+
+      {showMarkers && (
+        <div className="settings-row" style={{ paddingLeft: '20px', marginTop: '-8px', border: 'none', background: 'transparent' }}>
+          <span className="settings-label">위험도:</span>
+          <div className="text-controls">
             <div className="risk-filter-container">
               <select
                 value={markerRiskFilter || 'all'}
@@ -93,9 +98,9 @@ const MapSettings = ({
                 ))}
               </select>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="settings-row">
         <span className="settings-label">히트맵:</span>
@@ -112,8 +117,13 @@ const MapSettings = ({
               <span className="switch-slider"></span>
             </label>
           </div>
-          
-          {showHeatmap && (
+        </div>
+      </div>
+
+      {showHeatmap && (
+        <div className="settings-row" style={{ paddingLeft: '20px', marginTop: '-8px', border: 'none', background: 'transparent' }}>
+          <span className="settings-label">히트맵 유형:</span>
+          <div className="text-controls">
             <select
               value={heatmapPreset || 'severity'}
               onChange={(e) => onHeatmapPresetChange?.(e.target.value)}
@@ -125,9 +135,9 @@ const MapSettings = ({
               <option value="colorBlind">색각이상</option>
               <option value="highContrast">고대비</option>
             </select>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="settings-row">
         <span className="settings-label">지하철 노선:</span>

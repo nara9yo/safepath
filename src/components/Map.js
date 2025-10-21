@@ -15,36 +15,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapType, setMapType] = useState(externalMapType);
 
-  // 위험도 필터링 함수
-  const filterSinkholesByRisk = useCallback((sinkholes, riskFilter) => {
-    if (!sinkholes || riskFilter === 'all') return sinkholes;
-    
-    // 실제 데이터 범위 계산
-    const weights = sinkholes.map(s => Number(s.weight) || 0).filter(Number.isFinite);
-    if (weights.length === 0) return sinkholes;
-    
-    const min = Math.min(...weights);
-    const max = Math.max(...weights);
-    const rangeSize = max - min;
-    const quarterRange = rangeSize / 4;
-    
-    return sinkholes.filter(sinkhole => {
-      const weight = sinkhole.weight || 0;
-      
-      switch (riskFilter) {
-        case 'low':
-          return weight >= min && weight < (min + quarterRange);
-        case 'medium':
-          return weight >= (min + quarterRange) && weight < (min + quarterRange * 2);
-        case 'high':
-          return weight >= (min + quarterRange * 2) && weight < (min + quarterRange * 3);
-        case 'critical':
-          return weight >= (min + quarterRange * 3) && weight <= max;
-        default:
-          return true;
-      }
-    });
-  }, []);
 
   // 지도 유형 변경 핸들러
   const handleMapTypeChange = useCallback((newMapType) => {
@@ -311,17 +281,15 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       return;
     }
 
-    // 위험도 필터 적용
-    const filteredSinkholes = filterSinkholesByRisk(sinkholes, markerRiskFilter);
-    
+    // 이미 필터링된 데이터를 받으므로 추가 필터링 불필요
     // 위험도 순으로 정렬 (낮은 위험도부터 높은 위험도 순)
-    const sortedSinkholes = [...filteredSinkholes].sort((a, b) => {
+    const sortedSinkholes = [...sinkholes].sort((a, b) => {
       const weightA = Number(a.weight) || 0;
       const weightB = Number(b.weight) || 0;
       return weightA - weightB; // 오름차순 정렬 (낮은 위험도가 먼저)
     });
     
-    console.log(`📍 ${sortedSinkholes.length}개 싱크홀 마커 생성 중... (필터: ${markerRiskFilter})`);
+    console.log(`📍 ${sortedSinkholes.length}개 싱크홀 마커 생성 중... (이미 필터링된 데이터)`);
     let createdCount = 0;
 
     sortedSinkholes.forEach((sinkhole) => {
@@ -690,7 +658,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
     });
 
     console.log(`✅ ${createdCount}개 싱크홀 마커 생성 완료`);
-  }, [sinkholes, isMapReady, showMarkers, markerRiskFilter, filterSinkholesByRisk]);
+  }, [sinkholes, isMapReady, showMarkers]);
 
   // 선택된 싱크홀 표시 (인포윈도우 열기 및 지도 중심 이동)
   useEffect(() => {
@@ -698,7 +666,10 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       return;
     }
 
-    console.log('📌 선택된 싱크홀:', selectedSinkhole.name);
+    console.log('📌 선택된 싱크홀:', selectedSinkhole.name, {
+      coords: { lat: selectedSinkhole.lat, lng: selectedSinkhole.lng },
+      markersCount: markersRef.current.length
+    });
 
     // 모든 인포윈도우 닫기
     infoWindowsRef.current.forEach(iw => {
@@ -711,10 +682,18 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
     // 선택된 싱크홀의 마커 찾기
     const targetMarker = markersRef.current.find((marker, index) => {
-      const markerPosition = marker.getPosition();
-      return markerPosition && 
-             Math.abs(markerPosition.y - selectedSinkhole.lat) < 0.00001 && 
-             Math.abs(markerPosition.x - selectedSinkhole.lng) < 0.00001;
+      try {
+        const markerPosition = marker.getPosition();
+        if (!markerPosition) return false;
+        
+        // 좌표 비교 정밀도를 낮춤 (약 1m 오차 허용)
+        const latDiff = Math.abs(markerPosition.y - selectedSinkhole.lat);
+        const lngDiff = Math.abs(markerPosition.x - selectedSinkhole.lng);
+        return latDiff < 0.0001 && lngDiff < 0.0001;
+      } catch (e) {
+        console.error('마커 위치 확인 오류:', e);
+        return false;
+      }
     });
 
     if (targetMarker) {
@@ -732,7 +711,16 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       mapInstance.current.setCenter(position);
       mapInstance.current.setZoom(15);
     } else {
-      console.warn('⚠️ 선택된 싱크홀의 마커를 찾을 수 없음');
+      console.warn('⚠️ 선택된 싱크홀의 마커를 찾을 수 없음', {
+        selectedSinkhole: selectedSinkhole.name,
+        markersCount: markersRef.current.length,
+        sinkholeCoords: { lat: selectedSinkhole.lat, lng: selectedSinkhole.lng }
+      });
+      
+      // 마커를 찾지 못해도 지도 중심은 이동
+      const position = new window.naver.maps.LatLng(selectedSinkhole.lat, selectedSinkhole.lng);
+      mapInstance.current.setCenter(position);
+      mapInstance.current.setZoom(15);
     }
   }, [selectedSinkhole, isMapReady]);
 
@@ -892,9 +880,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
             const strokeWeight300m = Math.max(2, Math.round((300 * 2) / metersPerPixel));
             const strokeWeight100m = Math.max(2, Math.round((100 * 2) / metersPerPixel));
             
-            console.log(`줌 레벨: ${currentZoom}, 픽셀당 미터: ${metersPerPixel.toFixed(2)}m`);
-            console.log(`영향권 굵기 - 100m: ${strokeWeight100m}px, 300m: ${strokeWeight300m}px, 500m: ${strokeWeight500m}px`);
-
             // 3차 영향권 (300~500m) - 가장 큰 굵기, 진한 금색
             const zone500mLine = new window.naver.maps.Polyline({
             map: mapInstance.current,
@@ -968,7 +953,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
     }
 
     const handleZoomChange = () => {
-      console.log('🔍 줌 레벨 변경 감지, 지하철 영향권 다시 그리기');
       
       // 기존 지하철 관련 요소들 제거
       if (subwayLineRef.current) {
@@ -1149,7 +1133,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
         // 생성된 모든 노선을 저장
         subwayLineRef.current = subwayLines;
-        console.log('✅ 줌 레벨 변경으로 지하철 영향권 다시 그리기 완료');
       } catch (error) {
         console.error('❌ 줌 레벨 변경 시 지하철 영향권 다시 그리기 오류:', error);
       }

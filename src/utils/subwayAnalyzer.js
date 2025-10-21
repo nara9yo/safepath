@@ -136,13 +136,27 @@ export const applySubwayRiskWeights = (sinkholes, subwayStations) => {
     const originalWeight = Number(sinkhole.weight) || 0;
     const enhancedWeight = originalWeight * (1 + subwayWeight);
     
+    // 지하철 영향도 레벨 결정
+    let subwayInfluenceLevel = 'level3'; // 기본값: 3단계 (300m 초과)
+    if (distance <= 100) {
+      subwayInfluenceLevel = 'level1';
+    } else if (distance <= 300) {
+      subwayInfluenceLevel = 'level2';
+    } else if (distance <= 500) {
+      subwayInfluenceLevel = 'level3';
+    } else {
+      // 500m 초과는 영향권 밖으로 처리 (level3에 포함하지 않음)
+      subwayInfluenceLevel = 'none';
+    }
+    
     return {
       ...sinkhole,
       originalWeight,
       subwayWeight,
       subwayDistance: distance,
       weight: enhancedWeight,
-      hasSubwayRisk: subwayWeight > 0
+      hasSubwayRisk: subwayWeight > 0,
+      subwayInfluenceLevel
     };
   });
 };

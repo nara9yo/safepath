@@ -53,7 +53,10 @@ function App() {
   const [selectedDong, setSelectedDong] = useState('');
   
   // 위험도 필터 상태 (싱크홀 목록용)
-  const [selectedRiskLevels, setSelectedRiskLevels] = useState(['low', 'medium', 'high', 'critical']);
+  const [selectedRiskLevels, setSelectedRiskLevels] = useState([]);
+  
+  // 지하철 영향도 필터 상태 (싱크홀 목록용)
+  const [selectedInfluenceLevels, setSelectedInfluenceLevels] = useState([]);
 
   // 마커 위험도 필터 변경 시 싱크홀 목록 필터 동기화
   const handleMarkerRiskFilterChange = useCallback((newFilter) => {
@@ -82,6 +85,11 @@ function App() {
     }
   }, []);
 
+  // 지하철 영향도 필터 변경 핸들러
+  const handleInfluenceLevelChange = useCallback((newInfluenceLevels) => {
+    setSelectedInfluenceLevels(newInfluenceLevels);
+  }, []);
+
   // 지하철 노선 가중치가 적용된 싱크홀 데이터
   const sinkholesWithSubwayWeights = useMemo(() => {
     if (!sinkholes || !subwayStations || subwayStations.length === 0) {
@@ -91,7 +99,7 @@ function App() {
     return applySubwayRiskWeights(sinkholes, subwayStations);
   }, [sinkholes, subwayStations]);
 
-  // 지역 필터 및 위험도 필터 적용
+  // 지역 필터, 위험도 필터, 지하철 영향도 필터 적용
   const filteredSinkholes = useMemo(() => {
     if (!sinkholesWithSubwayWeights) return [];
     
@@ -116,8 +124,16 @@ function App() {
       });
     }
     
+    // 지하철 영향도 필터 적용
+    if (selectedInfluenceLevels.length > 0) {
+      result = result.filter(s => {
+        const influenceLevel = s.subwayInfluenceLevel || 'level1';
+        return selectedInfluenceLevels.includes(influenceLevel);
+      });
+    }
+    
     return result;
-  }, [sinkholesWithSubwayWeights, selectedSido, selectedSigungu, selectedDong, selectedRiskLevels]);
+  }, [sinkholesWithSubwayWeights, selectedSido, selectedSigungu, selectedDong, selectedRiskLevels, selectedInfluenceLevels]);
 
 
   // 지도에 표시할 싱크홀
@@ -401,7 +417,8 @@ function App() {
           
           {activeTab === 'sinkhole-list' && (
             <SinkholeList
-              sinkholes={sinkholes}
+              sinkholes={filteredSinkholes}
+              allSinkholes={sinkholesWithSubwayWeights}
               selectedSinkhole={selectedSinkhole}
               onSinkholeClick={handleSinkholeClick}
               selectedSido={selectedSido}
@@ -412,6 +429,8 @@ function App() {
               onDongChange={setSelectedDong}
               selectedRiskLevels={selectedRiskLevels}
               onRiskLevelChange={handleRiskLevelChange}
+              selectedInfluenceLevels={selectedInfluenceLevels}
+              onInfluenceLevelChange={handleInfluenceLevelChange}
             />
           )}
         </TabPanel>

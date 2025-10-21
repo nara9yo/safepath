@@ -545,6 +545,59 @@ input:checked + .slider:before {
   min-width: 0;
 }
 
+.sinkhole-details {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.risk-info, .subway-influence-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.risk-label, .influence-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.risk-value, .influence-value {
+  font-weight: bold;
+}
+
+.influence-description {
+  color: #999;
+  font-size: 11px;
+}
+
+.weight-increase {
+  color: #4CAF50;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.sinkhole-summary {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.summary-item {
+  font-weight: 500;
+}
+
+.summary-separator {
+  color: #ccc;
+  margin: 0 4px;
+}
+
 .sinkhole-name {
   margin: 0 0 2px 0;
   color: #e74c3c;
@@ -655,7 +708,7 @@ input:checked + .slider:before {
   justify-content: space-between;
   padding: 8px 36px 8px 12px; /* 우측 여유 공간 확보(체크 아이콘용) */
   border: 1px solid #e0e0e0;
-  border-left: 4px solid #ddd;
+  border-left: 4px solid #ddd; /* 기본값, JavaScript에서 동적으로 변경됨 */
   border-radius: 4px;
   background: white;
   cursor: pointer;
@@ -665,12 +718,12 @@ input:checked + .slider:before {
 
 .risk-level-option:hover {
   background: #f5f5f5;
-  border-color: #ccc;
+  /* border-color는 JavaScript에서 동적으로 설정됨 */
 }
 
 .risk-level-option.selected {
-  background: rgba(0, 123, 255, 0.1);
-  border-color: #007bff;
+  /* background와 border-color는 JavaScript에서 동적으로 설정됨 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .risk-level-main {
@@ -687,8 +740,8 @@ input:checked + .slider:before {
 }
 
 .risk-level-icon {
-  font-size: 18px;
   margin-right: 10px;
+  flex-shrink: 0; /* 아이콘 크기 고정 */
   min-width: 20px;
 }
 
@@ -844,8 +897,17 @@ input:checked + .slider:before {
   }
   
   .risk-level-icon {
-    font-size: 16px;
     margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
+  }
+  
+  .influence-level-icon {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
   }
   
   .risk-level-label {
@@ -1102,5 +1164,143 @@ input:checked + .slider:before {
     padding: 2px 4px;
     min-width: auto;
   }
+}
+
+/* 싱크홀 목록 탭 레이아웃 스타일 */
+.sinkhole-panel {
+  margin-top: 20px;
+}
+
+/* 필터 섹션 컨테이너 */
+.filter-section-container {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.filter-section-title {
+  font-weight: 600;
+  color: #495057;
+  font-size: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+/* 싱크홀 목록 섹션 */
+.sinkhole-list-section {
+  margin-top: 20px;
+}
+
+.sinkhole-list-section .panel-header {
+  background: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #e9ecef;
+}
+
+.sinkhole-list-section .panel-header label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 16px;
+  display: block;
+}
+
+/* 지하철 영향도 필터 스타일 */
+.influence-level-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px; /* 헤더 버튼과 첫 옵션 간 여백 추가 */
+  margin-bottom: 10px;
+}
+
+.influence-level-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 36px 8px 12px; /* 우측 여유 공간 확보(체크 아이콘용) */
+  border: 1px solid #e0e0e0;
+  border-left: 4px solid #ddd; /* 기본값, JavaScript에서 동적으로 변경됨 */
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.influence-level-option:hover {
+  background: #f5f5f5;
+  /* border-color는 JavaScript에서 동적으로 설정됨 */
+}
+
+.influence-level-option.selected {
+  /* background와 border-color는 JavaScript에서 동적으로 설정됨 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.influence-level-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.influence-level-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.influence-level-icon {
+  margin-right: 10px;
+  flex-shrink: 0; /* 아이콘 크기 고정 */
+  min-width: 20px;
+}
+
+.influence-level-details {
+  flex: 1;
+}
+
+.influence-level-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.influence-level-description {
+  color: #666;
+  font-size: 12px;
+}
+
+.influence-level-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  font-size: 14px;
+}
+
+.count-number {
+  font-weight: 600;
+  color: #333;
+}
+
+.count-unit {
+  font-size: 12px;
+}
+
+.influence-level-indicator {
+  margin-left: 12px;
+  color: #1976D2;
+  font-weight: bold;
+}
+
+.indicator-icon {
+  font-size: 16px;
 }
 
