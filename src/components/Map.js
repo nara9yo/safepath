@@ -2,12 +2,14 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import HeatmapLegend from './HeatmapLegend';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
-const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, markerRiskFilter = 'all', showHeatmap, heatmapGradient, legendMin, legendMax, mapType: externalMapType = 'terrain' }) => {
+const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, markerRiskFilter = 'all', showHeatmap, heatmapGradient, legendMin, legendMax, mapType: externalMapType = 'terrain', showSubway = false, subwayStations = [] }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
   const infoWindowsRef = useRef([]);
   const heatmapRef = useRef(null);
+  const subwayLineRef = useRef(null);
+  const subwayMarkersRef = useRef([]);
   const isMovingRef = useRef(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapType, setMapType] = useState(externalMapType);
@@ -596,6 +598,78 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                     font-family: 'Monaco', 'Menlo', monospace;
                   ">${sizeLabel || '정보 없음'}</span>
                 </div>
+                
+                <!-- 지하철 노선 가중치 -->
+                ${sinkhole.hasSubwayRisk ? `
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="
+                    font-size: 13px; 
+                    font-weight: 600; 
+                    color: #666; 
+                    min-width: 60px;
+                    flex-shrink: 0;
+                  ">지하철영향</span>
+                  <div style="
+                    display: flex; 
+                    flex-direction: column; 
+                    gap: 4px;
+                    flex: 1;
+                  ">
+                    <div style="
+                      display: flex; 
+                      align-items: center; 
+                      gap: 6px;
+                    ">
+                      <span style="
+                        font-size: 13px; 
+                        color: #333;
+                        font-weight: 600;
+                      ">거리: ${Math.round(sinkhole.subwayDistance || 0)}m</span>
+                      <span style="
+                        font-size: 12px; 
+                        color: #4CAF50;
+                        font-weight: 700;
+                        background: #4CAF5015;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        border: 1px solid #4CAF5030;
+                      ">가중치: +${((sinkhole.subwayWeight || 0) * 100).toFixed(1)}%</span>
+                    </div>
+                    <div style="
+                      font-size: 12px; 
+                      color: #666;
+                      line-height: 1.3;
+                    ">
+                      ${sinkhole.subwayDistance <= 100 ? '1차 영향권 (100m 이내) - 즉시 지반 영향' :
+                        sinkhole.subwayDistance <= 300 ? '2차 영향권 (100~300m) - 굴착공사 영향' :
+                        sinkhole.subwayDistance <= 500 ? '3차 영향권 (300~500m) - 누적 침하 가능성' :
+                        '영향권 밖 - 지하철 영향 없음'}
+                    </div>
+                    <div style="
+                      font-size: 11px; 
+                      color: #999;
+                      font-style: italic;
+                    ">
+                      기존 위험도: ${(sinkhole.originalWeight || 0).toFixed(2)} → 최종 위험도: ${(sinkhole.weight || 0).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+                ` : `
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="
+                    font-size: 13px; 
+                    font-weight: 600; 
+                    color: #666; 
+                    min-width: 60px;
+                    flex-shrink: 0;
+                  ">지하철영향</span>
+                  <span style="
+                    font-size: 13px; 
+                    color: #999;
+                    font-style: italic;
+                  ">지하철 노선 영향권 밖</span>
+                </div>
+                `}
               </div>
             </div>
           `
@@ -661,8 +735,120 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
     }
   }, [selectedSinkhole, isMapReady]);
 
+  // 지하철 노선 표시
+  useEffect(() => {
+    if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps) {
+      console.log('⚠️ 지도 인스턴스가 준비되지 않음', { isMapReady, hasMapInstance: !!mapInstance.current });
+      return;
+    }
 
+    // 기존 지하철 관련 요소들 제거
+    if (subwayLineRef.current) {
+      try {
+        // 배열인 경우 (여러 개의 선분)
+        if (Array.isArray(subwayLineRef.current)) {
+          subwayLineRef.current.forEach(line => {
+            if (line && line.setMap) {
+              line.setMap(null);
+            }
+          });
+        } else {
+          // 단일 노선인 경우
+          subwayLineRef.current.setMap(null);
+        }
+      } catch (e) {
+        console.error('지하철 노선 제거 오류:', e);
+      }
+    }
+    subwayMarkersRef.current.forEach(marker => {
+      try {
+        marker.setMap(null);
+      } catch (e) {
+        console.error('지하철 역 마커 제거 오류:', e);
+      }
+    });
+    subwayMarkersRef.current = [];
 
+    // 지하철 노선 표시가 비활성화된 경우
+    if (!showSubway) {
+      console.log('ℹ️ 지하철 노선 표시 비활성화됨');
+      return;
+    }
+
+    if (!subwayStations || subwayStations.length === 0) {
+      console.log('ℹ️ 표시할 지하철 역 없음');
+      return;
+    }
+
+    console.log(`🚇 ${subwayStations.length}개 지하철 역 표시 중...`);
+
+    try {
+      // 지하철 노선을 저장할 배열
+      const subwayLines = [];
+      let previousPosition = null;
+
+      // 지하철 역 마커 표시 및 노선 연결
+      subwayStations.forEach((station, index) => {
+        const position = new window.naver.maps.LatLng(station.lat, station.lng);
+
+        console.log(station)
+        
+        const markerSize = 12; // 노선보다 조금 더 큰 크기 (노선 두께 6px보다 큰 12px)
+
+        // 모든 역을 흰색 원으로 표시
+        const markerContent = `
+          <div style="
+            width: ${markerSize}px;
+            height: ${markerSize}px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #4CAF50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+          </div>
+        `;
+
+        const marker = new window.naver.maps.Marker({
+          position,
+          map: mapInstance.current,
+          title: station.name,
+          icon: {
+            content: markerContent,
+            anchor: new window.naver.maps.Point(markerSize / 2, markerSize / 2)
+          },
+          zIndex: 200
+        });
+
+        subwayMarkersRef.current.push(marker);
+
+        // 이전 역과 현재 역을 연결하는 선 그리기
+        if (previousPosition) {
+          const lineSegment = new window.naver.maps.Polyline({
+            map: mapInstance.current,
+            path: [previousPosition, position],
+            strokeColor: '#4CAF50', // 녹색
+            strokeWeight: 6,
+            strokeOpacity: 0.8,
+            strokeStyle: 'solid',
+            zIndex: 100
+          });
+          subwayLines.push(lineSegment);
+        }
+
+        // 현재 위치를 다음 반복을 위해 저장
+        previousPosition = position;
+      });
+
+      // 생성된 모든 노선을 저장
+      subwayLineRef.current = subwayLines;
+
+      console.log(`✅ ${subwayStations.length}개 지하철 역 표시 완료`);
+    } catch (error) {
+      console.error('❌ 지하철 노선 표시 오류:', error);
+    }
+  }, [isMapReady, showSubway, subwayStations]);
 
   return (
     <div 

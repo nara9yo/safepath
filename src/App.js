@@ -5,6 +5,7 @@ import MapSettings from './components/MapSettings';
 import SinkholeList from './components/SinkholeList';
 import { getGradientByName } from './utils/heatmapPresets';
 import { enhanceSinkholesWithWeight } from './utils/sinkholeAnalyzer';
+import { applySubwayRiskWeights } from './utils/subwayAnalyzer';
 import Papa from 'papaparse';
 
 function App() {
@@ -21,6 +22,10 @@ function App() {
   // 히트맵 설정 상태
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [heatmapPreset, setHeatmapPreset] = useState('severity');
+  
+  // 지하철 노선 설정 상태
+  const [showSubway, setShowSubway] = useState(false);
+  const [subwayStations, setSubwayStations] = useState([]);
   
   // 싱크홀 마커 표시 상태
   const [showMarkers, setShowMarkers] = useState(true);
@@ -63,11 +68,20 @@ function App() {
     }
   }, []);
 
+  // 지하철 노선 가중치가 적용된 싱크홀 데이터
+  const sinkholesWithSubwayWeights = useMemo(() => {
+    if (!sinkholes || !subwayStations || subwayStations.length === 0) {
+      return sinkholes;
+    }
+    
+    return applySubwayRiskWeights(sinkholes, subwayStations);
+  }, [sinkholes, subwayStations]);
+
   // 지역 필터 및 위험도 필터 적용
   const filteredSinkholes = useMemo(() => {
-    if (!sinkholes) return [];
+    if (!sinkholesWithSubwayWeights) return [];
     
-    let result = sinkholes;
+    let result = sinkholesWithSubwayWeights;
     
     // 지역 필터 적용
     if (selectedSido) {
@@ -89,7 +103,7 @@ function App() {
     }
     
     return result;
-  }, [sinkholes, selectedSido, selectedSigungu, selectedDong, selectedRiskLevels]);
+  }, [sinkholesWithSubwayWeights, selectedSido, selectedSigungu, selectedDong, selectedRiskLevels]);
 
 
   // 지도에 표시할 싱크홀
@@ -112,6 +126,45 @@ function App() {
     setMapRef(mapInstance);
   }, []);
 
+  // 지하철 노선 데이터 로드
+  useEffect(() => {
+    const loadSubwayData = async () => {
+      try {
+        const res = await fetch((process.env.PUBLIC_URL || '') + '/subway.csv', { cache: 'no-store' });
+        const buffer = await res.arrayBuffer();
+        let csvText = '';
+        try {
+          csvText = new TextDecoder('utf-8').decode(buffer);
+        } catch (e) {
+          csvText = new TextDecoder('euc-kr').decode(buffer);
+        }
+
+        const parsed = Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          dynamicTyping: true
+        });
+
+        const stations = parsed.data
+          .filter(row => row.역명 && row.lat && row.lng)
+          .map(row => ({
+            name: row.역명,
+            lat: Number(row.lat),
+            lng: Number(row.lng),
+            line: row.선명 || '1호선',
+            address: row.도로명주소 || row.지번주소 || ''
+          }))
+
+        console.log('🚇 지하철 노선 데이터 로드 완료:', stations.length, '개 역');
+        setSubwayStations(stations);
+      } catch (e) {
+        console.error('지하철 노선 데이터 로드 실패:', e);
+      }
+    };
+
+    loadSubwayData();
+  }, []);
+
   // CSV 로드 및 파싱
   useEffect(() => {
     const loadCsv = async () => {
@@ -120,9 +173,9 @@ function App() {
         const buffer = await res.arrayBuffer();
         let csvText = '';
         try {
-          csvText = new TextDecoder('euc-kr').decode(buffer);
-        } catch (e) {
           csvText = new TextDecoder('utf-8').decode(buffer);
+        } catch (e) {
+          csvText = new TextDecoder('euc-kr').decode(buffer);
         }
 
         const parsed = Papa.parse(csvText, {
@@ -324,6 +377,8 @@ function App() {
               onShowHeatmapChange={setShowHeatmap}
               heatmapPreset={heatmapPreset}
               onHeatmapPresetChange={setHeatmapPreset}
+              showSubway={showSubway}
+              onShowSubwayChange={setShowSubway}
               sinkholes={sinkholes}
             />
           )}
@@ -358,6 +413,8 @@ function App() {
           legendMin={legendDomain.min}
           legendMax={legendDomain.max}
           mapType={mapType}
+          showSubway={showSubway}
+          subwayStations={subwayStations}
         />
       </div>
     </div>

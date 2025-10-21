@@ -1,5 +1,4 @@
 import React from 'react';
-import ModeToggle from './ModeToggle';
 
 const MapSettings = ({
   mapType,
@@ -12,6 +11,8 @@ const MapSettings = ({
   onShowHeatmapChange,
   heatmapPreset,
   onHeatmapPresetChange,
+  showSubway,
+  onShowSubwayChange,
   sinkholes = []
 }) => {
   const mapTypes = [
@@ -123,6 +124,24 @@ const MapSettings = ({
               <option value="highContrast">고대비</option>
             </select>
           )}
+        </div>
+      </div>
+
+      <div className="settings-row">
+        <span className="settings-label">지하철 노선:</span>
+        <div className="text-controls">
+          <div className="switch-container">
+            <input
+              type="checkbox"
+              id="subway-switch"
+              checked={!!showSubway}
+              onChange={(e) => onShowSubwayChange?.(e.target.checked)}
+              className="switch-input"
+            />
+            <label htmlFor="subway-switch" className="switch-label">
+              <span className="switch-slider"></span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
