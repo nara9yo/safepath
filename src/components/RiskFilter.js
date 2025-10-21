@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { getRiskLevelOptions } from '../utils/constants';
+import { getRiskLevelOptions, getGradientColor } from '../utils/constants';
 
 const RiskFilter = ({ 
   selectedRiskLevels, 
@@ -30,6 +30,14 @@ const RiskFilter = ({
   
   // 위험도 옵션 정의 (통합 상수 사용)
   const riskLevelOptions = getRiskLevelOptions();
+  
+  // 위험도 등급별 가중치 매핑 (그라데이션 색상 계산용)
+  const riskLevelWeights = {
+    low: 1,
+    medium: 3,
+    high: 6,
+    critical: 9
+  };
 
   const handleRiskLevelToggle = (riskLevel) => {
     const newSelectedLevels = selectedRiskLevels.includes(riskLevel)
@@ -98,15 +106,18 @@ const RiskFilter = ({
               const isSelected = selectedRiskLevels.includes(option.value);
               const count = riskLevelCounts[option.value] || 0;
               
+              // 그라데이션 색상 계산
+              const gradientColor = getGradientColor(riskLevelWeights[option.value]);
+              
               return (
                 <div 
                   key={option.value}
                   className={`risk-level-option ${isSelected ? 'selected' : ''}`}
                   onClick={() => handleRiskLevelToggle(option.value)}
                   style={{
-                    borderLeftColor: option.color,
-                    borderColor: isSelected ? option.color : '#e0e0e0',
-                    backgroundColor: isSelected ? `${option.color}15` : 'white'
+                    borderLeftColor: gradientColor,
+                    borderColor: isSelected ? gradientColor : '#e0e0e0',
+                    backgroundColor: isSelected ? `${gradientColor.replace(/[\d.]+\)$/, '0.15)')}` : 'white'
                   }}
                 >
                   <div className="risk-level-main">
@@ -114,7 +125,7 @@ const RiskFilter = ({
                       <div 
                         className="risk-level-icon"
                         style={{
-                          backgroundColor: option.color,
+                          backgroundColor: gradientColor,
                           width: '18px',
                           height: '18px',
                           borderRadius: '50%',

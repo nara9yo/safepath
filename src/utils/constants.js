@@ -382,3 +382,61 @@ export const getSubwayInfluenceOptions = () => {
       ...SUBWAY_INFLUENCE_CONFIG[level]
     }));
 };
+
+// ============================================================================
+// 색상 계산 유틸리티 함수
+// ============================================================================
+
+/**
+ * 가중치에 따른 그라데이션 색상 계산 (히트맵 SEVERITY 그라디언트와 동일)
+ * @param {number} weight - 위험도 가중치
+ * @returns {string} RGBA 색상 문자열
+ */
+export const getGradientColor = (weight) => {
+  const normalizedWeight = Math.min(Math.max((weight || 0) / 10, 0), 1);
+  
+  // 히트맵 SEVERITY 그라디언트 색상 배열 사용
+  const severityGradient = HEATMAP_GRADIENTS.SEVERITY;
+  
+  // 투명도가 0인 첫 번째 색상 제외하고 실제 색상들만 사용
+  const colorStops = severityGradient.slice(1);
+  const numStops = colorStops.length;
+  
+  // 정규화된 가중치를 색상 인덱스로 변환
+  const colorIndex = normalizedWeight * (numStops - 1);
+  const lowerIndex = Math.floor(colorIndex);
+  const upperIndex = Math.min(lowerIndex + 1, numStops - 1);
+  const t = colorIndex - lowerIndex;
+  
+  // 두 색상 사이의 보간
+  if (lowerIndex === upperIndex) {
+    return colorStops[lowerIndex];
+  }
+  
+  const lowerColor = colorStops[lowerIndex];
+  const upperColor = colorStops[upperIndex];
+  
+  // RGBA 값 추출 및 보간
+  const parseColor = (colorStr) => {
+    const match = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+    if (match) {
+      return {
+        r: parseInt(match[1]),
+        g: parseInt(match[2]),
+        b: parseInt(match[3]),
+        a: parseFloat(match[4])
+      };
+    }
+    return { r: 0, g: 0, b: 0, a: 1 };
+  };
+  
+  const lower = parseColor(lowerColor);
+  const upper = parseColor(upperColor);
+  
+  const r = Math.round(lower.r + (upper.r - lower.r) * t);
+  const g = Math.round(lower.g + (upper.g - lower.g) * t);
+  const b = Math.round(lower.b + (upper.b - lower.b) * t);
+  const a = lower.a + (upper.a - lower.a) * t;
+  
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+};

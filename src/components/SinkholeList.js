@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import RiskFilter from './RiskFilter';
 import RegionFilter from './RegionFilter';
 import SubwayInfluenceFilter from './SubwayInfluenceFilter';
-import { getRiskLevelStyle, getSubwayInfluenceStyle } from '../utils/constants';
+import { getRiskLevelStyle, getSubwayInfluenceStyle, getGradientColor } from '../utils/constants';
 
 const SinkholeList = ({ 
   sinkholes, // 필터링된 싱크홀 목록
@@ -88,11 +88,13 @@ const SinkholeList = ({
               {sinkholes.map((sinkhole) => {
                 const isSelected = selectedSinkhole && selectedSinkhole.id === sinkhole.id;
                 
-                // 위험도별 색상 및 아이콘 설정 (통합 상수 사용)
-                const getRiskInfo = (riskLevel) => {
+                // 위험도별 색상 및 아이콘 설정 (그라데이션 색상 사용)
+                const getRiskInfo = (riskLevel, weight) => {
                   const style = getRiskLevelStyle(riskLevel);
+                  // 그라데이션 색상 사용 (가중치 기반)
+                  const gradientColor = getGradientColor(weight || 0);
                   return {
-                    color: style.color,
+                    color: gradientColor,
                     label: style.label,
                     icon: style.shortLabel
                   };
@@ -108,7 +110,7 @@ const SinkholeList = ({
                   };
                 };
                 
-                const riskInfo = getRiskInfo(sinkhole.riskLevel);
+                const riskInfo = getRiskInfo(sinkhole.riskLevel, sinkhole.weight);
                 const subwayInfo = getSubwayInfluenceInfo(sinkhole.subwayInfluenceLevel);
                 
                 // 위험도 계산 (기본 위험도 + 지하철 영향 가중치)

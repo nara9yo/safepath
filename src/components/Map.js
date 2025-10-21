@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import HeatmapLegend from './HeatmapLegend';
 import SubwayInfluenceLegend from './SubwayInfluenceLegend';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
+import { RISK_LEVEL_CONFIG, getRiskLevelFromWeight, getGradientColor } from '../utils/constants';
 
 const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, markerRiskFilter = 'all', showHeatmap, heatmapGradient, legendMin, legendMax, mapType: externalMapType = 'terrain', showSubway = false, showSubwayInfluence = false, subwayStations = [] }) => {
   const mapRef = useRef(null);
@@ -376,34 +377,26 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
           animation: criticalPulse 2s infinite;
         ` : '';
 
-        // 히트맵 위험도에 따른 마커 색상 계산
-        const getHeatmapColor = (weight) => {
-          // weight 값에 따라 0-1 사이의 정규화된 값 계산
-          const normalizedWeight = Math.min(Math.max((weight || 0) / 10, 0), 1);
-          
-          // 히트맵과 동일한 색상 그라데이션 적용
-          if (normalizedWeight < 0.25) {
-            // 낮음: 녹색 계열
-            const intensity = normalizedWeight / 0.25;
-            return `rgba(${76 + (255-76) * intensity}, ${175 + (255-175) * intensity}, ${80 + (255-80) * intensity}, 0.7)`;
-          } else if (normalizedWeight < 0.5) {
-            // 중간: 노란색 계열
-            const intensity = (normalizedWeight - 0.25) / 0.25;
-            return `rgba(255, ${152 + (255-152) * intensity}, 0, 0.7)`;
-          } else if (normalizedWeight < 0.75) {
-            // 높음: 주황색 계열
-            const intensity = (normalizedWeight - 0.5) / 0.25;
-            return `rgba(255, ${152 - 152 * intensity}, 0, 0.7)`;
-          } else {
-            // 치명적: 빨간색 계열
-            const intensity = (normalizedWeight - 0.75) / 0.25;
-            return `rgba(255, ${0 - 0 * intensity}, ${0 - 0 * intensity}, 0.7)`;
-          }
+        // constants.js에서 위험도 라벨 가져오기
+        const getRiskLabel = (riskLevel) => {
+          const config = RISK_LEVEL_CONFIG[riskLevel] || RISK_LEVEL_CONFIG.low;
+          return config.label;
+        };
+        const getRiskShortLabel = (riskLevel) => {
+          const config = RISK_LEVEL_CONFIG[riskLevel] || RISK_LEVEL_CONFIG.low;
+          return config.shortLabel;
         };
 
-
-        const markerColor = getHeatmapColor(sinkhole.weight);
-        const markerSize = 24; // 마커 크기 추가 증가 (20px → 24px)
+        // 위험도 레벨 확인 (constants.js의 함수 사용)
+        const effectiveRiskLevel = sinkhole.riskLevel || 
+                                  getRiskLevelFromWeight(sinkhole.weight) || 
+                                  visualStyle.riskLevel || 
+                                  'low';
+        
+        // 그라데이션 색상 사용 (히트맵과 동일한 로직)
+        const riskColor = getGradientColor(sinkhole.weight);
+        const riskLabel = getRiskLabel(effectiveRiskLevel);
+        const riskShortLabel = getRiskShortLabel(effectiveRiskLevel);
 
         const marker = new window.naver.maps.Marker({
           position,
@@ -412,29 +405,72 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
           icon: {
             content: `
               <div style="
-                width: ${markerSize}px;
-                height: ${markerSize}px;
-                border-radius: 50%;
-                background: ${markerColor};
-                border: 1px solid black;
-                box-shadow: 0 3px 12px rgba(0,0,0,0.3);
-                opacity: 1.0;
-                transition: all 0.3s ease;
+                position: relative;
+                width: 24px;
+                height: 32px;
                 cursor: pointer;
                 ${pulseAnimation}
                 ${criticalEffect}
               ">
+                <!-- 핀 모양 마커 -->
+                <div style="
+                  position: relative;
+                  width: 24px;
+                  height: 24px;
+                  background: ${riskColor};
+                  border-radius: 50% 50% 50% 0;
+                  transform: rotate(-45deg);
+                  box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+                  transition: all 0.3s ease;
+                " 
+                onmouseover="
+                  this.style.transform='rotate(-45deg) scale(1.1)';
+                  this.style.boxShadow='0 5px 20px rgba(0,0,0,0.6)';
+                " 
+                onmouseout="
+                  this.style.transform='rotate(-45deg) scale(1)';
+                  this.style.boxShadow='0 3px 12px rgba(0,0,0,0.4)';
+                ">
+                  <!-- 위험도 텍스트 -->
+                  <div style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(45deg);
+                    color: white;
+                    font-size: 10px;
+                    font-weight: bold;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                    line-height: 1;
+                    text-align: center;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                    z-index: 1;
+                  ">
+                    ${riskShortLabel.charAt(0)}
+                  </div>
+                </div>
+                
+                <!-- 핀 꼬리 부분 -->
+                <div style="
+                  position: absolute;
+                  bottom: 0;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  width: 0;
+                  height: 0;
+                  border-left: 6px solid transparent;
+                  border-right: 6px solid transparent;
+                  border-top: 8px solid ${riskColor};
+                  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+                "></div>
               </div>
             `,
-            anchor: new window.naver.maps.Point(markerSize / 2, markerSize / 2)
+            anchor: new window.naver.maps.Point(12, 32)
           },
           zIndex: visualStyle.riskLevel === 'critical' ? 300 : 
                  visualStyle.riskLevel === 'high' ? 250 : 
                  visualStyle.riskLevel === 'medium' ? 200 : 150
         });
-
-        // 위험도 레벨 확인
-        const effectiveRiskLevel = sinkhole.riskLevel || visualStyle.riskLevel || 'low';
 
         const sizeLabel = (() => {
           const w = Number(sinkhole.sinkWidth) || 0;
@@ -445,29 +481,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         })();
 
 
-        // 위험도별 색상 정의
-        const getRiskColor = (riskLevel) => {
-          const colors = {
-            low: '#4CAF50',
-            medium: '#FF9800', 
-            high: '#F44336',
-            critical: '#9C27B0'
-          };
-          return colors[riskLevel] || '#4CAF50';
-        };
-
-        const getRiskLabel = (riskLevel) => {
-          const labels = {
-            low: '낮음',
-            medium: '중간',
-            high: '높음',
-            critical: '치명적'
-          };
-          return labels[riskLevel] || '낮음';
-        };
-
-        const riskColor = getRiskColor(effectiveRiskLevel);
-        const riskLabel = getRiskLabel(effectiveRiskLevel);
 
         const infoWindow = new window.naver.maps.InfoWindow({
           disableAnchor: false, // 말풍선 꼬리 사용 (중요!)
@@ -598,22 +611,22 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                     align-items: center; 
                     gap: 6px;
                     padding: 4px 8px;
-                    background: ${riskColor}15;
+                    background: ${riskColor.replace('0.9', '0.15')};
                     border-radius: 8px;
-                    border: 1px solid ${riskColor}20;
+                    border: 1px solid ${riskColor.replace('0.9', '0.3')};
                   ">
                     <span style="
                       font-size: 13px; 
                       color: #333;
                       font-weight: 600;
                     ">${sinkhole.weight?.toFixed(2) || 'N/A'}</span>
-                    <span style="
-                      font-size: 12px; 
-                      color: ${riskColor};
-                      font-weight: 700;
-                      text-transform: uppercase;
-                    ">${riskLabel}</span>
                   </div>
+                  <span style="
+                    font-size: 12px; 
+                    color: ${riskColor};
+                    font-weight: 700;
+                    text-transform: uppercase;
+                  ">${riskLabel}</span>
                 </div>
                 
                 <!-- 발생횟수 -->
