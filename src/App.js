@@ -4,6 +4,7 @@ import TabPanel from './components/TabPanel';
 import MapSettings from './components/MapSettings';
 import SinkholeList from './components/SinkholeList';
 import SimulationPanel from './components/SimulationPanel';
+import ProjectHelpPopup from './components/ProjectHelpPopup';
 import { getGradientByName } from './utils/heatmapPresets';
 import { enhanceSinkholesWithWeight } from './utils/sinkholeAnalyzer';
 import { applySubwayRiskWeights } from './utils/subwayAnalyzer';
@@ -58,6 +59,9 @@ function App() {
   
   // 시뮬레이션 상태
   const [simulationData, setSimulationData] = useState([]);
+  
+  // 프로젝트 도움말 팝업 상태
+  const [showProjectHelp, setShowProjectHelp] = useState(false);
 
   // 마커 위험도 필터 변경 시 싱크홀 목록 필터 동기화
   const handleMarkerRiskFilterChange = useCallback((newFilter) => {
@@ -390,7 +394,64 @@ function App() {
   return (
     <div className="app">
       <div className="control-panel">
-        <h1>🚧 싱크홀 안전 지도</h1>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          padding: '16px 20px', 
+          background: 'white',
+          boxSizing: 'border-box'
+        }}>
+          <h1 style={{ 
+            margin: 0, 
+            padding: 0,
+            fontSize: '24px', 
+            color: '#333', 
+            display: 'flex', 
+            alignItems: 'center',
+            lineHeight: '1'
+          }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', lineHeight: '1' }}>🚧</span>
+              <span>싱크홀 안전지도</span>
+            </span>
+          </h1>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            <button
+              onClick={() => setShowProjectHelp(true)}
+              title="프로젝트 도움말 보기"
+              style={{ 
+                whiteSpace: 'nowrap',
+                height: '28px',
+                padding: '4px 10px',
+                fontSize: '12px',
+                background: 'transparent',
+                border: '1px solid #dee2e6',
+                borderRadius: '4px',
+                color: '#495057',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = '#e9ecef';
+                e.target.style.borderColor = '#adb5bd';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'transparent';
+                e.target.style.borderColor = '#dee2e6';
+              }}
+            >
+              도움말
+            </button>
+          </div>
+        </div>
         
         <TabPanel
           tabs={tabs}
@@ -464,6 +525,11 @@ function App() {
           subwayStations={subwayStations}
         />
       </div>
+      
+      <ProjectHelpPopup
+        isOpen={showProjectHelp}
+        onClose={() => setShowProjectHelp(false)}
+      />
     </div>
   );
 }
