@@ -30,13 +30,10 @@ function App() {
 
   // 지하철 노선 변경 핸들러 (노선 활성화 시 영향권도 함께 활성화)
   const handleShowSubwayChange = useCallback((checked) => {
-    console.log('🚇 지하철 노선 변경:', checked);
     setShowSubway(checked);
     if (checked) {
-      console.log('✅ 영향권 자동 활성화');
       setShowSubwayInfluence(true);
     } else {
-      console.log('❌ 영향권 자동 비활성화');
       setShowSubwayInfluence(false);
     }
   }, []);
@@ -152,7 +149,6 @@ function App() {
 
   // 지도 인스턴스 설정
   const handleMapReady = useCallback((mapInstance) => {
-    console.log('지도 인스턴스 설정:', mapInstance);
     setMapRef(mapInstance);
   }, []);
 
@@ -185,10 +181,9 @@ function App() {
             address: row.도로명주소 || row.지번주소 || ''
           }))
 
-        console.log('🚇 지하철 노선 데이터 로드 완료:', stations.length, '개 역');
         setSubwayStations(stations);
       } catch (e) {
-        console.error('지하철 노선 데이터 로드 실패:', e);
+        // 지하철 노선 데이터 로드 실패 시 무시
       }
     };
 
@@ -339,16 +334,10 @@ function App() {
 
         // 싱크홀 가중치 분석 및 클러스터링 적용
         const enhancedSinkholes = enhanceSinkholesWithWeight(mapped, 0.01); // 10m 반경으로 클러스터링
-        console.log('🔍 싱크홀 분석 완료:', {
-          원본: mapped.length,
-          클러스터: enhancedSinkholes.length,
-          고위험: enhancedSinkholes.filter(s => s.riskLevel === 'critical' || s.riskLevel === 'high').length
-        });
         
         setSinkholes(enhancedSinkholes);
       } catch (e) {
-        console.error('CSV 로드 실패:', e);
-        console.error('싱크홀 데이터를 불러오는 중 오류가 발생했습니다.');
+        // CSV 로드 실패 시 무시
       }
     };
 
@@ -358,7 +347,6 @@ function App() {
 
   // 싱크홀 클릭 시 처리 (모든 모드에서 동일하게 작동)
   const handleSinkholeClick = useCallback((sinkhole) => {
-    console.log('싱크홀 클릭:', sinkhole);
     
     if (mapRef && window.naver && window.naver.maps) {
       try {
@@ -367,14 +355,8 @@ function App() {
         mapRef.setZoom(15, true);
         setSelectedSinkhole(sinkhole);
       } catch (error) {
-        console.error('싱크홀 처리 실패:', error);
+        // 싱크홀 처리 실패 시 무시
       }
-    } else {
-      console.error('지도 인스턴스 또는 네이버 API를 찾을 수 없습니다:', {
-        mapRef: !!mapRef,
-        naver: !!window.naver,
-        maps: !!(window.naver && window.naver.maps)
-      });
     }
   }, [mapRef]);
 

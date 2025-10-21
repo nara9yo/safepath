@@ -19,7 +19,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
   // 지도 유형 변경 핸들러
   const handleMapTypeChange = useCallback((newMapType) => {
-    console.log('🗺️ 지도 유형 변경:', newMapType);
     setMapType(newMapType);
     
     if (mapInstance.current && window.naver && window.naver.maps) {
@@ -28,12 +27,9 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         const mapTypeId = window.naver.maps.MapTypeId[newMapType.toUpperCase()];
         if (mapTypeId) {
           mapInstance.current.setMapTypeId(mapTypeId);
-          console.log('✅ 지도 유형 변경 완료:', mapTypeId);
-        } else {
-          console.warn('⚠️ 지원하지 않는 지도 유형:', newMapType);
         }
       } catch (error) {
-        console.error('❌ 지도 유형 변경 실패:', error);
+        // 지도 유형 변경 실패 시 무시
       }
     }
   }, []);
@@ -51,7 +47,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
     // Naver Maps API 동적 로드
     const loadNaverMap = () => {
       if (window.naver && window.naver.maps && window.naver.maps.Map) {
-        console.log('✅ 네이버 지도 API 이미 로드됨');
         initializeMap();
         return;
       }
@@ -59,14 +54,12 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       const clientId = process.env.REACT_APP_NAVER_MAPS_CLIENT_ID || 'YOUR_CLIENT_ID';
 
       if (clientId === 'YOUR_CLIENT_ID') {
-        console.warn('⚠️ 네이버 지도 API 키가 설정되지 않았습니다. .env.local 파일에 REACT_APP_NAVER_MAPS_CLIENT_ID를 설정해주세요.');
         alert('⚠️ 네이버 지도 API 키가 설정되지 않았습니다.\n\n.env.local 파일을 생성하고 다음을 추가해주세요:\nREACT_APP_NAVER_MAPS_CLIENT_ID=your_actual_client_id_here');
         return;
       }
 
       const existingScript = document.querySelector('script[src*="oapi.map.naver.com/openapi/v3/maps.js"]');
       if (existingScript) {
-        console.log('✅ 기존 네이버 지도 API 스크립트 발견, 재사용');
         existingScript.addEventListener('load', () => initializeMap());
         if (window.naver && window.naver.maps && window.naver.maps.Map) {
           initializeMap();
@@ -79,11 +72,9 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       script.async = true;
       script.defer = true;
       script.onload = () => {
-        console.log('✅ 네이버 지도 API 스크립트 로드 완료');
         initializeMap();
       };
       script.onerror = (e) => {
-        console.error('❌ 네이버 지도 API 로드 실패:', e);
         alert('네이버 지도 API 로드에 실패했습니다. 도메인/키 설정을 확인해주세요.');
       };
       document.head.appendChild(script);
@@ -93,7 +84,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
     const initializeMap = () => {
       if (!window.naver || !window.naver.maps || !window.naver.maps.Map) {
-        console.error('❌ 네이버 지도 API가 완전히 로드되지 않았습니다.');
         return;
       }
 
@@ -110,7 +100,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         mapInstance.current = new window.naver.maps.Map(mapRef.current, options);
 
         if (onMapReady) {
-          console.log('지도 인스턴스 전달:', mapInstance.current);
           onMapReady(mapInstance.current);
         }
 
@@ -122,14 +111,12 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         const setMapAsReady = () => {
           if (!isReadySet) {
             isReadySet = true;
-            console.log('🗺️ 지도 준비 완료');
             setIsMapReady(true);
           }
         };
 
         // idle 이벤트로 준비 완료 감지
         const idleListener = window.naver.maps.Event.addListener(mapInstance.current, 'idle', () => {
-          console.log('📍 idle 이벤트 발생 - 지도 준비 완료');
           setMapAsReady();
           window.naver.maps.Event.removeListener(idleListener);
         });
@@ -137,12 +124,10 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         // 폴백: idle 이벤트가 발생하지 않을 경우를 대비해 500ms 후 강제 설정
         setTimeout(() => {
           if (!isReadySet) {
-            console.log('⏱️ 타임아웃으로 지도 준비 완료 처리');
             setMapAsReady();
           }
         }, 500);
 
-        console.log('✅ 네이버 지도 초기화 완료');
         
         // 지도 클릭 시 모든 InfoWindow 닫기
         window.naver.maps.Event.addListener(mapInstance.current, 'click', () => {
@@ -150,7 +135,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
             try {
               iw.close();
             } catch (e) {
-              console.error('인포윈도우 닫기 오류:', e);
+              // 인포윈도우 닫기 오류 무시
             }
           });
         });
@@ -161,13 +146,13 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
             try {
               iw.close();
             } catch (e) {
-              console.error('인포윈도우 닫기 오류:', e);
+              // 인포윈도우 닫기 오류 무시
             }
           });
         });
         
       } catch (error) {
-        console.error('❌ 네이버 지도 초기화 실패:', error);
+        // 네이버 지도 초기화 실패 시 무시
       }
     };
 
@@ -219,7 +204,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
             gradient: heatmapGradient || undefined
           });
         } catch (e) {
-          console.error('❌ HeatMap 생성 실패:', e);
+          // HeatMap 생성 실패 시 무시
         }
       } else {
         try {
@@ -230,7 +215,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
             heatmapRef.current.setMap(mapInstance.current);
           }
         } catch (e) {
-          console.error('❌ HeatMap 업데이트 실패:', e);
+          // HeatMap 업데이트 실패 시 무시
         }
       }
     } else {
@@ -252,14 +237,12 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
     if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps) return;
 
     const idleListener = window.naver.maps.Event.addListener(mapInstance.current, 'idle', () => {
-      console.log('📍 idle 이벤트 발생 - 히트맵 복원 체크');
       isMovingRef.current = false;
       if (heatmapRef.current && showHeatmap) {
         try { 
           heatmapRef.current.setMap(mapInstance.current);
-          console.log('✅ 히트맵 복원 완료');
         } catch (e) {
-          console.error('❌ 히트맵 복원 실패:', e);
+          // 히트맵 복원 실패 시 무시
         }
       }
     });
@@ -272,7 +255,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
   // 싱크홀 마커 표시
   useEffect(() => {
     if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps) {
-      console.log('⚠️ 지도 인스턴스가 준비되지 않음', { isMapReady, hasMapInstance: !!mapInstance.current });
       return;
     }
 
@@ -281,14 +263,14 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       try {
         marker.setMap(null);
       } catch (e) {
-        console.error('마커 제거 오류:', e);
+        // 마커 제거 오류 무시
       }
     });
     infoWindowsRef.current.forEach(infoWindow => {
       try {
         infoWindow.close();
       } catch (e) {
-        console.error('인포윈도우 제거 오류:', e);
+        // 인포윈도우 제거 오류 무시
       }
     });
     markersRef.current = [];
@@ -296,12 +278,10 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
     // 마커 표시가 비활성화된 경우 마커를 생성하지 않음
     if (!showMarkers) {
-      console.log('ℹ️ 마커 표시 비활성화됨');
       return;
     }
 
     if (!sinkholes || sinkholes.length === 0) {
-      console.log('ℹ️ 표시할 싱크홀 없음');
       return;
     }
 
@@ -313,12 +293,10 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       return weightA - weightB; // 오름차순 정렬 (낮은 위험도가 먼저)
     });
     
-    console.log(`📍 ${sortedSinkholes.length}개 싱크홀 마커 생성 중... (이미 필터링된 데이터)`);
     let createdCount = 0;
 
     sortedSinkholes.forEach((sinkhole) => {
       if (!Number.isFinite(sinkhole.lat) || !Number.isFinite(sinkhole.lng)) {
-        console.warn('⚠️ 유효하지 않은 좌표:', sinkhole);
         return;
       }
 
@@ -745,11 +723,10 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         infoWindowsRef.current.push(infoWindow);
         createdCount++;
       } catch (error) {
-        console.error('❌ 마커 생성 오류:', sinkhole, error);
+        // 마커 생성 오류 무시
       }
     });
 
-    console.log(`✅ ${createdCount}개 싱크홀 마커 생성 완료`);
   }, [sinkholes, isMapReady, showMarkers]);
 
   // 선택된 싱크홀 표시 (인포윈도우 열기 및 지도 중심 이동)
@@ -758,17 +735,13 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       return;
     }
 
-    console.log('📌 선택된 싱크홀:', selectedSinkhole.name, {
-      coords: { lat: selectedSinkhole.lat, lng: selectedSinkhole.lng },
-      markersCount: markersRef.current.length
-    });
 
     // 모든 인포윈도우 닫기
     infoWindowsRef.current.forEach(iw => {
       try {
         iw.close();
       } catch (e) {
-        console.error('인포윈도우 닫기 오류:', e);
+        // 인포윈도우 닫기 오류 무시
       }
     });
 
@@ -783,7 +756,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         const lngDiff = Math.abs(markerPosition.x - selectedSinkhole.lng);
         return latDiff < 0.0001 && lngDiff < 0.0001;
       } catch (e) {
-        console.error('마커 위치 확인 오류:', e);
         return false;
       }
     });
@@ -795,7 +767,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       
       if (targetInfoWindow) {
         targetInfoWindow.open(mapInstance.current, targetMarker);
-        console.log('✅ 인포윈도우 열림');
       }
 
       // 지도 중심을 선택된 싱크홀로 이동
@@ -803,11 +774,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       mapInstance.current.setCenter(position);
       mapInstance.current.setZoom(15);
     } else {
-      console.warn('⚠️ 선택된 싱크홀의 마커를 찾을 수 없음', {
-        selectedSinkhole: selectedSinkhole.name,
-        markersCount: markersRef.current.length,
-        sinkholeCoords: { lat: selectedSinkhole.lat, lng: selectedSinkhole.lng }
-      });
       
       // 마커를 찾지 못해도 지도 중심은 이동
       const position = new window.naver.maps.LatLng(selectedSinkhole.lat, selectedSinkhole.lng);
@@ -820,7 +786,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
   // 지하철 노선 표시
   useEffect(() => {
     if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps) {
-      console.log('⚠️ 지도 인스턴스가 준비되지 않음', { isMapReady, hasMapInstance: !!mapInstance.current });
       return;
     }
 
@@ -840,14 +805,14 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
           subwayLineRef.current.setMap(null);
         }
       } catch (e) {
-        console.error('지하철 노선 제거 오류:', e);
+        // 지하철 노선 제거 오류 무시
       }
     }
     subwayMarkersRef.current.forEach(marker => {
       try {
         marker.setMap(null);
       } catch (e) {
-        console.error('지하철 역 마커 제거 오류:', e);
+        // 지하철 역 마커 제거 오류 무시
       }
     });
     subwayMarkersRef.current = [];
@@ -856,16 +821,13 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
     // 지하철 노선 표시가 비활성화된 경우
     if (!showSubway) {
-      console.log('ℹ️ 지하철 노선 표시 비활성화됨');
       return;
     }
 
     if (!subwayStations || subwayStations.length === 0) {
-      console.log('ℹ️ 표시할 지하철 역 없음');
       return;
     }
 
-    console.log(`🚇 ${subwayStations.length}개 지하철 역 표시 중...`);
 
     try {
       // 지하철 노선을 저장할 배열
@@ -1030,11 +992,8 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       subwayLineRef.current = subwayLines;
 
       // 영향권은 이제 노선 그리기 로직에서 처리됨
-      console.log(`✅ 지하철 노선 표시 완료 (영향권: ${showSubwayInfluence ? '활성화' : '비활성화'})`);
-
-      console.log(`✅ ${subwayStations.length}개 지하철 역 표시 완료`);
     } catch (error) {
-      console.error('❌ 지하철 노선 표시 오류:', error);
+      // 지하철 노선 표시 오류 무시
     }
   }, [isMapReady, showSubway, showSubwayInfluence, subwayStations]);
 
@@ -1059,14 +1018,14 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
             subwayLineRef.current.setMap(null);
           }
         } catch (e) {
-          console.error('지하철 노선 제거 오류:', e);
+          // 지하철 노선 제거 오류 무시
         }
       }
       subwayMarkersRef.current.forEach(marker => {
         try {
           marker.setMap(null);
         } catch (e) {
-          console.error('지하철 역 마커 제거 오류:', e);
+          // 지하철 역 마커 제거 오류 무시
         }
       });
       subwayMarkersRef.current = [];
@@ -1226,7 +1185,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         // 생성된 모든 노선을 저장
         subwayLineRef.current = subwayLines;
       } catch (error) {
-        console.error('❌ 줌 레벨 변경 시 지하철 영향권 다시 그리기 오류:', error);
+        // 줌 레벨 변경 시 지하철 영향권 다시 그리기 오류 무시
       }
     };
 

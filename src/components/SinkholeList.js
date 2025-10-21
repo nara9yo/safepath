@@ -25,7 +25,6 @@ const SinkholeList = ({
   // 접기/펼치기 로컬 상태는 RegionFilter로 이동하여 미사용 변수 제거
   
   useEffect(() => {
-    console.log('SinkholeList 렌더링:', { sinkholes: sinkholes?.length });
   }, [sinkholes]);
   
   // 지역 옵션 및 요약 로직은 RegionFilter로 이동
