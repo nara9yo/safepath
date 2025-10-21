@@ -1,4 +1,9 @@
 // 싱크홀 분석 및 가중치 계산 유틸리티
+import { 
+  RISK_CALCULATION_THRESHOLDS, 
+  getRiskLevelFromWeight, 
+  getRiskLevelStyle 
+} from './constants';
 
 /**
  * 두 좌표 간의 거리를 계산 (Haversine 공식)
@@ -136,20 +141,25 @@ export const calculateSinkholeWeight = (cluster) => {
   // 피해 가중치 (데이터 명세 반영)
   // - 사망: 12점, 부상: 3점, 차량피해: 1점으로 스코어링
   // - 점수의 루트를 취해 대형 사고에 편향되지 않도록 안정화, 상한 강화(최대 3배)
-  const rawDamageScore = (totalDamage.deaths * 12) + (totalDamage.injuries * 3) + (totalDamage.vehicles * 1);
+  const damageWeights = RISK_CALCULATION_THRESHOLDS.DAMAGE_WEIGHTS;
+  const rawDamageScore = (totalDamage.deaths * damageWeights.DEATH) + 
+                        (totalDamage.injuries * damageWeights.INJURY) + 
+                        (totalDamage.vehicles * damageWeights.VEHICLE);
   const damageScore = Math.sqrt(rawDamageScore);
-  const damageWeight = Math.min(damageScore * 0.6, 3); // 최대 3배 가중치
+  const maxWeightMultiplier = RISK_CALCULATION_THRESHOLDS.CLUSTERING.MAX_WEIGHT_MULTIPLIER;
+  const damageWeight = Math.min(damageScore * 0.6, maxWeightMultiplier);
   
   // 시간 가중치 (최근 발생일수록 높은 가중치)
-  let timeWeight = 1;
+  const timeWeights = RISK_CALCULATION_THRESHOLDS.TIME_WEIGHTS;
+  let timeWeight = timeWeights.DEFAULT;
   if (lastOccurrence) {
     const lastDate = new Date(lastOccurrence);
     const now = new Date();
     const daysDiff = (now - lastDate) / (1000 * 60 * 60 * 24);
     
-    if (daysDiff < 30) timeWeight = 1.5; // 최근 30일
-    else if (daysDiff < 90) timeWeight = 1.3; // 최근 3개월
-    else if (daysDiff < 365) timeWeight = 1.1; // 최근 1년
+    if (daysDiff < 30) timeWeight = timeWeights.RECENT_30_DAYS;
+    else if (daysDiff < 90) timeWeight = timeWeights.RECENT_90_DAYS;
+    else if (daysDiff < 365) timeWeight = timeWeights.RECENT_365_DAYS;
   }
   
   // 반복 발생 가중치 (짧은 기간에 여러 번 발생하면 높은 가중치)
@@ -161,18 +171,16 @@ export const calculateSinkholeWeight = (cluster) => {
     
     if (periodDays > 0) {
       const frequency = totalOccurrences / (periodDays / 30); // 월당 발생률
-      frequencyWeight = Math.min(1 + (frequency * 0.5), 3); // 최대 3배 가중치
+      const maxWeightMultiplier = RISK_CALCULATION_THRESHOLDS.CLUSTERING.MAX_WEIGHT_MULTIPLIER;
+      frequencyWeight = Math.min(1 + (frequency * 0.5), maxWeightMultiplier);
     }
   }
   
   // 최종 가중치 계산
   const finalWeight = baseWeight * (1 + sizeWeight + damageWeight) * timeWeight * frequencyWeight;
   
-  // 위험도 등급 결정
-  let riskLevel = 'low';
-  if (finalWeight >= 10) riskLevel = 'critical';
-  else if (finalWeight >= 5) riskLevel = 'high';
-  else if (finalWeight >= 2) riskLevel = 'medium';
+  // 위험도 등급 결정 (통합 상수 사용)
+  const riskLevel = getRiskLevelFromWeight(finalWeight);
   
   return {
     weight: Math.round(finalWeight * 100) / 100,
@@ -252,55 +260,6 @@ export const enhanceSinkholesWithWeight = (sinkholes, clusterRadius = 0.01) => {
 export const getSinkholeVisualStyle = (sinkhole) => {
   const { riskLevel, totalOccurrences } = sinkhole;
   
-  const styles = {
-    low: {
-      color: '#2E7D32', // 진한 초록색 (대비 개선)
-      size: 16, // 8 → 16 (2배 증가)
-      opacity: 0.9, // 0.7 → 0.9 (투명도 개선)
-      icon: '⚠️',
-      borderColor: '#1B5E20', // 진한 테두리
-      borderWidth: 2
-    },
-    medium: {
-      color: '#E65100', // 진한 주황색 (대비 개선)
-      size: 20, // 12 → 20 (67% 증가)
-      opacity: 0.95, // 0.8 → 0.95
-      icon: '⚠️',
-      borderColor: '#BF360C', // 진한 테두리
-      borderWidth: 2
-    },
-    high: {
-      color: '#C62828', // 진한 빨간색 (대비 개선)
-      size: 24, // 16 → 24 (50% 증가)
-      opacity: 1.0, // 0.9 → 1.0
-      icon: '🚨',
-      borderColor: '#B71C1C', // 진한 테두리
-      borderWidth: 3
-    },
-    critical: {
-      color: '#6A1B9A', // 진한 보라색 (대비 개선)
-      size: 28, // 20 → 28 (40% 증가)
-      opacity: 1.0,
-      icon: '💥',
-      borderColor: '#4A148C', // 진한 테두리
-      borderWidth: 3
-    }
-  };
-  
-  const baseStyle = styles[riskLevel] || styles.low;
-  
-  // 발생 횟수에 따른 추가 시각적 강조 (더 강하게)
-  const occurrenceMultiplier = Math.min(1 + (totalOccurrences - 1) * 0.3, 2.5);
-  
-  return {
-    ...baseStyle,
-    size: Math.round(baseStyle.size * occurrenceMultiplier),
-    borderWidth: totalOccurrences > 1 ? Math.max(baseStyle.borderWidth + 2, 4) : baseStyle.borderWidth,
-    borderColor: totalOccurrences > 1 ? '#000000' : baseStyle.borderColor,
-    pulse: riskLevel === 'critical' || riskLevel === 'high',
-    // 반복 발생 시 추가 시각적 효과
-    shadow: totalOccurrences > 1 ? '0 0 8px rgba(0,0,0,0.6)' : '0 2px 6px rgba(0,0,0,0.3)',
-    glow: riskLevel === 'critical' ? '0 0 12px rgba(106,27,154,0.8)' : 
-          riskLevel === 'high' ? '0 0 10px rgba(198,40,40,0.6)' : 'none'
-  };
+  // 통합 상수를 사용하여 시각적 스타일 반환
+  return getRiskLevelStyle(riskLevel, totalOccurrences);
 };

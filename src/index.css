@@ -1304,3 +1304,73 @@ input:checked + .slider:before {
   font-size: 16px;
 }
 
+/* 네이버 지도 InfoWindow 커스터마이징 */
+/* InfoWindow 전체 래퍼 */
+.nm_balloon {
+  border-radius: 0px !important;
+  overflow: visible !important;
+}
+
+/* InfoWindow 내부 콘텐츠 영역 */
+.nm_balloon .nm_balloon_content {
+  border-radius: 0px !important;
+  overflow: hidden !important;
+}
+
+/* InfoWindow 말풍선 꼬리 - 표시되도록 설정 */
+.nm_balloon .nm_balloon_tail {
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* 말풍선 꼬리 SVG 경로 스타일 */
+.nm_balloon .nm_balloon_tail svg path {
+  fill: white !important;
+  stroke: none !important;
+}
+
+/* InfoWindow 닫기 버튼 스타일 */
+.nm_balloon .nm_balloon_close {
+  background: rgba(0,0,0,0.1) !important;
+  border-radius: 50% !important;
+  color: #666 !important;
+  font-size: 16px !important;
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  text-align: center !important;
+  border: none !important;
+}
+
+.nm_balloon .nm_balloon_close:hover {
+  background: rgba(0,0,0,0.2) !important;
+  color: #333 !important;
+}
+
+/* InfoWindow 닫기 버튼 모던 스타일 */
+.nm_balloon button[title="닫기"] {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.5px !important;
+}
+
+.nm_balloon button[title="닫기"]:active {
+  transform: scale(0.95) !important;
+  background: rgba(255,255,255,0.8) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important;
+}
+
+.nm_balloon button[title="닫기"]:hover {
+  background: rgba(255,255,255,1) !important;
+  border-color: rgba(0,0,0,0.2) !important;
+  color: #666 !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+/* 닫기 버튼 포커스 스타일 */
+.nm_balloon button[title="닫기"]:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+

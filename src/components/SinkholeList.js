@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import RiskFilter from './RiskFilter';
 import RegionFilter from './RegionFilter';
 import SubwayInfluenceFilter from './SubwayInfluenceFilter';
+import { getRiskLevelStyle, getSubwayInfluenceStyle } from '../utils/constants';
 
 const SinkholeList = ({ 
   sinkholes, // 필터링된 싱크홀 목록
@@ -87,26 +88,24 @@ const SinkholeList = ({
               {sinkholes.map((sinkhole) => {
                 const isSelected = selectedSinkhole && selectedSinkhole.id === sinkhole.id;
                 
-                // 위험도별 색상 및 아이콘 설정
+                // 위험도별 색상 및 아이콘 설정 (통합 상수 사용)
                 const getRiskInfo = (riskLevel) => {
-                  const riskMap = {
-                    'low': { color: '#2E7D32', label: '낮음', icon: 'L' },
-                    'medium': { color: '#E65100', label: '중간', icon: 'M' },
-                    'high': { color: '#C62828', label: '높음', icon: 'H' },
-                    'critical': { color: '#6A1B9A', label: '치명적', icon: 'C' }
+                  const style = getRiskLevelStyle(riskLevel);
+                  return {
+                    color: style.color,
+                    label: style.label,
+                    icon: style.shortLabel
                   };
-                  return riskMap[riskLevel] || riskMap['low'];
                 };
                 
-                // 지하철 영향권 정보 설정
+                // 지하철 영향권 정보 설정 (통합 상수 사용)
                 const getSubwayInfluenceInfo = (influenceLevel) => {
-                  const influenceMap = {
-                    'level1': { color: '#DC143C', label: '1단계', description: '노선 0~100m' },
-                    'level2': { color: '#FF6B35', label: '2단계', description: '노선 100~300m' },
-                    'level3': { color: '#FFD700', label: '3단계', description: '노선 300~500m' },
-                    'none': { color: '#9E9E9E', label: '영향권 없음', description: '지하철 영향권 밖' }
+                  const style = getSubwayInfluenceStyle(influenceLevel);
+                  return {
+                    color: style.color,
+                    label: style.label,
+                    description: style.description
                   };
-                  return influenceMap[influenceLevel] || influenceMap['none'];
                 };
                 
                 const riskInfo = getRiskInfo(sinkhole.riskLevel);

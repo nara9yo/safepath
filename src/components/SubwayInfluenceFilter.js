@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { getSubwayInfluenceOptions } from '../utils/constants';
 
 const SubwayInfluenceFilter = ({ 
   selectedInfluenceLevels, 
@@ -28,30 +29,8 @@ const SubwayInfluenceFilter = ({
     return counts;
   }, [sinkholes]);
   
-  // 지하철 영향도 옵션 정의 (범례 색상과 동일하게 설정)
-  const influenceLevelOptions = [
-    {
-      value: 'level1',
-      label: '1단계',
-      color: '#DC143C', // 진한 빨간색 (1차 영향권)
-      icon: '1',
-      description: '노선 0~100m'
-    },
-    {
-      value: 'level2',
-      label: '2단계',
-      color: '#FF6B35', // 진한 주황색 (2차 영향권)
-      icon: '2',
-      description: '노선 100~300m'
-    },
-    {
-      value: 'level3',
-      label: '3단계',
-      color: '#FFD700', // 진한 금색 (3차 영향권)
-      icon: '3',
-      description: '노선 300m~500m'
-    }
-  ];
+  // 지하철 영향도 옵션 정의 (통합 상수 사용)
+  const influenceLevelOptions = getSubwayInfluenceOptions();
 
   const handleInfluenceLevelToggle = (influenceLevel) => {
     const newSelectedLevels = selectedInfluenceLevels.includes(influenceLevel)
@@ -70,8 +49,10 @@ const SubwayInfluenceFilter = ({
   const getCollapsedSummary = () => {
     if (selectedInfluenceLevels.length === 0) return '선택: 없음 (전체 표시)';
     if (selectedInfluenceLevels.length === 3) return '선택: 전체';
-    const mapKo = { level1: '1단계', level2: '2단계', level3: '3단계' };
-    return `선택: ${selectedInfluenceLevels.map(l => mapKo[l]).join(', ')}`;
+    return `선택: ${selectedInfluenceLevels.map(l => {
+      const option = influenceLevelOptions.find(opt => opt.value === l);
+      return option ? option.label : l;
+    }).join(', ')}`;
   };
 
   return (

@@ -103,7 +103,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
           zoom: 10,
           zoomControl: true,
           zoomControlOptions: { position: window.naver.maps.Position.TOP_RIGHT },
-          mapTypeId: window.naver.maps.MapTypeId.TERRAIN, // 기본 지도 유형을 지형으로 설정
+          mapTypeId: window.naver.maps.MapTypeId.NORMAL, // 기본 지도 유형을 일반으로 설정
         };
 
         mapInstance.current = new window.naver.maps.Map(mapRef.current, options);
@@ -142,6 +142,29 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         }, 500);
 
         console.log('✅ 네이버 지도 초기화 완료');
+        
+        // 지도 클릭 시 모든 InfoWindow 닫기
+        window.naver.maps.Event.addListener(mapInstance.current, 'click', () => {
+          infoWindowsRef.current.forEach(iw => {
+            try {
+              iw.close();
+            } catch (e) {
+              console.error('인포윈도우 닫기 오류:', e);
+            }
+          });
+        });
+        
+        // 커스텀 이벤트로 InfoWindow 닫기
+        window.addEventListener('closeInfoWindow', () => {
+          infoWindowsRef.current.forEach(iw => {
+            try {
+              iw.close();
+            } catch (e) {
+              console.error('인포윈도우 닫기 오류:', e);
+            }
+          });
+        });
+        
       } catch (error) {
         console.error('❌ 네이버 지도 초기화 실패:', error);
       }
@@ -447,16 +470,71 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
         const riskLabel = getRiskLabel(effectiveRiskLevel);
 
         const infoWindow = new window.naver.maps.InfoWindow({
+          disableAnchor: false, // 말풍선 꼬리 사용 (중요!)
+          borderWidth: 0, // 테두리 두께 0으로 설정
+          borderColor: '#e8e8e8', // 테두리 색상 회색
+          backgroundColor: 'white', // 배경색 흰색
+          anchorColor: 'white', // 말풍선 꼬리 색상
+          anchorSize: new window.naver.maps.Size(20, 24), // 말풍선 꼬리 크기 (기본값)
+          anchorSkew: false, // 말풍선 꼬리 기울기 (기본값)
+          pixelOffset: new window.naver.maps.Point(0, 0), // 오프셋 (기본값)
           content: `
             <div style="
               padding: 20px; 
               min-width: 300px; 
               background: white; 
-              border-radius: 12px; 
-              box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+              border-radius: 0px; 
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-              border: 1px solid #f0f0f0;
+              border: none;
+              box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+              position: relative;
             ">
+              <!-- 닫기 버튼 -->
+              <button 
+                onclick="
+                  var event = new CustomEvent('closeInfoWindow', { 
+                    detail: { source: 'closeButton' } 
+                  });
+                  window.dispatchEvent(event);
+                "
+                style="
+                  position: absolute;
+                  top: 8px;
+                  right: 8px;
+                  background: rgba(255,255,255,0.9);
+                  border: 1px solid rgba(0,0,0,0.1);
+                  border-radius: 50%;
+                  width: 24px;
+                  height: 24px;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 12px;
+                  color: #999;
+                  line-height: 1;
+                  transition: all 0.15s ease;
+                  z-index: 10;
+                  backdrop-filter: blur(4px);
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                "
+                onmouseover="
+                  this.style.background='rgba(255,255,255,1)';
+                  this.style.borderColor='rgba(0,0,0,0.2)';
+                  this.style.color='#666';
+                  this.style.transform='scale(1.1)';
+                  this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';
+                "
+                onmouseout="
+                  this.style.background='rgba(255,255,255,0.9)';
+                  this.style.borderColor='rgba(0,0,0,0.1)';
+                  this.style.color='#999';
+                  this.style.transform='scale(1)';
+                  this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';
+                "
+                title="닫기"
+              >×</button>
+              
               <!-- 싱크홀 이름 -->
               <h3 style="
                 margin: 0 0 16px 0; 
@@ -465,7 +543,8 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                 color: #333;
                 text-align: center;
                 padding-bottom: 12px;
-                border-bottom: 2px solid #e0e0e0;
+                padding-right: 30px;
+                border-bottom: 1px solid #e8e8e8;
               ">
                 ${sinkhole.name}
               </h3>
@@ -520,8 +599,8 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                     gap: 6px;
                     padding: 4px 8px;
                     background: ${riskColor}15;
-                    border-radius: 6px;
-                    border: 1px solid ${riskColor}30;
+                    border-radius: 8px;
+                    border: 1px solid ${riskColor}20;
                   ">
                     <span style="
                       font-size: 13px; 
@@ -600,8 +679,8 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                         font-weight: 700;
                         background: #4CAF5015;
                         padding: 2px 6px;
-                        border-radius: 4px;
-                        border: 1px solid #4CAF5030;
+                        border-radius: 6px;
+                        border: 1px solid #4CAF5020;
                       ">가중치: +${((sinkhole.subwayWeight || 0) * 100).toFixed(1)}%</span>
                     </div>
                     <div style="

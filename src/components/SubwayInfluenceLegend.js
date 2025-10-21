@@ -1,4 +1,5 @@
 import React from 'react';
+import { SUBWAY_INFLUENCE_CONFIG, SUBWAY_INFLUENCE_LEVELS } from '../utils/constants';
 
 const SubwayInfluenceLegend = ({ 
   title = "지하철 영향권",
@@ -25,48 +26,25 @@ const SubwayInfluenceLegend = ({
         marginBottom: 4,
         position: 'relative'
       }}>
-        <div style={{
-          flex: 1,
-          background: '#DC143C',
-          opacity: 0.8,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 10,
-          color: 'white',
-          fontWeight: 'bold',
-          textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
-        }}>
-          1단계
-        </div>
-        <div style={{
-          flex: 1,
-          background: '#FF6B35',
-          opacity: 0.7,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 10,
-          color: 'white',
-          fontWeight: 'bold',
-          textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
-        }}>
-          2단계
-        </div>
-        <div style={{
-          flex: 1,
-          background: '#FFD700',
-          opacity: 0.6,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 10,
-          color: 'white',
-          fontWeight: 'bold',
-          textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
-        }}>
-          3단계
-        </div>
+        {[SUBWAY_INFLUENCE_LEVELS.LEVEL1, SUBWAY_INFLUENCE_LEVELS.LEVEL2, SUBWAY_INFLUENCE_LEVELS.LEVEL3].map(level => {
+          const config = SUBWAY_INFLUENCE_CONFIG[level];
+          return (
+            <div key={level} style={{
+              flex: 1,
+              background: config.color,
+              opacity: config.opacity,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 10,
+              color: 'white',
+              fontWeight: 'bold',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
+            }}>
+              {config.label}
+            </div>
+          );
+        })}
       </div>
       
       {/* 눈금 표시 */}

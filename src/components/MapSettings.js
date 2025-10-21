@@ -18,8 +18,8 @@ const MapSettings = ({
   sinkholes = []
 }) => {
   const mapTypes = [
-    { id: 'terrain', name: '지형', icon: '🏔️' },
     { id: 'normal', name: '일반', icon: '🗺️' },
+    { id: 'terrain', name: '지형', icon: '🏔️' },
     { id: 'satellite', name: '위성', icon: '🛰️' },
     { id: 'hybrid', name: '하이브리드', icon: '🌍' }
   ];

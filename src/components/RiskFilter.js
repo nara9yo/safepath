@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { getRiskLevelOptions } from '../utils/constants';
 
 const RiskFilter = ({ 
   selectedRiskLevels, 
@@ -27,37 +28,8 @@ const RiskFilter = ({
     return counts;
   }, [sinkholes]);
   
-  // 위험도 옵션 정의 (범례 색상과 동일하게 설정)
-  const riskLevelOptions = [
-    {
-      value: 'low',
-      label: '낮음',
-      color: '#2E7D32', // 진한 초록색
-      icon: '🟢',
-      description: '안전한 수준'
-    },
-    {
-      value: 'medium', 
-      label: '중간',
-      color: '#E65100', // 진한 주황색
-      icon: '🟠',
-      description: '주의 필요'
-    },
-    {
-      value: 'high',
-      label: '높음',
-      color: '#C62828', // 진한 빨간색
-      icon: '🔴',
-      description: '위험한 수준'
-    },
-    {
-      value: 'critical',
-      label: '치명적',
-      color: '#6A1B9A', // 진한 보라색
-      icon: '💥',
-      description: '매우 위험'
-    }
-  ];
+  // 위험도 옵션 정의 (통합 상수 사용)
+  const riskLevelOptions = getRiskLevelOptions();
 
   const handleRiskLevelToggle = (riskLevel) => {
     const newSelectedLevels = selectedRiskLevels.includes(riskLevel)
@@ -76,8 +48,10 @@ const RiskFilter = ({
   const getCollapsedSummary = () => {
     if (selectedRiskLevels.length === 0) return '선택: 없음';
     if (selectedRiskLevels.length === 4) return '선택: 전체';
-    const mapKo = { low: '낮음', medium: '중간', high: '높음', critical: '치명적' };
-    return `선택: ${selectedRiskLevels.map(l => mapKo[l]).join(', ')}`;
+    return `선택: ${selectedRiskLevels.map(l => {
+      const option = riskLevelOptions.find(opt => opt.value === l);
+      return option ? option.label : l;
+    }).join(', ')}`;
   };
 
   return (

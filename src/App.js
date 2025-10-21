@@ -16,8 +16,8 @@ function App() {
   // 탭 상태
   const [activeTab, setActiveTab] = useState('map-settings');
   
-  // 지도 유형 상태 (기본값: 지형)
-  const [mapType, setMapType] = useState('terrain');
+  // 지도 유형 상태 (기본값: 일반)
+  const [mapType, setMapType] = useState('normal');
   
   // 히트맵 설정 상태
   const [showHeatmap, setShowHeatmap] = useState(true);

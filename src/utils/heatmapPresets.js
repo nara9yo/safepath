@@ -1,64 +1,18 @@
 // 히트맵 스펙트럼 프리셋 정의
 // 네이버 지도 HeatMap의 gradient는 [0..1] 구간의 색상 배열로 지정됩니다.
+import { HEATMAP_GRADIENTS, getHeatmapGradient } from './constants';
 
+// 기존 호환성을 위한 별칭 (deprecated)
 export const gradients = {
-  // 균형 잡힌 기본 팔레트 (저위험: 청록 → 고위험: 적보라)
-  default: [
-    'rgba(0, 255, 255, 0)',
-    'rgba(0, 255, 255, 1)',
-    'rgba(0, 191, 255, 1)',
-    'rgba(0, 127, 255, 1)',
-    'rgba(0, 63, 255, 1)',
-    'rgba(0, 0, 255, 1)',
-    'rgba(127, 0, 255, 1)',
-    'rgba(191, 0, 255, 1)',
-    'rgba(255, 0, 191, 1)',
-    'rgba(255, 0, 127, 1)',
-    'rgba(255, 0, 63, 1)',
-    'rgba(255, 0, 0, 1)'
-  ],
-
-  // 위험도 중심(가독성 높은 고대비) 팔레트
-  severity: [
-    'rgba(0, 0, 0, 0)',
-    'rgba(0, 255, 170, 0.9)',
-    'rgba(255, 230, 0, 0.95)',
-    'rgba(255, 145, 0, 1)',
-    'rgba(244, 67, 54, 1)',
-    'rgba(156, 39, 176, 1)'
-  ],
-
-  // 최근성 중심(최근일수록 따뜻한 색)
-  recentness: [
-    'rgba(0, 0, 0, 0)',
-    'rgba(120, 144, 156, 0.9)',
-    'rgba(3, 169, 244, 0.95)',
-    'rgba(0, 188, 212, 1)',
-    'rgba(255, 193, 7, 1)',
-    'rgba(244, 67, 54, 1)'
-  ],
-
-  // 색각 이상 친화 팔레트(Deuteranopia-friendly)
-  colorBlind: [
-    'rgba(0, 0, 0, 0)',
-    'rgba(102, 194, 165, 1)',
-    'rgba(252, 141, 98, 1)',
-    'rgba(141, 160, 203, 1)',
-    'rgba(231, 138, 195, 1)',
-    'rgba(166, 216, 84, 1)'
-  ],
-
-  // 고대비(저사양 모드 권장): 단계 수 축소
-  highContrast: [
-    'rgba(0, 0, 0, 0)',
-    'rgba(0, 200, 255, 1)',
-    'rgba(255, 220, 0, 1)',
-    'rgba(255, 0, 0, 1)'
-  ]
+  default: HEATMAP_GRADIENTS.DEFAULT,
+  severity: HEATMAP_GRADIENTS.SEVERITY,
+  recentness: HEATMAP_GRADIENTS.RECENTNESS,
+  colorBlind: HEATMAP_GRADIENTS.COLOR_BLIND,
+  highContrast: HEATMAP_GRADIENTS.HIGH_CONTRAST
 };
 
 export const getGradientByName = (name) => {
-  return gradients[name] || gradients.severity;
+  return getHeatmapGradient(name);
 };
 
 

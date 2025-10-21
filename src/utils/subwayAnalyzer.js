@@ -1,6 +1,11 @@
 /**
  * 지하철 노선 반경별 위험도 가중치 계산 유틸리티
  */
+import { 
+  SUBWAY_CALCULATION_THRESHOLDS, 
+  getSubwayInfluenceLevel, 
+  getSubwayInfluenceStyle 
+} from './constants';
 
 /**
  * 두 지점 간의 거리를 계산 (Haversine 공식)
@@ -100,20 +105,25 @@ const getDistanceToLineSegment = (px, py, x1, y1, x2, y2) => {
  * @returns {number} 가중치 (0.0 ~ 1.0)
  */
 export const calculateSubwayRiskWeight = (distance) => {
-  if (distance <= 100) {
+  const thresholds = SUBWAY_CALCULATION_THRESHOLDS.DISTANCE_THRESHOLDS;
+  const weightCalc = SUBWAY_CALCULATION_THRESHOLDS.WEIGHT_CALCULATION;
+  
+  if (distance <= thresholds.LEVEL1_MAX) {
     // 1차 영향권 (반경 100m): 가장 높은 가중치
-    return 1.0;
-  } else if (distance <= 300) {
+    return weightCalc.LEVEL1_WEIGHT;
+  } else if (distance <= thresholds.LEVEL2_MAX) {
     // 2차 영향권 (반경 100~300m): 중간 가중치
-    const ratio = (distance - 100) / 200; // 0~1 사이의 비율
-    return 1.0 - (ratio * 0.6); // 1.0에서 0.4까지 선형 감소
-  } else if (distance <= 500) {
+    const ratio = (distance - thresholds.LEVEL1_MAX) / (thresholds.LEVEL2_MAX - thresholds.LEVEL1_MAX);
+    const [minWeight, maxWeight] = weightCalc.LEVEL2_WEIGHT_RANGE;
+    return maxWeight - (ratio * (maxWeight - minWeight));
+  } else if (distance <= thresholds.LEVEL3_MAX) {
     // 3차 영향권 (반경 300~500m): 낮은 가중치
-    const ratio = (distance - 300) / 200; // 0~1 사이의 비율
-    return 0.4 - (ratio * 0.3); // 0.4에서 0.1까지 선형 감소
+    const ratio = (distance - thresholds.LEVEL2_MAX) / (thresholds.LEVEL3_MAX - thresholds.LEVEL2_MAX);
+    const [minWeight, maxWeight] = weightCalc.LEVEL3_WEIGHT_RANGE;
+    return maxWeight - (ratio * (maxWeight - minWeight));
   } else {
     // 영향권 밖: 가중치 없음
-    return 0.0;
+    return weightCalc.OUTSIDE_WEIGHT;
   }
 };
 
@@ -136,18 +146,8 @@ export const applySubwayRiskWeights = (sinkholes, subwayStations) => {
     const originalWeight = Number(sinkhole.weight) || 0;
     const enhancedWeight = originalWeight * (1 + subwayWeight);
     
-    // 지하철 영향도 레벨 결정
-    let subwayInfluenceLevel = 'level3'; // 기본값: 3단계 (300m 초과)
-    if (distance <= 100) {
-      subwayInfluenceLevel = 'level1';
-    } else if (distance <= 300) {
-      subwayInfluenceLevel = 'level2';
-    } else if (distance <= 500) {
-      subwayInfluenceLevel = 'level3';
-    } else {
-      // 500m 초과는 영향권 밖으로 처리 (level3에 포함하지 않음)
-      subwayInfluenceLevel = 'none';
-    }
+    // 지하철 영향도 레벨 결정 (통합 상수 사용)
+    const subwayInfluenceLevel = getSubwayInfluenceLevel(distance);
     
     return {
       ...sinkhole,
@@ -167,33 +167,13 @@ export const applySubwayRiskWeights = (sinkholes, subwayStations) => {
  * @returns {Object} 영향권 정보
  */
 export const getSubwayInfluenceZone = (distance) => {
-  if (distance <= 100) {
-    return {
-      zone: '1차 영향권',
-      description: '역사 주변 즉시 지반, 상하수도·전력 등 매설물 영향이 집중되는 구간',
-      weight: 1.0,
-      color: '#F44336'
-    };
-  } else if (distance <= 300) {
-    return {
-      zone: '2차 영향권',
-      description: '굴착공사나 공동 형성 가능성이 높아 위험 중간 정도',
-      weight: 0.7,
-      color: '#FF9800'
-    };
-  } else if (distance <= 500) {
-    return {
-      zone: '3차 영향권',
-      description: '직접 영향은 낮지만 누적 침하 가능성이 있음',
-      weight: 0.3,
-      color: '#FFC107'
-    };
-  } else {
-    return {
-      zone: '영향권 밖',
-      description: '지하철 노선의 직접적인 영향 없음',
-      weight: 0.0,
-      color: '#4CAF50'
-    };
-  }
+  const influenceLevel = getSubwayInfluenceLevel(distance);
+  const config = getSubwayInfluenceStyle(influenceLevel);
+  
+  return {
+    zone: config.zone,
+    description: config.zoneDescription,
+    weight: config.weight,
+    color: config.color
+  };
 };
