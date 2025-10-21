@@ -329,36 +329,54 @@ input:checked + .slider:before {
   flex: 1;
   min-height: 0;
   box-sizing: border-box;
+  padding: 16px;
+  overflow: hidden;
 }
 
 .simulation-header,
 .settings-content {
-  flex-shrink: 0; /* 높이가 늘어나지 않도록 고정 */
+  flex-shrink: 0;
 }
 
 .stats-section {
-  flex: 1;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
   min-height: 0;
   display: flex;
   flex-direction: column;
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 16px;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
+}
+
+/* 설정 패널이 접혔을 때 적용될 스타일 */
+.stats-section.collapsed {
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
   flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding-bottom: 16px;
 }
 
-.stats-content {
+.stats-scroll-content {
   flex: 1;
-  min-height: 0;
   overflow-y: auto;
-  padding-bottom: 30px; /* 마지막 항목이 보이도록 패딩 추가 */
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-grid {
+.stats-cards {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 /* 싱크홀 목록 탭 전용 스크롤 영역 */
@@ -775,20 +793,17 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
 }
-
 .filter-title {
   display: flex;
   align-items: center;
   font-weight: 600;
   color: #333;
 }
-
 .filter-toggle-icon {
   margin-right: 6px;
   font-size: 12px;
   color: #666;
 }
-
 .filter-icon {
   margin-right: 6px;
   font-size: 16px;
@@ -1572,7 +1587,6 @@ input:checked + .slider:before {
   outline: none !important;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
 }
-
 /* ============================================================================ */
 /* 시뮬레이션 패널 스타일 */
 /* ============================================================================ */
@@ -1583,16 +1597,47 @@ input:checked + .slider:before {
   flex: 1;
   min-height: 0;
   box-sizing: border-box;
+  padding: 16px;
+  overflow: hidden;
+}
+.simulation-header,
+.settings-content {
+  flex-shrink: 0;
+}
+.stats-section {
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 16px;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
-.simulation-header {
+/* 설정 패널이 접혔을 때 적용될 스타일 */
+.stats-section.collapsed {
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
+}
+
+.stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  border-bottom: none;
-  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  padding-bottom: 16px;
 }
+
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
+}
+
 .simulation-header.clickable {
   cursor: pointer;
 }
@@ -1601,16 +1646,28 @@ input:checked + .slider:before {
   margin-bottom: 0; /* 접혔을 때 하단 마진 제거 */
 }
 
-.simulation-header h3 {
-  margin: 0;
-  color: #333;
-  font-size: 18px;
-  font-weight: 600;
+.simulation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
+
+.simulation-header h3 {
+  flex: 1; /* 제목이 공간을 최대한 차지하도록 설정 */
+  margin: 0;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap; /* 줄바꿈 방지 */
+}
+
 .simulation-controls {
   display: flex;
-  align-items: center; /* 세로 중앙 정렬 확인 */
+  align-items: center;
   gap: 8px;
+  flex-shrink: 0; /* 컨트롤 영역이 줄어들지 않도록 설정 */
 }
 
 .reset-btn {
@@ -1707,6 +1764,13 @@ input:checked + .slider:before {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  margin-bottom: 15px; /* 그룹 간 간격 설정 */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.parameter-group:last-child {
+  margin-bottom: 0; /* 마지막 그룹의 하단 마진 제거 */
 }
 
 .parameter-group-title {
@@ -2222,7 +2286,6 @@ input:checked + .slider:before {
   color: #495057;
   font-weight: 400;
 }
-
 /* 모바일 반응형 */
 @media (max-width: 768px) {
   .simulation-header {
@@ -2799,6 +2862,13 @@ input:checked + .slider:before {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  margin-bottom: 15px; /* 그룹 간 간격 설정 */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.parameter-group:last-child {
+  margin-bottom: 0; /* 마지막 그룹의 하단 마진 제거 */
 }
 
 .parameter-group-title {
@@ -3007,7 +3077,6 @@ input:checked + .slider:before {
   font-weight: 500;
   color: #495057;
 }
-
 .parameter-value {
   background: #e3f2fd;
   color: #1976d2;
@@ -3018,7 +3087,6 @@ input:checked + .slider:before {
   min-width: 32px;
   text-align: center;
 }
-
 .parameter-slider {
   width: 100%;
   height: 6px;
@@ -3080,61 +3148,44 @@ input:checked + .slider:before {
 
 /* 통계 섹션 */
 .stats-section {
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
-  border-top: 1px solid #e9ecef;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
-  max-height: 50vh; /* 최대 높이 제한 */
-  overflow-y: auto; /* 필요시 스크롤 */
-  scroll-behavior: smooth;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
+/* 설정 패널이 접혔을 때 적용될 스타일 */
 .stats-section.collapsed {
-  margin-top: 15px; /* 헤더와 결과 사이의 간격을 15px로 조정 */
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 8px 0;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  margin: -8px 0;
-  padding: 8px;
+  padding-bottom: 16px;
 }
 
-.stats-header:hover {
-  background: #f8f9fa;
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-title {
-  margin: 0;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-toggle {
-  font-size: 12px;
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.stats-content {
-  margin-top: 16px;
-}
-
-/* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -3166,7 +3217,7 @@ input:checked + .slider:before {
 
 /* 분포 차트 */
 .distribution-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .distribution-section h5 {
@@ -3817,11 +3868,9 @@ input:checked + .slider:before {
     gap: 4px;
   }
 }
-
 .settings-content {
   animation: fadeIn 0.3s ease-in-out;
 }
-
 /* 파라미터 그룹 헤더 */
 .parameter-group-header {
   display: flex;
@@ -3829,7 +3878,6 @@ input:checked + .slider:before {
   align-items: center;
   margin-bottom: 16px;
 }
-
 .parameter-info-btn {
   background: #e3f2fd;
   border: 1px solid #bbdefb;
@@ -4159,61 +4207,44 @@ input:checked + .slider:before {
 
 /* 통계 섹션 */
 .stats-section {
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
-  border-top: 1px solid #e9ecef;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
-  max-height: 50vh; /* 최대 높이 제한 */
-  overflow-y: auto; /* 필요시 스크롤 */
-  scroll-behavior: smooth;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
+/* 설정 패널이 접혔을 때 적용될 스타일 */
 .stats-section.collapsed {
-  margin-top: 15px; /* 헤더와 결과 사이의 간격을 15px로 조정 */
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 8px 0;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  margin: -8px 0;
-  padding: 8px;
+  padding-bottom: 16px;
 }
 
-.stats-header:hover {
-  background: #f8f9fa;
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-title {
-  margin: 0;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-toggle {
-  font-size: 12px;
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.stats-content {
-  margin-top: 16px;
-}
-
-/* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -4245,7 +4276,7 @@ input:checked + .slider:before {
 
 /* 분포 차트 */
 .distribution-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .distribution-section h5 {
@@ -4616,7 +4647,6 @@ input:checked + .slider:before {
   flex: 1;
   min-height: 0;
 }
-
 .popup-sidebar {
   width: 280px;
   background: #f8f9fa;
@@ -4639,17 +4669,14 @@ input:checked + .slider:before {
   font-weight: 600;
   color: #495057;
 }
-
 .category-icon {
   font-size: 16px;
 }
-
 .factor-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-
 .factor-item {
   display: flex;
   align-items: center;
@@ -4960,6 +4987,13 @@ input:checked + .slider:before {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  margin-bottom: 15px; /* 그룹 간 간격 설정 */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.parameter-group:last-child {
+  margin-bottom: 0; /* 마지막 그룹의 하단 마진 제거 */
 }
 
 .parameter-group-title {
@@ -5241,61 +5275,44 @@ input:checked + .slider:before {
 
 /* 통계 섹션 */
 .stats-section {
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
-  border-top: 1px solid #e9ecef;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
-  max-height: 50vh; /* 최대 높이 제한 */
-  overflow-y: auto; /* 필요시 스크롤 */
-  scroll-behavior: smooth;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
+/* 설정 패널이 접혔을 때 적용될 스타일 */
 .stats-section.collapsed {
-  margin-top: 15px; /* 헤더와 결과 사이의 간격을 15px로 조정 */
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 8px 0;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  margin: -8px 0;
-  padding: 8px;
+  padding-bottom: 16px;
 }
 
-.stats-header:hover {
-  background: #f8f9fa;
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-title {
-  margin: 0;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-toggle {
-  font-size: 12px;
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.stats-content {
-  margin-top: 16px;
-}
-
-/* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -5327,7 +5344,7 @@ input:checked + .slider:before {
 
 /* 분포 차트 */
 .distribution-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .distribution-section h5 {
@@ -5416,7 +5433,6 @@ input:checked + .slider:before {
   min-width: 24px;
   text-align: center;
 }
-
 /* 위험도 TOP 5 지역 */
 .top-regions-section {
   margin-top: 24px;
@@ -5450,7 +5466,6 @@ input:checked + .slider:before {
   margin-left: 6px;
   font-weight: normal;
 }
-
 /* 날짜 정보 스타일 */
 .sinkhole-date-info {
   display: flex;
@@ -5458,13 +5473,11 @@ input:checked + .slider:before {
   gap: 4px;
   margin-top: 2px;
 }
-
 .date-label {
   font-size: 10px;
   color: #6c757d;
   font-weight: 500;
 }
-
 .date-value {
   font-size: 10px;
   color: #495057;
@@ -6043,6 +6056,13 @@ input:checked + .slider:before {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  margin-bottom: 15px; /* 그룹 간 간격 설정 */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.parameter-group:last-child {
+  margin-bottom: 0; /* 마지막 그룹의 하단 마진 제거 */
 }
 
 .parameter-group-title {
@@ -6213,12 +6233,10 @@ input:checked + .slider:before {
 .dual-range-input:focus {
   box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
 }
-
 /* 트랙 자체는 클릭/드래그 대상이 아님 */
 .dual-range-track {
   pointer-events: none;
 }
-
 /* 브라우저별 실제 range 트랙을 투명화 */
 .dual-range-input::-webkit-slider-runnable-track {
   background: transparent;
@@ -6241,7 +6259,6 @@ input:checked + .slider:before {
 .parameter-item:last-child {
   margin-bottom: 0;
 }
-
 .parameter-label {
   display: flex;
   justify-content: space-between;
@@ -6251,7 +6268,6 @@ input:checked + .slider:before {
   font-weight: 500;
   color: #495057;
 }
-
 .parameter-value {
   background: #e3f2fd;
   color: #1976d2;
@@ -6323,61 +6339,44 @@ input:checked + .slider:before {
 
 /* 통계 섹션 */
 .stats-section {
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
-  border-top: 1px solid #e9ecef;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
-  max-height: 50vh; /* 최대 높이 제한 */
-  overflow-y: auto; /* 필요시 스크롤 */
-  scroll-behavior: smooth;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
+/* 설정 패널이 접혔을 때 적용될 스타일 */
 .stats-section.collapsed {
-  margin-top: 15px; /* 헤더와 결과 사이의 간격을 15px로 조정 */
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 8px 0;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  margin: -8px 0;
-  padding: 8px;
+  padding-bottom: 16px;
 }
 
-.stats-header:hover {
-  background: #f8f9fa;
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-title {
-  margin: 0;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-toggle {
-  font-size: 12px;
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.stats-content {
-  margin-top: 16px;
-}
-
-/* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -6409,7 +6408,7 @@ input:checked + .slider:before {
 
 /* 분포 차트 */
 .distribution-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .distribution-section h5 {
@@ -7069,7 +7068,6 @@ input:checked + .slider:before {
 .settings-content {
   animation: fadeIn 0.3s ease-in-out;
 }
-
 /* 파라미터 그룹 헤더 */
 .parameter-group-header {
   display: flex;
@@ -7077,7 +7075,6 @@ input:checked + .slider:before {
   align-items: center;
   margin-bottom: 16px;
 }
-
 .parameter-info-btn {
   background: #e3f2fd;
   border: 1px solid #bbdefb;
@@ -7133,6 +7130,13 @@ input:checked + .slider:before {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  margin-bottom: 15px; /* 그룹 간 간격 설정 */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.parameter-group:last-child {
+  margin-bottom: 0; /* 마지막 그룹의 하단 마진 제거 */
 }
 
 .parameter-group-title {
@@ -7414,61 +7418,44 @@ input:checked + .slider:before {
 
 /* 통계 섹션 */
 .stats-section {
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
-  border-top: 1px solid #e9ecef;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
-  max-height: 50vh; /* 최대 높이 제한 */
-  overflow-y: auto; /* 필요시 스크롤 */
-  scroll-behavior: smooth;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
+/* 설정 패널이 접혔을 때 적용될 스타일 */
 .stats-section.collapsed {
-  margin-top: 15px; /* 헤더와 결과 사이의 간격을 15px로 조정 */
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 8px 0;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  margin: -8px 0;
-  padding: 8px;
+  padding-bottom: 16px;
 }
 
-.stats-header:hover {
-  background: #f8f9fa;
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-title {
-  margin: 0;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-toggle {
-  font-size: 12px;
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.stats-content {
-  margin-top: 16px;
-}
-
-/* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -7500,7 +7487,7 @@ input:checked + .slider:before {
 
 /* 분포 차트 */
 .distribution-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .distribution-section h5 {
@@ -7785,7 +7772,6 @@ input:checked + .slider:before {
     font-size: 9px;
   }
 }
-
 /* ============================================================================ */
 /* 시뮬레이션 정보 팝업 스타일 */
 /* ============================================================================ */
@@ -7882,7 +7868,6 @@ input:checked + .slider:before {
 .factor-category {
   margin-bottom: 24px;
 }
-
 .category-title {
   display: flex;
   align-items: center;
@@ -7893,7 +7878,6 @@ input:checked + .slider:before {
   font-weight: 600;
   color: #495057;
 }
-
 .category-icon {
   font-size: 16px;
 }
@@ -8216,6 +8200,13 @@ input:checked + .slider:before {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  margin-bottom: 15px; /* 그룹 간 간격 설정 */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.parameter-group:last-child {
+  margin-bottom: 0; /* 마지막 그룹의 하단 마진 제거 */
 }
 
 .parameter-group-title {
@@ -8496,61 +8487,44 @@ input:checked + .slider:before {
 
 /* 통계 섹션 */
 .stats-section {
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
-  border-top: 1px solid #e9ecef;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
-  max-height: 50vh; /* 최대 높이 제한 */
-  overflow-y: auto; /* 필요시 스크롤 */
-  scroll-behavior: smooth;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
+/* 설정 패널이 접혔을 때 적용될 스타일 */
 .stats-section.collapsed {
-  margin-top: 15px; /* 헤더와 결과 사이의 간격을 15px로 조정 */
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 8px 0;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  margin: -8px 0;
-  padding: 8px;
+  padding-bottom: 16px;
 }
 
-.stats-header:hover {
-  background: #f8f9fa;
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-title {
-  margin: 0;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-toggle {
-  font-size: 12px;
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.stats-content {
-  margin-top: 16px;
-}
-
-/* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -8582,7 +8556,7 @@ input:checked + .slider:before {
 
 /* 분포 차트 */
 .distribution-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .distribution-section h5 {
@@ -8597,7 +8571,6 @@ input:checked + .slider:before {
   flex-direction: column;
   gap: 8px;
 }
-
 .distribution-item {
   display: flex;
   justify-content: space-between;
@@ -8692,8 +8665,6 @@ input:checked + .slider:before {
   flex-direction: column;
   gap: 8px;
 }
-
-
 /* 순위 배지 스타일 */
 .rank-badge {
   display: inline-block;
@@ -8713,7 +8684,6 @@ input:checked + .slider:before {
   gap: 4px;
   margin-top: 2px;
 }
-
 .date-label {
   font-size: 10px;
   color: #6c757d;
@@ -9306,6 +9276,13 @@ input:checked + .slider:before {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  margin-bottom: 15px; /* 그룹 간 간격 설정 */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.parameter-group:last-child {
+  margin-bottom: 0; /* 마지막 그룹의 하단 마진 제거 */
 }
 
 .parameter-group-title {
@@ -9381,7 +9358,6 @@ input:checked + .slider:before {
   height: 100%;
   transition: all 0.2s ease;
 }
-
 .dual-range-input {
   position: absolute;
   top: 50%;
@@ -9514,7 +9490,6 @@ input:checked + .slider:before {
   font-weight: 500;
   color: #495057;
 }
-
 .parameter-value {
   background: #e3f2fd;
   color: #1976d2;
@@ -9587,61 +9562,44 @@ input:checked + .slider:before {
 
 /* 통계 섹션 */
 .stats-section {
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
-  border-top: 1px solid #e9ecef;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
-  max-height: 50vh; /* 최대 높이 제한 */
-  overflow-y: auto; /* 필요시 스크롤 */
-  scroll-behavior: smooth;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
+/* 설정 패널이 접혔을 때 적용될 스타일 */
 .stats-section.collapsed {
-  margin-top: 15px; /* 헤더와 결과 사이의 간격을 15px로 조정 */
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 8px 0;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  margin: -8px 0;
-  padding: 8px;
+  padding-bottom: 16px;
 }
 
-.stats-header:hover {
-  background: #f8f9fa;
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-title {
-  margin: 0;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-toggle {
-  font-size: 12px;
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.stats-content {
-  margin-top: 16px;
-}
-
-/* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -9673,7 +9631,7 @@ input:checked + .slider:before {
 
 /* 분포 차트 */
 .distribution-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .distribution-section h5 {
@@ -10197,7 +10155,6 @@ input:checked + .slider:before {
   border-radius: 8px;
   padding: 16px;
 }
-
 .guide-title {
   font-size: 14px;
   font-weight: 600;
@@ -10233,7 +10190,6 @@ input:checked + .slider:before {
 .guide-color.high {
   background: #C62828;
 }
-
 /* 모바일 반응형 */
 @media (max-width: 768px) {
   .simulation-info-overlay {
@@ -10333,7 +10289,6 @@ input:checked + .slider:before {
   align-items: center;
   margin-bottom: 16px;
 }
-
 .parameter-info-btn {
   background: #e3f2fd;
   border: 1px solid #bbdefb;
@@ -10669,61 +10624,44 @@ input:checked + .slider:before {
 
 /* 통계 섹션 */
 .stats-section {
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
-  border-top: 1px solid #e9ecef;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
-  max-height: 50vh; /* 최대 높이 제한 */
-  overflow-y: auto; /* 필요시 스크롤 */
-  scroll-behavior: smooth;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
+/* 설정 패널이 접혔을 때 적용될 스타일 */
 .stats-section.collapsed {
-  margin-top: 15px; /* 헤더와 결과 사이의 간격을 15px로 조정 */
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 8px 0;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  margin: -8px 0;
-  padding: 8px;
+  padding-bottom: 16px;
 }
 
-.stats-header:hover {
-  background: #f8f9fa;
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-title {
-  margin: 0;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-toggle {
-  font-size: 12px;
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.stats-content {
-  margin-top: 16px;
-}
-
-/* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -10755,7 +10693,7 @@ input:checked + .slider:before {
 
 /* 분포 차트 */
 .distribution-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .distribution-section h5 {
@@ -10898,7 +10836,6 @@ input:checked + .slider:before {
   color: #495057;
   font-weight: 400;
 }
-
 /* 모바일 반응형 */
 @media (max-width: 768px) {
   .simulation-header {
@@ -11041,7 +10978,6 @@ input:checked + .slider:before {
     font-size: 9px;
   }
 }
-
 /* ============================================================================ */
 /* 시뮬레이션 정보 팝업 스타일 */
 /* ============================================================================ */
@@ -11149,7 +11085,6 @@ input:checked + .slider:before {
   font-weight: 600;
   color: #495057;
 }
-
 .category-icon {
   font-size: 16px;
 }
@@ -11479,6 +11414,13 @@ input:checked + .slider:before {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  margin-bottom: 15px; /* 그룹 간 간격 설정 */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.parameter-group:last-child {
+  margin-bottom: 0; /* 마지막 그룹의 하단 마진 제거 */
 }
 
 .parameter-group-title {
@@ -11687,7 +11629,6 @@ input:checked + .slider:before {
   font-weight: 500;
   color: #495057;
 }
-
 .parameter-value {
   background: #e3f2fd;
   color: #1976d2;
@@ -11760,61 +11701,44 @@ input:checked + .slider:before {
 
 /* 통계 섹션 */
 .stats-section {
-  margin-top: 24px;
-  transition: margin-top 0.3s ease-in-out;
-  border-top: 1px solid #e9ecef;
+  flex: 1; /* 항상 남은 공간을 차지하도록 설정 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
-  max-height: 50vh; /* 최대 높이 제한 */
-  overflow-y: auto; /* 필요시 스크롤 */
-  scroll-behavior: smooth;
+  transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
 }
 
+/* 설정 패널이 접혔을 때 적용될 스타일 */
 .stats-section.collapsed {
-  margin-top: 15px; /* 헤더와 결과 사이의 간격을 15px로 조정 */
+  margin-top: 15px; /* 설정 헤더와 구분선 사이 간격 */
+  border-top: 1px solid #e9ecef; /* 구분선 */
+  padding-top: 15px; /* 구분선과 결과 헤더 사이 간격 */
 }
 
 .stats-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 8px 0;
-  transition: background-color 0.2s ease;
-  border-radius: 4px;
-  margin: -8px 0;
-  padding: 8px;
+  padding-bottom: 16px;
 }
 
-.stats-header:hover {
-  background: #f8f9fa;
+.stats-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
 }
 
-.stats-title {
-  margin: 0;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-toggle {
-  font-size: 12px;
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.stats-content {
-  margin-top: 16px;
-}
-
-/* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -11846,7 +11770,7 @@ input:checked + .slider:before {
 
 /* 분포 차트 */
 .distribution-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .distribution-section h5 {
@@ -11855,7 +11779,6 @@ input:checked + .slider:before {
   font-size: 13px;
   font-weight: 600;
 }
-
 .distribution-chart {
   display: flex;
   flex-direction: column;
@@ -11956,8 +11879,6 @@ input:checked + .slider:before {
   flex-direction: column;
   gap: 8px;
 }
-
-
 /* 순위 배지 스타일 */
 .rank-badge {
   display: inline-block;
