@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import MapInfoPopup from './MapInfoPopup';
 import { getRiskLevelOptions, getGradientColor } from '../utils/constants';
 
 const RiskFilter = ({ 
@@ -9,6 +10,7 @@ const RiskFilter = ({
   title = '위험도'
 }) => {
   const [isExpanded, setIsExpanded] = useState(!!defaultExpanded);
+  const [showInfo, setShowInfo] = useState(false);
   // 위험도별 싱크홀 개수 계산
   const riskLevelCounts = useMemo(() => {
     const counts = {
@@ -64,6 +66,7 @@ const RiskFilter = ({
 
   return (
     <div className="filter-section">
+      <MapInfoPopup isOpen={showInfo} onClose={() => setShowInfo(false)} category="risk" />
       <div 
         className="filter-header clickable"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -74,6 +77,16 @@ const RiskFilter = ({
           <span className="filter-title">{title}</span>
         </div>
         <div className="filter-header-right">
+          <button 
+            className="parameter-info-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowInfo(true);
+            }}
+            title="위험도 설명 보기"
+          >
+            i
+          </button>
           {hasActiveRiskFilter && (
             <button 
               className="clear-filters-btn" 

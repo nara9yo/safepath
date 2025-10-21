@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SUBWAY_INFLUENCE_CONFIG, SUBWAY_INFLUENCE_LEVELS } from '../utils/constants';
+import MapInfoPopup from './MapInfoPopup';
 
 const SubwayInfluenceLegend = ({ 
   title = "지하철 영향권",
   barWidth = 200 
 }) => {
+  const [showInfo, setShowInfo] = useState(false);
   return (
-    <div style={{ padding: 8 }}>
+    <div style={{ padding: 8, position: 'relative' }}>
       {/* 타이틀 */}
       <div style={{
         fontSize: 12,
@@ -15,6 +17,14 @@ const SubwayInfluenceLegend = ({
       }}>
         {title}
       </div>
+      <button
+        className="legend-info-btn"
+        title="영향권 설명 보기"
+        onClick={() => setShowInfo(true)}
+        style={{ position: 'absolute', top: 6, right: 6 }}
+      >
+        i
+      </button>
       
       {/* 3등분 색상 바 */}
       <div style={{
@@ -61,6 +71,7 @@ const SubwayInfluenceLegend = ({
         <span>300</span>
         <span>500</span>
       </div>
+      <MapInfoPopup isOpen={showInfo} onClose={() => setShowInfo(false)} category="influence" />
     </div>
   );
 };

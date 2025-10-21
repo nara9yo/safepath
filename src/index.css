@@ -1769,6 +1769,36 @@ input:checked + .slider:before {
   transform: scale(0.95);
 }
 
+/* 범례 인포 버튼 (작고 우측 상단 고정용) */
+.legend-info-btn {
+  background: #e8f3ff;
+  border: 1px solid #cfe3f5;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2b6cb0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.legend-info-btn:hover {
+  background: #d9ecff;
+  border-color: #a6d1fa;
+  color: #1e5ea8;
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(43, 108, 176, 0.25);
+}
+
+.legend-info-btn:active {
+  transform: scale(0.95);
+}
+
 .parameter-header-controls {
   display: flex;
   align-items: center;

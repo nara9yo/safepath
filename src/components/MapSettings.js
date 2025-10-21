@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import MapInfoPopup from './MapInfoPopup';
 
 const MapSettings = ({
   mapType,
@@ -45,6 +46,9 @@ const MapSettings = ({
     { id: 'high', name: '높음', range: `${(dataRange.min + quarterRange * 2).toFixed(1)} ~ ${(dataRange.min + quarterRange * 3).toFixed(1)}` },
     { id: 'critical', name: '치명적', range: `${(dataRange.min + quarterRange * 3).toFixed(1)} ~ ${dataRange.max.toFixed(1)}` }
   ];
+
+  const [showInfo, setShowInfo] = useState(false);
+  const [infoCategory, setInfoCategory] = useState('risk');
 
   return (
     <div className="map-settings-text">
@@ -98,6 +102,17 @@ const MapSettings = ({
                 ))}
               </select>
             </div>
+            <button
+              className="parameter-info-btn"
+              style={{ marginLeft: 8 }}
+              title="위험도 설명 보기"
+              onClick={() => {
+                setInfoCategory('risk');
+                setShowInfo(true);
+              }}
+            >
+              i
+            </button>
           </div>
         </div>
       )}
@@ -117,6 +132,17 @@ const MapSettings = ({
               <span className="switch-slider"></span>
             </label>
           </div>
+          <button
+            className="parameter-info-btn"
+            style={{ marginLeft: 8 }}
+            title="히트맵 설명 보기"
+            onClick={() => {
+              setInfoCategory('heatmap');
+              setShowInfo(true);
+            }}
+          >
+            i
+          </button>
         </div>
       </div>
 
@@ -178,9 +204,25 @@ const MapSettings = ({
                 1차(100m) 2차(300m) 3차(500m) 영향권 표시
               </small>
             </div>
+            <button
+              className="parameter-info-btn"
+              style={{ marginLeft: 8 }}
+              title="영향권 설명 보기"
+              onClick={() => {
+                setInfoCategory('influence');
+                setShowInfo(true);
+              }}
+            >
+              i
+            </button>
           </div>
         </div>
       )}
+      <MapInfoPopup
+        isOpen={showInfo}
+        onClose={() => setShowInfo(false)}
+        category={infoCategory}
+      />
     </div>
   );
 };

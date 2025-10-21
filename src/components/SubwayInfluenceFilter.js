@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import MapInfoPopup from './MapInfoPopup';
 import { getSubwayInfluenceOptions } from '../utils/constants';
 
 const SubwayInfluenceFilter = ({ 
@@ -9,6 +10,7 @@ const SubwayInfluenceFilter = ({
   title = '지하철 영향도'
 }) => {
   const [isExpanded, setIsExpanded] = useState(!!defaultExpanded);
+  const [showInfo, setShowInfo] = useState(false);
   
   // 지하철 영향도별 싱크홀 개수 계산
   const influenceLevelCounts = useMemo(() => {
@@ -57,6 +59,7 @@ const SubwayInfluenceFilter = ({
 
   return (
     <div className="filter-section">
+      <MapInfoPopup isOpen={showInfo} onClose={() => setShowInfo(false)} category="influence" />
       <div 
         className="filter-header clickable"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -67,6 +70,16 @@ const SubwayInfluenceFilter = ({
           <span className="filter-title">{title}</span>
         </div>
         <div className="filter-header-right">
+          <button 
+            className="parameter-info-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowInfo(true);
+            }}
+            title="영향권 설명 보기"
+          >
+            i
+          </button>
           {hasActiveInfluenceFilter && (
             <button 
               className="clear-filters-btn" 
