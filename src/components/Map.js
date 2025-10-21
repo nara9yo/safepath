@@ -3,34 +3,17 @@ import HeatmapLegend from './HeatmapLegend';
 import MapTypeControl from './MapTypeControl';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
-const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady, selectedInputType, inspectionRadiusKm, activeTab, startPoint, endPoint, showHeatmap, heatmapGradient, showRouteHeatband, rescaleMethod, legendMin, legendMax }) => {
+const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGradient, rescaleMethod, legendMin, legendMax }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
-  const polylinesRef = useRef([]);
   const infoWindowsRef = useRef([]);
   const circlesRef = useRef([]);
   const heatmapRef = useRef(null);
-  const routeHeatbandRef = useRef(null);
   const isMovingRef = useRef(false);
-  const onLocationSelectRef = useRef(onLocationSelect);
-  const selectedInputTypeRef = useRef(selectedInputType);
-  const contextMenuRef = useRef(null);
-  const startMarkerRef = useRef(null);
-  const endMarkerRef = useRef(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapType, setMapType] = useState('normal');
 
-  // onLocationSelect가 변경될 때마다 ref 업데이트
-  useEffect(() => {
-    onLocationSelectRef.current = onLocationSelect;
-  }, [onLocationSelect]);
-
-  // selectedInputType 변경 감지 및 ref 업데이트
-  useEffect(() => {
-    console.log('🔄 selectedInputType 변경됨:', selectedInputType);
-    selectedInputTypeRef.current = selectedInputType;
-  }, [selectedInputType]);
 
   // 지도 유형 변경 핸들러
   const handleMapTypeChange = useCallback((newMapType) => {
@@ -96,60 +79,7 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
       document.head.appendChild(script);
     };
 
-    // 컨텍스트 메뉴 표시 함수
-    const showContextMenu = (e) => {
-      // 경로 검색 탭이 아니면 메뉴를 표시하지 않음
-      if (activeTab !== 'route') return;
 
-      hideContextMenu(); // 기존 메뉴 제거
-
-      const latlng = e.coord;
-      const position = e.offset;
-
-      // 컨텍스트 메뉴 생성
-      const menu = document.createElement('div');
-      menu.className = 'map-context-menu';
-      menu.style.left = position.x + 'px';
-      menu.style.top = position.y + 'px';
-
-      // 출발 버튼
-      const startBtn = document.createElement('div');
-      startBtn.className = 'map-context-menu-item';
-      startBtn.innerHTML = '<span class="menu-icon">🟢</span> 출발';
-      startBtn.onclick = () => {
-        const location = { lat: latlng.y, lng: latlng.x };
-        if (onLocationSelectRef.current) {
-          onLocationSelectRef.current(location, 'start');
-        }
-        hideContextMenu();
-      };
-
-      // 도착 버튼
-      const endBtn = document.createElement('div');
-      endBtn.className = 'map-context-menu-item';
-      endBtn.innerHTML = '<span class="menu-icon">🔴</span> 도착';
-      endBtn.onclick = () => {
-        const location = { lat: latlng.y, lng: latlng.x };
-        if (onLocationSelectRef.current) {
-          onLocationSelectRef.current(location, 'end');
-        }
-        hideContextMenu();
-      };
-
-      menu.appendChild(startBtn);
-      menu.appendChild(endBtn);
-      
-      mapRef.current.appendChild(menu);
-      contextMenuRef.current = menu;
-    };
-
-    // 컨텍스트 메뉴 숨기기 함수
-    const hideContextMenu = () => {
-      if (contextMenuRef.current) {
-        contextMenuRef.current.remove();
-        contextMenuRef.current = null;
-      }
-    };
 
     const initializeMap = () => {
       if (!window.naver || !window.naver.maps || !window.naver.maps.Map) {
@@ -173,22 +103,7 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
           onMapReady(mapInstance.current);
         }
 
-        window.naver.maps.Event.addListener(mapInstance.current, 'click', (e) => {
-          const latlng = e.coord;
-          const location = { lat: latlng.y, lng: latlng.x };
-          const inputType = selectedInputTypeRef.current || 'start';
-          if (onLocationSelectRef.current) {
-            onLocationSelectRef.current(location, inputType);
-          }
-          // 컨텍스트 메뉴 숨기기
-          hideContextMenu();
-        });
 
-        // 우클릭 이벤트 리스너 추가
-        window.naver.maps.Event.addListener(mapInstance.current, 'rightclick', (e) => {
-          e.domEvent.preventDefault();
-          showContextMenu(e);
-        });
 
         // 지도가 완전히 준비되면 isMapReady를 true로 설정
         let isReadySet = false;
@@ -208,9 +123,6 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
           isMovingRef.current = false;
           if (heatmapRef.current && showHeatmap) {
             try { heatmapRef.current.setMap(mapInstance.current); } catch (e) {}
-          }
-          if (routeHeatbandRef.current && showRouteHeatband) {
-            try { routeHeatbandRef.current.setMap(mapInstance.current); } catch (e) {}
           }
           setMapAsReady();
           window.naver.maps.Event.removeListener(idleListener);
@@ -241,12 +153,10 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
     const startHandler = window.naver.maps.Event.addListener(mapInstance.current, 'dragstart', () => {
       isMovingRef.current = true;
       if (heatmapRef.current) { try { heatmapRef.current.setMap(null); } catch (e) {} }
-      if (routeHeatbandRef.current) { try { routeHeatbandRef.current.setMap(null); } catch (e) {} }
     });
     const zoomHandler = window.naver.maps.Event.addListener(mapInstance.current, 'zoomstart', () => {
       isMovingRef.current = true;
       if (heatmapRef.current) { try { heatmapRef.current.setMap(null); } catch (e) {} }
-      if (routeHeatbandRef.current) { try { routeHeatbandRef.current.setMap(null); } catch (e) {} }
     });
     return () => {
       window.naver.maps.Event.removeListener(startHandler);
@@ -323,91 +233,6 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
     };
   }, [isMapReady, sinkholes, showHeatmap, heatmapGradient, rescaleMethod, toWeightedLocations]);
 
-  // 경로 히트밴드(경로 주변 위험 밀도)를 위한 보조 HeatMap
-  useEffect(() => {
-    if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps || !window.naver.maps.visualization) return;
-
-    if (!showRouteHeatband || !route || !route.path || route.path.length === 0) {
-      if (routeHeatbandRef.current) {
-        try { routeHeatbandRef.current.setMap(null); } catch (e) {}
-      }
-      return;
-    }
-
-    // 경로 샘플 포인트 생성 및 주변 싱크홀 밀도로 weight 부여
-    const sampleEveryMeters = 80; // 대략 샘플 간격(튜닝 가능)
-    const radiusKm = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
-    const routePoints = route.path;
-    const samples = [];
-    const toKm = (a, b) => {
-      const R = 6371;
-      const dLat = (b.lat - a.lat) * Math.PI / 180;
-      const dLng = (b.lng - a.lng) * Math.PI / 180;
-      const x = Math.sin(dLat/2) ** 2 + Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLng/2) ** 2;
-      return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
-    };
-    const interpolate = (a, b, t) => ({ lat: a.lat + (b.lat - a.lat) * t, lng: a.lng + (b.lng - a.lng) * t });
-
-    for (let i = 0; i < routePoints.length - 1; i++) {
-      const a = routePoints[i];
-      const b = routePoints[i + 1];
-      const distKm = toKm(a, b);
-      const steps = Math.max(1, Math.floor((distKm * 1000) / sampleEveryMeters));
-      for (let s = 0; s <= steps; s++) {
-        const t = s / steps;
-        samples.push(interpolate(a, b, t));
-      }
-    }
-
-    const densityAt = (p) => {
-      let sum = 0;
-      for (const sh of sinkholes || []) {
-        const d = toKm(p, { lat: sh.lat, lng: sh.lng });
-        if (d <= radiusKm) {
-          const w = Number(sh.weight) || 0;
-          // 거리 기반 감쇠 (선형)
-          const atten = Math.max(0, 1 - (d / radiusKm));
-          sum += w * atten;
-        }
-      }
-      return sum;
-    };
-
-    const densities = samples.map(p => ({ p, val: densityAt(p) }));
-    const maxVal = densities.reduce((m, x) => Math.max(m, x.val), 0) || 1;
-    const data = densities.map(({ p, val }) => ({
-      location: new window.naver.maps.LatLng(p.lat, p.lng),
-      weight: Math.max(0, Math.min(maxVal, Math.round(val)))
-    }));
-
-    if (!routeHeatbandRef.current) {
-      try {
-        routeHeatbandRef.current = new window.naver.maps.visualization.HeatMap({
-          map: mapInstance.current,
-          data,
-          radius: 12,
-          opacity: 0.55,
-          gradient: heatmapGradient || undefined
-        });
-      } catch (e) {
-        console.error('❌ Route Heatband 생성 실패:', e);
-      }
-    } else {
-      try {
-        routeHeatbandRef.current.setData(data);
-        routeHeatbandRef.current.setOptions({ gradient: heatmapGradient || undefined });
-        routeHeatbandRef.current.setMap(mapInstance.current);
-      } catch (e) {
-        console.error('❌ Route Heatband 업데이트 실패:', e);
-      }
-    }
-
-    return () => {
-      if (routeHeatbandRef.current && !showRouteHeatband) {
-        try { routeHeatbandRef.current.setMap(null); } catch (e) {}
-      }
-    };
-  }, [isMapReady, route, sinkholes, showRouteHeatband, heatmapGradient, inspectionRadiusKm]);
 
   // 싱크홀 마커 표시
   useEffect(() => {
@@ -647,184 +472,8 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
     }
   }, [selectedSinkhole, isMapReady]);
 
-  // 경로 표시
-  useEffect(() => {
-    if (!isMapReady || !mapInstance.current || !route || !window.naver || !window.naver.maps) {
-      console.log('⚠️ 경로 표시: 지도 또는 경로 없음', { isMapReady, hasRoute: !!route });
-      return;
-    }
 
-    console.log('🛣️ 경로 그리기 시작:', route);
 
-    // 기존 경로 제거
-    polylinesRef.current.forEach(polyline => {
-      try {
-        polyline.setMap(null);
-      } catch (e) {
-        console.error('폴리라인 제거 오류:', e);
-      }
-    });
-    polylinesRef.current = [];
-
-    try {
-      const path = route.path.map(point => new window.naver.maps.LatLng(point.lat, point.lng));
-
-      // originalRoute가 있으면: 현재 경로는 우회/포함 경로 (파란색 실선)
-      // originalRoute가 없으면: 현재 경로는 원래 경로 (빨간색 점선)
-      if (route.originalRoute) {
-        // 1. 먼저 우회/포함 경로 그리기 (파란색 실선)
-        const mainPolyline = new window.naver.maps.Polyline({
-          path,
-          map: mapInstance.current,
-          strokeColor: '#2196F3',
-          strokeWeight: 5,
-          strokeOpacity: 0.8,
-          strokeStyle: 'solid'
-        });
-        polylinesRef.current.push(mainPolyline);
-        console.log('✅ 우회/포함 경로 그리기 완료 (파란색)');
-
-        // 2. 나중에 원래 경로 그리기 (빨간색 점선) - 위에 표시됨
-        const originalPath = route.originalRoute.path.map(point => new window.naver.maps.LatLng(point.lat, point.lng));
-        const originalPolyline = new window.naver.maps.Polyline({
-          path: originalPath,
-          map: mapInstance.current,
-          strokeColor: '#FF0000',
-          strokeWeight: 5,
-          strokeOpacity: 0.8,
-          strokeStyle: 'shortdash'
-        });
-        polylinesRef.current.push(originalPolyline);
-        console.log('✅ 원래 경로 그리기 완료 (빨간색 점선)');
-      } else {
-        // 원래 경로만 있는 경우 (빨간색 점선)
-        const polyline = new window.naver.maps.Polyline({
-          path,
-          map: mapInstance.current,
-          strokeColor: '#FF0000',
-          strokeWeight: 5,
-          strokeOpacity: 0.8,
-          strokeStyle: 'shortdash'
-        });
-        polylinesRef.current.push(polyline);
-        console.log('✅ 기본 경로 그리기 완료 (빨간색 점선)');
-      }
-
-      const bounds = new window.naver.maps.LatLngBounds();
-      path.forEach(latlng => bounds.extend(latlng));
-      mapInstance.current.fitBounds(bounds);
-      console.log('✅ 지도 범위 조정 완료');
-    } catch (error) {
-      console.error('❌ 경로 그리기 오류:', error);
-    }
-
-  }, [route, isMapReady]);
-
-  // 경로에 포함된 싱크홀 반경 그라데이션 표시
-  useEffect(() => {
-    if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps) return;
-
-    // 기존 원형 제거
-    circlesRef.current.forEach(c => c.setMap(null));
-    circlesRef.current = [];
-
-    if (!route || !route.detectedSinkholes || route.detectedSinkholes.length === 0) return;
-
-    const radiusKm = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05; // 기본 50m
-    const radiusMeters = Math.max(1, Math.round(radiusKm * 1000));
-
-    const levels = [
-      { factor: 1.0, opacity: 0.25 },
-      { factor: 0.66, opacity: 0.15 },
-      { factor: 0.33, opacity: 0.08 }
-    ];
-
-    route.detectedSinkholes.forEach(s => {
-      if (!Number.isFinite(s.lat) || !Number.isFinite(s.lng)) return;
-      const center = new window.naver.maps.LatLng(s.lat, s.lng);
-      levels.forEach((lv) => {
-        const circle = new window.naver.maps.Circle({
-          map: mapInstance.current,
-          center,
-          radius: Math.max(1, Math.round(radiusMeters * lv.factor)),
-          strokeWeight: 0,
-          strokeOpacity: 0,
-          fillColor: '#FF9800',
-          fillOpacity: lv.opacity,
-          clickable: false
-        });
-        circlesRef.current.push(circle);
-      });
-    });
-  }, [route, inspectionRadiusKm, isMapReady]);
-
-  // 출발/도착 마커 업데이트
-  useEffect(() => {
-    if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps) {
-      console.log('⚠️ 출발/도착 마커: 지도 인스턴스가 준비되지 않음', { isMapReady });
-      return;
-    }
-
-    // 기존 출발 마커 제거
-    if (startMarkerRef.current) {
-      try {
-        startMarkerRef.current.setMap(null);
-        console.log('🗑️ 기존 출발 마커 제거');
-      } catch (e) {
-        console.error('출발 마커 제거 오류:', e);
-      }
-      startMarkerRef.current = null;
-    }
-
-    // 기존 도착 마커 제거
-    if (endMarkerRef.current) {
-      try {
-        endMarkerRef.current.setMap(null);
-        console.log('🗑️ 기존 도착 마커 제거');
-      } catch (e) {
-        console.error('도착 마커 제거 오류:', e);
-      }
-      endMarkerRef.current = null;
-    }
-
-    // 출발 마커 추가
-    if (startPoint && Number.isFinite(startPoint.lat) && Number.isFinite(startPoint.lng)) {
-      try {
-        const startMarker = new window.naver.maps.Marker({
-          position: new window.naver.maps.LatLng(startPoint.lat, startPoint.lng),
-          map: mapInstance.current,
-          icon: {
-            content: '<div style="background: #4CAF50; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 18px;">🏁</div>',
-            anchor: new window.naver.maps.Point(16, 16)
-          },
-          zIndex: 1000
-        });
-        startMarkerRef.current = startMarker;
-        console.log('✅ 출발 마커 생성:', startPoint);
-      } catch (error) {
-        console.error('❌ 출발 마커 생성 오류:', error);
-      }
-    }
-
-    // 도착 마커 추가
-    if (endPoint && Number.isFinite(endPoint.lat) && Number.isFinite(endPoint.lng)) {
-      try {
-        const endMarker = new window.naver.maps.Marker({
-          position: new window.naver.maps.LatLng(endPoint.lat, endPoint.lng),
-          map: mapInstance.current,
-          icon: {
-            content: '<div style="background: #F44336; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 18px;">🏁</div>',
-            anchor: new window.naver.maps.Point(16, 16)
-          },
-          zIndex: 1000
-        });
-        endMarkerRef.current = endMarker;
-        console.log('✅ 도착 마커 생성:', endPoint);
-      } catch (error) {
-        console.error('❌ 도착 마커 생성 오류:', error);
-      }
-    }
-  }, [startPoint, endPoint, isMapReady]);
 
   return (
     <div 

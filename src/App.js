@@ -1,31 +1,21 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import MapView from './components/Map';
-import RouteSearch from './components/RouteSearch';
 import ModeToggle from './components/ModeToggle';
 import { getGradientByName } from './utils/heatmapPresets';
-import RouteDisplay from './components/RouteDisplay';
 import SinkholeList from './components/SinkholeList';
 import RiskFilter from './components/RiskFilter';
-import { detectSinkholesOnRoute, calculateDetourRoute, injectSinkholesIntoPath, computePathDistance } from './utils/routeCalculator';
 import { enhanceSinkholesWithWeight } from './utils/sinkholeAnalyzer';
 import Papa from 'papaparse';
 
 function App() {
-  const [mode, setMode] = useState('normal'); // 'normal' 또는 'inspection'
-  const [startPoint, setStartPoint] = useState(null);
-  const [endPoint, setEndPoint] = useState(null);
-  const [route, setRoute] = useState(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [error, setError] = useState(null);
   const [mapRef, setMapRef] = useState(null);
   const [selectedSinkhole, setSelectedSinkhole] = useState(null);
-  const [selectedInputType, setSelectedInputType] = useState(null); // 'start' 또는 'end'
   const [sinkholes, setSinkholes] = useState([]);
-  const [inspectionRadiusKm, setInspectionRadiusKm] = useState(0.05); // 기본 50m
-  const [activeTab, setActiveTab] = useState('route'); // 'route' or 'sinkhole'
-  const [baseDirectionsRoute, setBaseDirectionsRoute] = useState(null); // Directions 원본 캐시
-  const forcedSinkholeIdsRef = useRef(new Set()); // 반경 축소 시에도 유지할 싱크홀 캐시
-  const radiusCacheRef = useRef(new Map()); // 반경별 경로 캐시
+  
+  // 히트맵 설정 상태
+  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [heatmapPreset, setHeatmapPreset] = useState('severity');
+  const [rescaleMethod, setRescaleMethod] = useState('p90');
   
   // 지역 필터 상태
   const [selectedSido, setSelectedSido] = useState('');
@@ -34,10 +24,6 @@ function App() {
   
   // 위험도 필터 상태
   const [selectedRiskLevels, setSelectedRiskLevels] = useState(['low', 'medium', 'high', 'critical']);
-  const [showHeatmap, setShowHeatmap] = useState(true);
-  const [heatmapPreset, setHeatmapPreset] = useState('severity');
-  const [showRouteHeatband, setShowRouteHeatband] = useState(false);
-  const [rescaleMethod, setRescaleMethod] = useState('p90');
 
   // 지역 필터 및 위험도 필터 적용
   const filteredSinkholes = useMemo(() => {
@@ -67,24 +53,11 @@ function App() {
     return result;
   }, [sinkholes, selectedSido, selectedSigungu, selectedDong, selectedRiskLevels]);
 
-  // 필터 변경 시 캐시 초기화
-  useEffect(() => {
-    radiusCacheRef.current = new Map();
-  }, [selectedSido, selectedSigungu, selectedDong, selectedRiskLevels]);
 
-  // 지도에 표시할 싱크홀 (탭에 따라 다르게)
+  // 지도에 표시할 싱크홀
   const displayedSinkholes = useMemo(() => {
-    // 경로 검색 탭에서는 위험도 필터만 적용
-    if (activeTab === 'route') {
-      if (selectedRiskLevels.length === 0) return [];
-      return sinkholes.filter(s => {
-        const riskLevel = s.riskLevel || 'low';
-        return selectedRiskLevels.includes(riskLevel);
-      });
-    }
-    // 싱크홀 목록 탭에서는 지역 필터 + 위험도 필터 모두 적용
     return filteredSinkholes;
-  }, [activeTab, sinkholes, filteredSinkholes, selectedRiskLevels]);
+  }, [filteredSinkholes]);
 
   // 히트맵 범례용 min/max (weight 기준)
   const legendDomain = useMemo(() => {
@@ -254,40 +227,13 @@ function App() {
         setSinkholes(enhancedSinkholes);
       } catch (e) {
         console.error('CSV 로드 실패:', e);
-        setError('싱크홀 데이터를 불러오는 중 오류가 발생했습니다.');
+        console.error('싱크홀 데이터를 불러오는 중 오류가 발생했습니다.');
       }
     };
 
     loadCsv();
   }, []);
 
-  // 지도에서 위치 선택 시 호출되는 함수
-  const handleLocationSelect = useCallback((location, type) => {
-    console.log('📍 지도 클릭으로 위치 선택:', { location, type });
-    if (type === 'start') {
-      setStartPoint(location);
-      console.log('✅ 출발지 설정됨:', location);
-    } else {
-      setEndPoint(location);
-      console.log('✅ 도착지 설정됨:', location);
-    }
-  }, []);
-
-  // 입력 타입 선택 함수
-  const handleInputTypeSelect = useCallback((type) => {
-    setSelectedInputType(type);
-    console.log('입력 타입 선택:', type);
-  }, []);
-
-  // 반경 변경 등 재계산 시 강제 포함 집합에 id들을 추가
-  const addForcedSinkholes = useCallback((sinkholes) => {
-    const setRef = forcedSinkholeIdsRef.current;
-    for (const s of sinkholes || []) {
-      if (s && s.id != null) setRef.add(s.id);
-    }
-    // 포함 집합이 바뀌면 반경 캐시 무효화
-    radiusCacheRef.current = new Map();
-  }, []);
 
   // 싱크홀 클릭 시 처리 (모든 모드에서 동일하게 작동)
   const handleSinkholeClick = useCallback((sinkhole) => {
@@ -311,270 +257,39 @@ function App() {
     }
   }, [mapRef]);
 
-  // 경로 검색 함수
-  const handleRouteSearch = async (start, end) => {
-    if (!start || !end) {
-      setError('출발지와 도착지를 모두 입력해주세요.');
-      return;
-    }
-
-    setIsSearching(true);
-    setError(null);
-
-    try {
-      let route;
-      
-      // 네이버 Directions 5 API (프록시)로 실제 경로 조회
-      try {
-        route = await findRouteWithNaverDirections(start, end);
-      } catch (e) {
-        console.warn('네이버 Directions 실패, 백업 경로 사용:', e);
-        route = generateBasicRoute(start, end);
-      }
-
-      console.log('route', route);
-      setBaseDirectionsRoute(route);
-      forcedSinkholeIdsRef.current = new Set(); // 새 출발/도착 시 강제 포함 캐시 초기화
-      radiusCacheRef.current = new Map(); // 반경 캐시 초기화
-      
-      if (mode === 'normal') {
-        // 일반 모드: 싱크홀 감지 후 우회 경로 제공 (전체 싱크홀 대상, 근거리 기준 적용)
-        const radius = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
-        const detectionResult = detectSinkholesOnRoute(route.path, sinkholes, radius);
-        
-        if (detectionResult.sinkholes.length > 0) {
-          // 싱크홀이 발견되면 우회 경로 계산
-          const detourRoute = calculateDetourRoute(start, end, detectionResult.sinkholes);
-          setRoute({
-            ...detourRoute,
-            originalRoute: route,
-            detectedSinkholes: detectionResult.sinkholes,
-            hasSinkholes: true,
-            totalRiskScore: detectionResult.totalRiskScore,
-            routeRiskLevel: detectionResult.routeRiskLevel,
-            riskSummary: detectionResult.riskSummary
-          });
-        } else {
-          // 싱크홀이 없으면 기본 경로 사용
-          setRoute({
-            ...route,
-            hasSinkholes: false,
-            totalRiskScore: 0,
-            routeRiskLevel: 'safe',
-            riskSummary: { totalSinkholes: 0, totalOccurrences: 0, totalRiskScore: 0 }
-          });
-        }
-      } else {
-        // 안전점검 모드: Directions 경로를 유지하되, 근접 싱크홀을 path 중간에 삽입하여 부드러움을 유지 (전체 싱크홀 대상)
-        const radius = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
-        const { path: injectedPath, detectedSinkholes } = injectSinkholesIntoPath(
-          route.path,
-          sinkholes,
-          radius,
-          forcedSinkholeIdsRef.current
-        );
-        const newDistance = computePathDistance(injectedPath);
-        setRoute({
-          path: injectedPath,
-          distance: newDistance || route.distance,
-          duration: route.duration,
-          hasSinkholes: detectedSinkholes.length > 0,
-          detectedSinkholes,
-          originalRoute: route
-        });
-        addForcedSinkholes(detectedSinkholes);
-        // 현재 반경 결과 캐시
-        radiusCacheRef.current.set(Number(radius.toFixed(2)), {
-          path: injectedPath,
-          distance: newDistance || route.distance,
-          duration: route.duration,
-          hasSinkholes: detectedSinkholes.length > 0,
-          detectedSinkholes
-        });
-      }
-    } catch (err) {
-      setError('경로를 찾는 중 오류가 발생했습니다.');
-      console.error('Route search error:', err);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  // 반경 변경 시 API 재호출 없이 캐시 기반으로 재계산 (전체 싱크홀 대상)
-  useEffect(() => {
-    if (mode !== 'inspection') return;
-    if (!baseDirectionsRoute) return;
-
-    const radius = Number.isFinite(inspectionRadiusKm) ? inspectionRadiusKm : 0.05;
-    const key = Number(radius.toFixed(2));
-    const cached = radiusCacheRef.current.get(key);
-    if (cached) {
-      setRoute({ ...cached, originalRoute: baseDirectionsRoute });
-      return;
-    }
-
-    const { path: injectedPath, detectedSinkholes } = injectSinkholesIntoPath(
-      baseDirectionsRoute.path,
-      sinkholes,
-      radius,
-      forcedSinkholeIdsRef.current
-    );
-    const newDistance = computePathDistance(injectedPath);
-    const computed = {
-      path: injectedPath,
-      distance: newDistance || baseDirectionsRoute.distance,
-      duration: baseDirectionsRoute.duration,
-      hasSinkholes: detectedSinkholes.length > 0,
-      detectedSinkholes
-    };
-    setRoute({ ...computed, originalRoute: baseDirectionsRoute });
-    addForcedSinkholes(detectedSinkholes);
-    radiusCacheRef.current.set(key, computed);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inspectionRadiusKm, mode, baseDirectionsRoute, sinkholes]);
-
-  // (임시) 외부 길찾기 제거: 백업 경로 생성 함수만 사용
-  const findRouteWithNaverDirections = async (start, end) => {
-    const params = new URLSearchParams();
-    params.set('startLng', String(start.lng));
-    params.set('startLat', String(start.lat));
-    params.set('endLng', String(end.lng));
-    params.set('endLat', String(end.lat));
-    params.set('option', 'traoptimal');
-
-    const resp = await fetch(`/api/directions?${params.toString()}`, { cache: 'no-store' });
-    let payload;
-    try { payload = await resp.json(); } catch (e) { payload = { parseError: true }; }
-    if (!resp.ok) {
-      console.error('Directions error payload:', payload);
-      throw new Error('Directions proxy error');
-    }
-    const data = payload;
-
-    if (!data || data.code !== 0 || !data.route || !data.route.traoptimal || !data.route.traoptimal[0]) {
-      throw new Error('Invalid directions response');
-    }
-
-    const best = data.route.traoptimal[0];
-    const path = (best.path || []).map(([lng, lat]) => ({ lat, lng }));
-    const distanceKm = (best.summary && typeof best.summary.distance === 'number') ? best.summary.distance / 1000 : undefined;
-    const durationSec = (best.summary && typeof best.summary.duration === 'number') ? Math.round(best.summary.duration / 1000) : undefined;
-
-    return {
-      path,
-      distance: distanceKm,
-      duration: durationSec,
-      hasSinkholes: false
-    };
-  };
-
-  // POC용 기본 경로 생성 (직선 + 중간 waypoint) - 백업용
-  const generateBasicRoute = (start, end) => {
-    const midLat = (start.lat + end.lat) / 2;
-    const midLng = (start.lng + end.lng) / 2;
-    
-    // 약간의 편차를 주어 실제 도로와 유사하게
-    const offsetLat = (Math.random() - 0.5) * 0.01;
-    const offsetLng = (Math.random() - 0.5) * 0.01;
-    
-    const waypoint = {
-      lat: midLat + offsetLat,
-      lng: midLng + offsetLng
-    };
-
-    return {
-      path: [start, waypoint, end],
-      distance: calculateDistance(start.lat, start.lng, end.lat, end.lng),
-      hasSinkholes: false
-    };
-  };
-
-  // 두 좌표 간 거리 계산 (Haversine 공식)
-  const calculateDistance = (lat1, lng1, lat2, lng2) => {
-    const R = 6371; // 지구 반지름 (km)
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
 
   return (
     <div className="app">
       <div className="control-panel">
         <h1>🚧 싱크홀 안전 지도</h1>
-        <div className="tab-nav">
-          <button
-            className={`tab-btn ${activeTab === 'route' ? 'active' : ''}`}
-            onClick={() => setActiveTab('route')}
-          >
-            경로 검색
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'sinkhole' ? 'active' : ''}`}
-            onClick={() => setActiveTab('sinkhole')}
-          >
-            싱크홀 목록
-          </button>
-        </div>
 
         <div className="tab-content">
-          {activeTab === 'route' && (
-            <>
-              <ModeToggle
-                mode={mode}
-                onModeChange={setMode}
-                inspectionRadiusKm={inspectionRadiusKm}
-                onInspectionRadiusChange={setInspectionRadiusKm}
-                showHeatmap={showHeatmap}
-                onShowHeatmapChange={setShowHeatmap}
-                heatmapPreset={heatmapPreset}
-                onHeatmapPresetChange={setHeatmapPreset}
-                showRouteHeatband={showRouteHeatband}
-                onShowRouteHeatbandChange={setShowRouteHeatband}
-                rescaleMethod={rescaleMethod}
-                onRescaleMethodChange={setRescaleMethod}
-              />
-              <RiskFilter
-                selectedRiskLevels={selectedRiskLevels}
-                onRiskLevelChange={setSelectedRiskLevels}
-                sinkholes={sinkholes}
-              />
-              <RouteSearch
-                startPoint={startPoint}
-                endPoint={endPoint}
-                onStartChange={setStartPoint}
-                onEndChange={setEndPoint}
-                onSearch={() => handleRouteSearch(startPoint, endPoint)}
-                isSearching={isSearching}
-                onInputTypeSelect={handleInputTypeSelect}
-              />
-              <RouteDisplay
-                route={route}
-                mode={mode}
-                error={error}
-              />
-            </>
-          )}
-          {activeTab === 'sinkhole' && (
-            <>
-              <SinkholeList
-                sinkholes={sinkholes}
-                selectedSinkhole={selectedSinkhole}
-                onSinkholeClick={handleSinkholeClick}
-                selectedSido={selectedSido}
-                selectedSigungu={selectedSigungu}
-                selectedDong={selectedDong}
-                onSidoChange={setSelectedSido}
-                onSigunguChange={setSelectedSigungu}
-                onDongChange={setSelectedDong}
-                selectedRiskLevels={selectedRiskLevels}
-                onRiskLevelChange={setSelectedRiskLevels}
-              />
-            </>
-          )}
+          <ModeToggle
+            showHeatmap={showHeatmap}
+            onShowHeatmapChange={setShowHeatmap}
+            heatmapPreset={heatmapPreset}
+            onHeatmapPresetChange={setHeatmapPreset}
+            rescaleMethod={rescaleMethod}
+            onRescaleMethodChange={setRescaleMethod}
+          />
+          <RiskFilter
+            selectedRiskLevels={selectedRiskLevels}
+            onRiskLevelChange={setSelectedRiskLevels}
+            sinkholes={sinkholes}
+          />
+          <SinkholeList
+            sinkholes={sinkholes}
+            selectedSinkhole={selectedSinkhole}
+            onSinkholeClick={handleSinkholeClick}
+            selectedSido={selectedSido}
+            selectedSigungu={selectedSigungu}
+            selectedDong={selectedDong}
+            onSidoChange={setSelectedSido}
+            onSigunguChange={setSelectedSigungu}
+            onDongChange={setSelectedDong}
+            selectedRiskLevels={selectedRiskLevels}
+            onRiskLevelChange={setSelectedRiskLevels}
+          />
         </div>
       </div>
 
@@ -582,17 +297,9 @@ function App() {
         <MapView
           sinkholes={displayedSinkholes}
           selectedSinkhole={selectedSinkhole}
-          route={route}
-          onLocationSelect={handleLocationSelect}
           onMapReady={handleMapReady}
-          selectedInputType={selectedInputType}
-          inspectionRadiusKm={inspectionRadiusKm}
-          activeTab={activeTab}
-          startPoint={startPoint}
-          endPoint={endPoint}
           showHeatmap={showHeatmap}
           heatmapGradient={getGradientByName(heatmapPreset)}
-          showRouteHeatband={showRouteHeatband}
           rescaleMethod={rescaleMethod}
           legendMin={legendDomain.min}
           legendMax={legendDomain.max}
