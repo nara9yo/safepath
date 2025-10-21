@@ -1,19 +1,16 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import HeatmapLegend from './HeatmapLegend';
-import MapTypeControl from './MapTypeControl';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
-const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGradient, legendMin, legendMax }) => {
+const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGradient, legendMin, legendMax, mapType: externalMapType = 'terrain' }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
   const infoWindowsRef = useRef([]);
-  const circlesRef = useRef([]);
   const heatmapRef = useRef(null);
   const isMovingRef = useRef(false);
   const [isMapReady, setIsMapReady] = useState(false);
-  const [mapType, setMapType] = useState('normal');
-
+  const [mapType, setMapType] = useState(externalMapType);
 
   // 지도 유형 변경 핸들러
   const handleMapTypeChange = useCallback((newMapType) => {
@@ -35,6 +32,14 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
       }
     }
   }, []);
+
+  // 외부에서 전달받은 mapType이 변경될 때 지도 유형 업데이트
+  useEffect(() => {
+    if (externalMapType && externalMapType !== mapType) {
+      setMapType(externalMapType);
+      handleMapTypeChange(externalMapType);
+    }
+  }, [externalMapType, mapType, handleMapTypeChange]);
 
   // 지도 초기화
   useEffect(() => {
@@ -94,6 +99,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
           zoom: 10,
           zoomControl: true,
           zoomControlOptions: { position: window.naver.maps.Position.TOP_RIGHT },
+          mapTypeId: window.naver.maps.MapTypeId.TERRAIN, // 기본 지도 유형을 지형으로 설정
         };
 
         mapInstance.current = new window.naver.maps.Map(mapRef.current, options);
@@ -462,13 +468,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
       ref={mapRef} 
       style={{ width: '100%', height: '100%', position: 'relative' }}
     >
-      {/* 지도 유형 컨트롤 */}
-      <MapTypeControl
-        mapType={mapType}
-        onMapTypeChange={handleMapTypeChange}
-        isVisible={isMapReady}
-      />
-      
       {/* 히트맵 범례 */}
       {showHeatmap && Array.isArray(heatmapGradient) && heatmapGradient.length > 0 && (
         <div

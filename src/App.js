@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import MapView from './components/Map';
-import ModeToggle from './components/ModeToggle';
-import { getGradientByName } from './utils/heatmapPresets';
+import TabPanel from './components/TabPanel';
+import MapSettings from './components/MapSettings';
 import SinkholeList from './components/SinkholeList';
-import RiskFilter from './components/RiskFilter';
+import { getGradientByName } from './utils/heatmapPresets';
 import { enhanceSinkholesWithWeight } from './utils/sinkholeAnalyzer';
 import Papa from 'papaparse';
 
@@ -11,6 +11,12 @@ function App() {
   const [mapRef, setMapRef] = useState(null);
   const [selectedSinkhole, setSelectedSinkhole] = useState(null);
   const [sinkholes, setSinkholes] = useState([]);
+  
+  // 탭 상태
+  const [activeTab, setActiveTab] = useState('map-settings');
+  
+  // 지도 유형 상태 (기본값: 지형)
+  const [mapType, setMapType] = useState('terrain');
   
   // 히트맵 설정 상태
   const [showHeatmap, setShowHeatmap] = useState(true);
@@ -257,32 +263,49 @@ function App() {
   }, [mapRef]);
 
 
+  // 탭 정의
+  const tabs = [
+    { id: 'map-settings', label: '지도 설정', icon: '⚙️' },
+    { id: 'sinkhole-list', label: '싱크홀 목록', icon: '📋' }
+  ];
+
   return (
     <div className="app">
       <div className="control-panel">
         <h1>🚧 싱크홀 안전 지도</h1>
 
-        <div className="tab-content">
-          <ModeToggle
-            showHeatmap={showHeatmap}
-            onShowHeatmapChange={setShowHeatmap}
-            heatmapPreset={heatmapPreset}
-            onHeatmapPresetChange={setHeatmapPreset}
-          />
-          <SinkholeList
-            sinkholes={sinkholes}
-            selectedSinkhole={selectedSinkhole}
-            onSinkholeClick={handleSinkholeClick}
-            selectedSido={selectedSido}
-            selectedSigungu={selectedSigungu}
-            selectedDong={selectedDong}
-            onSidoChange={setSelectedSido}
-            onSigunguChange={setSelectedSigungu}
-            onDongChange={setSelectedDong}
-            selectedRiskLevels={selectedRiskLevels}
-            onRiskLevelChange={setSelectedRiskLevels}
-          />
-        </div>
+        <TabPanel
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        >
+          {activeTab === 'map-settings' && (
+            <MapSettings
+              mapType={mapType}
+              onMapTypeChange={setMapType}
+              showHeatmap={showHeatmap}
+              onShowHeatmapChange={setShowHeatmap}
+              heatmapPreset={heatmapPreset}
+              onHeatmapPresetChange={setHeatmapPreset}
+            />
+          )}
+          
+          {activeTab === 'sinkhole-list' && (
+            <SinkholeList
+              sinkholes={sinkholes}
+              selectedSinkhole={selectedSinkhole}
+              onSinkholeClick={handleSinkholeClick}
+              selectedSido={selectedSido}
+              selectedSigungu={selectedSigungu}
+              selectedDong={selectedDong}
+              onSidoChange={setSelectedSido}
+              onSigunguChange={setSelectedSigungu}
+              onDongChange={setSelectedDong}
+              selectedRiskLevels={selectedRiskLevels}
+              onRiskLevelChange={setSelectedRiskLevels}
+            />
+          )}
+        </TabPanel>
       </div>
 
       <div className="map-container">
@@ -294,6 +317,7 @@ function App() {
           heatmapGradient={getGradientByName(heatmapPreset)}
           legendMin={legendDomain.min}
           legendMax={legendDomain.max}
+          mapType={mapType}
         />
       </div>
     </div>
