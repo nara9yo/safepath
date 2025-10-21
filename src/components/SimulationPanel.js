@@ -408,210 +408,214 @@ const SimulationPanel = ({
       
       {/* 통계 섹션 */}
       <div className={`stats-section ${!isSettingsExpanded ? 'collapsed' : ''}`}>
-        <div className="stats-header" onClick={() => setShowStats(!showStats)}>
-          <h4 className="stats-title">📊 시뮬레이션 결과</h4>
-          <span className="stats-toggle">{showStats ? '▼' : '▶'}</span>
-        </div>
-        
-        {showStats && stats && stats.weightStats && (
-          <div className="stats-scroll-content">
-            {/* 기본 통계 */}
-            <div className="stats-cards">
-              <div className="stat-card">
-                <div className="stat-label">총 싱크홀 수</div>
-                <div className="stat-value">{stats.totalCount}</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-label">평균 위험도</div>
-                <div className="stat-value">{stats.weightStats.avg.toFixed(1)}</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-label">최대 위험도</div>
-                <div className="stat-value">{stats.weightStats.max.toFixed(1)}</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-label">최소 위험도</div>
-                <div className="stat-value">{stats.weightStats.min.toFixed(1)}</div>
-              </div>
-            </div>
-            
-            {/* 위험도 분포 */}
-            <div className="distribution-section">
-              <h5>위험도 분포</h5>
-              <div className="distribution-chart">
-                <div 
-                  className={`distribution-item low ${selectedRiskFilter === 'low' ? 'selected' : ''}`}
-                  onClick={() => handleRiskFilterClick('low')}
-                >
-                  <span className="distribution-label">낮음</span>
-                  <span className="distribution-count">{stats.riskDistribution.low}</span>
-                </div>
-                <div 
-                  className={`distribution-item medium ${selectedRiskFilter === 'medium' ? 'selected' : ''}`}
-                  onClick={() => handleRiskFilterClick('medium')}
-                >
-                  <span className="distribution-label">중간</span>
-                  <span className="distribution-count">{stats.riskDistribution.medium}</span>
-                </div>
-                <div 
-                  className={`distribution-item high ${selectedRiskFilter === 'high' ? 'selected' : ''}`}
-                  onClick={() => handleRiskFilterClick('high')}
-                >
-                  <span className="distribution-label">높음</span>
-                  <span className="distribution-count">{stats.riskDistribution.high}</span>
-                </div>
-                <div 
-                  className={`distribution-item critical ${selectedRiskFilter === 'critical' ? 'selected' : ''}`}
-                  onClick={() => handleRiskFilterClick('critical')}
-                >
-                  <span className="distribution-label">치명적</span>
-                  <span className="distribution-count">{stats.riskDistribution.critical}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 지하철 영향권 분포 */}
-            <div className="distribution-section">
-              <h5>지하철 영향권 분포</h5>
-              <div className="distribution-chart">
-                <div 
-                  className={`distribution-item level1 ${selectedSubwayFilter === 'level1' ? 'selected' : ''}`}
-                  onClick={() => handleSubwayFilterClick('level1')}
-                >
-                  <span className="distribution-label">1차 영향권</span>
-                  <span className="distribution-count">{stats.subwayInfluenceDistribution.level1}</span>
-                </div>
-                <div 
-                  className={`distribution-item level2 ${selectedSubwayFilter === 'level2' ? 'selected' : ''}`}
-                  onClick={() => handleSubwayFilterClick('level2')}
-                >
-                  <span className="distribution-label">2차 영향권</span>
-                  <span className="distribution-count">{stats.subwayInfluenceDistribution.level2}</span>
-                </div>
-                <div 
-                  className={`distribution-item level3 ${selectedSubwayFilter === 'level3' ? 'selected' : ''}`}
-                  onClick={() => handleSubwayFilterClick('level3')}
-                >
-                  <span className="distribution-label">3차 영향권</span>
-                  <span className="distribution-count">{stats.subwayInfluenceDistribution.level3}</span>
-                </div>
-                <div 
-                  className={`distribution-item none ${selectedSubwayFilter === 'none' ? 'selected' : ''}`}
-                  onClick={() => handleSubwayFilterClick('none')}
-                >
-                  <span className="distribution-label">영향권 밖</span>
-                  <span className="distribution-count">{stats.subwayInfluenceDistribution.none}</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* 위험도 TOP 5 싱크홀 */}
-            <div className="top-sinkholes-section">
-              <h5>위험도 TOP 5 싱크홀</h5>
-              <div className="sinkhole-list">
-                {stats.topRiskSinkholes.map((sinkhole, index) => {
-                  // 위험도별 색상 및 아이콘 설정 (싱크홀 목록과 동일한 로직)
-                  const getRiskInfo = (riskLevel, weight) => {
-                    const style = getRiskLevelStyle(riskLevel);
-                    const gradientColor = getGradientColor(weight || 0);
-                    return {
-                      color: gradientColor,
-                      label: style.label,
-                      icon: style.shortLabel
-                    };
-                  };
-                  
-                  // 지하철 영향권 정보 설정 (싱크홀 목록과 동일한 로직)
-                  const getSubwayInfluenceInfo = (influenceLevel) => {
-                    const style = getSubwayInfluenceStyle(influenceLevel);
-                    return {
-                      color: style.color,
-                      label: style.label,
-                      description: style.description
-                    };
-                  };
-
-                  const riskInfo = getRiskInfo(sinkhole.riskLevel, sinkhole.finalWeight);
-                  const subwayInfo = getSubwayInfluenceInfo(sinkhole.subwayInfluenceLevel || 'none');
-                  
-                  const totalWeight = sinkhole.finalWeight || 0;
-                  // 위험도 계산 로직을 시뮬레이션 결과에 맞게 단순화
-                  const baseWeight = sinkhole.sinkholeRisk || 0;
-                  const subwayContribution = totalWeight - baseWeight;
-                  
-                  // 지하철 거리 정보 (천 단위 콤마 적용)
-                  const subwayDistance = sinkhole.subwayDistance ? 
-                    `${parseFloat(sinkhole.subwayDistance).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}m` : 'N/A';
-                  
-                  return (
-                    <div
-                      key={sinkhole.id}
-                      className="sinkhole-item"
-                      onClick={() => onSinkholeClick && onSinkholeClick(sinkhole)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className="sinkhole-icon">
-                        <div 
-                          className="risk-level-icon"
-                          style={{
-                            backgroundColor: riskInfo.color,
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '12px',
-                            color: 'white',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          {riskInfo.icon}
-                        </div>
-                      </div>
-                      <div className="sinkhole-info">
-                        <h4 className="sinkhole-name" style={{ color: riskInfo.color }}>
-                          {sinkhole.name}
-                          <span className="rank-badge">#{index + 1}</span>
-                        </h4>
-                        <p className="sinkhole-address">{sinkhole.location}</p>
-                        <div className="sinkhole-details">
-                          <div className="risk-info">
-                            <span className="risk-label">위험도:</span>
-                            <span 
-                              className="risk-value"
-                              style={{ color: riskInfo.color, fontWeight: 'bold' }}
-                            >
-                              {riskInfo.label}({baseWeight.toFixed(2)} + {subwayContribution.toFixed(2)} = {totalWeight.toFixed(2)})
-                            </span>
-                          </div>
-                          <div className="subway-influence-info">
-                            <span className="influence-label">지하철영향:</span>
-                            <span 
-                              className="influence-value"
-                              style={{ color: subwayInfo.color, fontWeight: 'bold' }}
-                            >
-                              {subwayDistance}, 가중치: {(totalWeight - baseWeight).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="sinkhole-summary">
-                          <span className="summary-item">발생횟수: 1회</span>
-                          <span className="summary-separator"> | </span>
-                          <span className="summary-item">최대규모: {sinkhole.maxSize}</span>
-                          <span className="summary-separator"> | </span>
-                          <span className="summary-item">위험도: {totalWeight.toFixed(2)}({riskInfo.label})</span>
-                          <span className="summary-separator"> | </span>
-                          <span className="summary-item">지하철영향권: {subwayInfo.label} ({subwayInfo.description})</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+        <div className="panel-header">
+          <div className="stats-header" onClick={() => setShowStats(!showStats)}>
+            <h4 className="stats-title">📊 시뮬레이션 결과</h4>
+            <span className="stats-toggle">{showStats ? '▼' : '▶'}</span>
           </div>
-        )}
+        </div>
+
+        <div className="panel-content">
+          {showStats && stats && stats.weightStats && (
+            <div className="stats-scroll-content">
+              {/* 기본 통계 */}
+              <div className="stats-cards">
+                <div className="stat-card">
+                  <div className="stat-label">총 싱크홀 수</div>
+                  <div className="stat-value">{stats.totalCount}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">평균 위험도</div>
+                  <div className="stat-value">{stats.weightStats.avg.toFixed(1)}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">최대 위험도</div>
+                  <div className="stat-value">{stats.weightStats.max.toFixed(1)}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">최소 위험도</div>
+                  <div className="stat-value">{stats.weightStats.min.toFixed(1)}</div>
+                </div>
+              </div>
+              
+              {/* 위험도 분포 */}
+              <div className="distribution-section">
+                <h5>위험도 분포</h5>
+                <div className="distribution-chart">
+                  <div 
+                    className={`distribution-item low ${selectedRiskFilter === 'low' ? 'selected' : ''}`}
+                    onClick={() => handleRiskFilterClick('low')}
+                  >
+                    <span className="distribution-label">낮음</span>
+                    <span className="distribution-count">{stats.riskDistribution.low}</span>
+                  </div>
+                  <div 
+                    className={`distribution-item medium ${selectedRiskFilter === 'medium' ? 'selected' : ''}`}
+                    onClick={() => handleRiskFilterClick('medium')}
+                  >
+                    <span className="distribution-label">중간</span>
+                    <span className="distribution-count">{stats.riskDistribution.medium}</span>
+                  </div>
+                  <div 
+                    className={`distribution-item high ${selectedRiskFilter === 'high' ? 'selected' : ''}`}
+                    onClick={() => handleRiskFilterClick('high')}
+                  >
+                    <span className="distribution-label">높음</span>
+                    <span className="distribution-count">{stats.riskDistribution.high}</span>
+                  </div>
+                  <div 
+                    className={`distribution-item critical ${selectedRiskFilter === 'critical' ? 'selected' : ''}`}
+                    onClick={() => handleRiskFilterClick('critical')}
+                  >
+                    <span className="distribution-label">치명적</span>
+                    <span className="distribution-count">{stats.riskDistribution.critical}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 지하철 영향권 분포 */}
+              <div className="distribution-section">
+                <h5>지하철 영향권 분포</h5>
+                <div className="distribution-chart">
+                  <div 
+                    className={`distribution-item level1 ${selectedSubwayFilter === 'level1' ? 'selected' : ''}`}
+                    onClick={() => handleSubwayFilterClick('level1')}
+                  >
+                    <span className="distribution-label">1차 영향권</span>
+                    <span className="distribution-count">{stats.subwayInfluenceDistribution.level1}</span>
+                  </div>
+                  <div 
+                    className={`distribution-item level2 ${selectedSubwayFilter === 'level2' ? 'selected' : ''}`}
+                    onClick={() => handleSubwayFilterClick('level2')}
+                  >
+                    <span className="distribution-label">2차 영향권</span>
+                    <span className="distribution-count">{stats.subwayInfluenceDistribution.level2}</span>
+                  </div>
+                  <div 
+                    className={`distribution-item level3 ${selectedSubwayFilter === 'level3' ? 'selected' : ''}`}
+                    onClick={() => handleSubwayFilterClick('level3')}
+                  >
+                    <span className="distribution-label">3차 영향권</span>
+                    <span className="distribution-count">{stats.subwayInfluenceDistribution.level3}</span>
+                  </div>
+                  <div 
+                    className={`distribution-item none ${selectedSubwayFilter === 'none' ? 'selected' : ''}`}
+                    onClick={() => handleSubwayFilterClick('none')}
+                  >
+                    <span className="distribution-label">영향권 밖</span>
+                    <span className="distribution-count">{stats.subwayInfluenceDistribution.none}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 위험도 TOP 5 싱크홀 */}
+              <div className="top-sinkholes-section">
+                <h5>위험도 TOP 5 싱크홀</h5>
+                <div className="sinkhole-list">
+                  {stats.topRiskSinkholes.map((sinkhole, index) => {
+                    // 위험도별 색상 및 아이콘 설정 (싱크홀 목록과 동일한 로직)
+                    const getRiskInfo = (riskLevel, weight) => {
+                      const style = getRiskLevelStyle(riskLevel);
+                      const gradientColor = getGradientColor(weight || 0);
+                      return {
+                        color: gradientColor,
+                        label: style.label,
+                        icon: style.shortLabel
+                      };
+                    };
+                    
+                    // 지하철 영향권 정보 설정 (싱크홀 목록과 동일한 로직)
+                    const getSubwayInfluenceInfo = (influenceLevel) => {
+                      const style = getSubwayInfluenceStyle(influenceLevel);
+                      return {
+                        color: style.color,
+                        label: style.label,
+                        description: style.description
+                      };
+                    };
+
+                    const riskInfo = getRiskInfo(sinkhole.riskLevel, sinkhole.finalWeight);
+                    const subwayInfo = getSubwayInfluenceInfo(sinkhole.subwayInfluenceLevel || 'none');
+                    
+                    const totalWeight = sinkhole.finalWeight || 0;
+                    // 위험도 계산 로직을 시뮬레이션 결과에 맞게 단순화
+                    const baseWeight = sinkhole.sinkholeRisk || 0;
+                    const subwayContribution = totalWeight - baseWeight;
+                    
+                    // 지하철 거리 정보 (천 단위 콤마 적용)
+                    const subwayDistance = sinkhole.subwayDistance ? 
+                      `${parseFloat(sinkhole.subwayDistance).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}m` : 'N/A';
+                    
+                    return (
+                      <div
+                        key={sinkhole.id}
+                        className="sinkhole-item"
+                        onClick={() => onSinkholeClick && onSinkholeClick(sinkhole)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div className="sinkhole-icon">
+                          <div 
+                            className="risk-level-icon"
+                            style={{
+                              backgroundColor: riskInfo.color,
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '12px',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {riskInfo.icon}
+                          </div>
+                        </div>
+                        <div className="sinkhole-info">
+                          <h4 className="sinkhole-name" style={{ color: riskInfo.color }}>
+                            {sinkhole.name}
+                            <span className="rank-badge">#{index + 1}</span>
+                          </h4>
+                          <p className="sinkhole-address">{sinkhole.location}</p>
+                          <div className="sinkhole-details">
+                            <div className="risk-info">
+                              <span className="risk-label">위험도:</span>
+                              <span 
+                                className="risk-value"
+                                style={{ color: riskInfo.color, fontWeight: 'bold' }}
+                              >
+                                {riskInfo.label}({baseWeight.toFixed(2)} + {subwayContribution.toFixed(2)} = {totalWeight.toFixed(2)})
+                              </span>
+                            </div>
+                            <div className="subway-influence-info">
+                              <span className="influence-label">지하철영향:</span>
+                              <span 
+                                className="influence-value"
+                                style={{ color: subwayInfo.color, fontWeight: 'bold' }}
+                              >
+                                {subwayDistance}, 가중치: {(totalWeight - baseWeight).toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="sinkhole-summary">
+                            <span className="summary-item">발생횟수: 1회</span>
+                            <span className="summary-separator"> | </span>
+                            <span className="summary-item">최대규모: {sinkhole.maxSize}</span>
+                            <span className="summary-separator"> | </span>
+                            <span className="summary-item">위험도: {totalWeight.toFixed(2)}({riskInfo.label})</span>
+                            <span className="summary-separator"> | </span>
+                            <span className="summary-item">지하철영향권: {subwayInfo.label} ({subwayInfo.description})</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       
       {/* 정보 팝업 */}
