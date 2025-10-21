@@ -312,44 +312,36 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
             0% { 
               transform: scale(1); 
               opacity: ${visualStyle.opacity}; 
-              box-shadow: ${visualStyle.shadow || '0 2px 6px rgba(0,0,0,0.3)'};
             }
             50% { 
               transform: scale(1.2); 
               opacity: 1; 
-              box-shadow: 0 0 20px rgba(255,0,0,0.6), ${visualStyle.shadow || '0 2px 6px rgba(0,0,0,0.3)'};
             }
             100% { 
               transform: scale(1); 
               opacity: ${visualStyle.opacity}; 
-              box-shadow: ${visualStyle.shadow || '0 2px 6px rgba(0,0,0,0.3)'};
             }
           }
           animation: pulse 1.5s infinite;
         ` : '';
         
-        // 고위험 마커를 위한 추가 효과
+        // 고위험 마커를 위한 추가 효과 (그림자 제거, 스케일/회전만 유지)
         const criticalEffect = visualStyle.riskLevel === 'critical' ? `
           @keyframes criticalPulse {
             0% { 
               transform: scale(1) rotate(0deg); 
-              filter: drop-shadow(${visualStyle.glow || 'none'});
             }
             25% { 
               transform: scale(1.1) rotate(5deg); 
-              filter: drop-shadow(0 0 15px rgba(106,27,154,1));
             }
             50% { 
               transform: scale(1.3) rotate(0deg); 
-              filter: drop-shadow(0 0 20px rgba(106,27,154,1));
             }
             75% { 
               transform: scale(1.1) rotate(-5deg); 
-              filter: drop-shadow(0 0 15px rgba(106,27,154,1));
             }
             100% { 
               transform: scale(1) rotate(0deg); 
-              filter: drop-shadow(${visualStyle.glow || 'none'});
             }
           }
           animation: criticalPulse 2s infinite;
@@ -405,16 +397,13 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                   background: ${riskColor};
                   border-radius: 50% 50% 50% 0;
                   transform: rotate(-45deg);
-                  box-shadow: 0 3px 12px rgba(0,0,0,0.4);
                   transition: all 0.3s ease;
                 " 
                 onmouseover="
                   this.style.transform='rotate(-45deg) scale(1.1)';
-                  this.style.boxShadow='0 5px 20px rgba(0,0,0,0.6)';
                 " 
                 onmouseout="
                   this.style.transform='rotate(-45deg) scale(1)';
-                  this.style.boxShadow='0 3px 12px rgba(0,0,0,0.4)';
                 ">
                   <!-- 위험도 텍스트 -->
                   <div style="
@@ -425,7 +414,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                     color: white;
                     font-size: 10px;
                     font-weight: bold;
-                    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
                     line-height: 1;
                     text-align: center;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -446,7 +434,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                   border-left: 6px solid transparent;
                   border-right: 6px solid transparent;
                   border-top: 8px solid ${riskColor};
-                  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
                 "></div>
               </div>
             `,
@@ -855,7 +842,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
             border-radius: 50%;
             background: white;
             border: 2px solid #4CAF50;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             cursor: pointer;
             transition: all 0.3s ease;
           " onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
@@ -1053,7 +1039,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
               border-radius: 50%;
               background: white;
               border: 2px solid #4CAF50;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
               cursor: pointer;
               transition: all 0.3s ease;
             " onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
