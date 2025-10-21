@@ -15,7 +15,6 @@ function App() {
   // 히트맵 설정 상태
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [heatmapPreset, setHeatmapPreset] = useState('severity');
-  const [rescaleMethod, setRescaleMethod] = useState('p90');
   
   // 지역 필터 상태
   const [selectedSido, setSelectedSido] = useState('');
@@ -269,13 +268,6 @@ function App() {
             onShowHeatmapChange={setShowHeatmap}
             heatmapPreset={heatmapPreset}
             onHeatmapPresetChange={setHeatmapPreset}
-            rescaleMethod={rescaleMethod}
-            onRescaleMethodChange={setRescaleMethod}
-          />
-          <RiskFilter
-            selectedRiskLevels={selectedRiskLevels}
-            onRiskLevelChange={setSelectedRiskLevels}
-            sinkholes={sinkholes}
           />
           <SinkholeList
             sinkholes={sinkholes}
@@ -300,7 +292,6 @@ function App() {
           onMapReady={handleMapReady}
           showHeatmap={showHeatmap}
           heatmapGradient={getGradientByName(heatmapPreset)}
-          rescaleMethod={rescaleMethod}
           legendMin={legendDomain.min}
           legendMax={legendDomain.max}
         />

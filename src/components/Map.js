@@ -3,7 +3,7 @@ import HeatmapLegend from './HeatmapLegend';
 import MapTypeControl from './MapTypeControl';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
-const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGradient, rescaleMethod, legendMin, legendMax }) => {
+const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGradient, legendMin, legendMax }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
@@ -167,29 +167,11 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
   // 히트맵 데이터 변환 (weight 기준)
   const toWeightedLocations = useCallback((items) => {
     if (!items || !window.naver || !window.naver.maps) return [];
-    const weights = items.map(s => Number(s.weight) || 0).filter(w => Number.isFinite(w) && w >= 0).sort((a,b) => a-b);
-    let cap = 1;
-    if (weights.length) {
-      if (rescaleMethod === 'iqr') {
-        const q1 = weights[Math.floor(weights.length * 0.25)];
-        const q3 = weights[Math.floor(weights.length * 0.75)];
-        const iqr = Math.max(1, q3 - q1);
-        cap = Math.ceil(q3 + 1.5 * iqr);
-      } else if (rescaleMethod === 'none') {
-        cap = Math.ceil(weights[weights.length - 1]);
-      } else {
-        // p90
-        const p = 0.9;
-        const idx = Math.min(weights.length - 1, Math.max(0, Math.floor(weights.length * p)));
-        const p90 = weights[idx];
-        cap = Math.max(1, Math.ceil(p90 || 1));
-      }
-    }
     return items.map(s => ({
       location: new window.naver.maps.LatLng(s.lat, s.lng),
-      weight: Math.max(0, Math.min(cap, Number(s.weight) || 0))
+      weight: Math.max(0, Number(s.weight) || 0)
     }));
-  }, [rescaleMethod]);
+  }, []);
 
   // 히트맵 레이어 생성/업데이트
   useEffect(() => {
@@ -231,7 +213,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showHeatmap, heatmapGrad
         try { heatmapRef.current.setMap(null); } catch (e) {}
       }
     };
-  }, [isMapReady, sinkholes, showHeatmap, heatmapGradient, rescaleMethod, toWeightedLocations]);
+  }, [isMapReady, sinkholes, showHeatmap, heatmapGradient, toWeightedLocations]);
 
 
   // 싱크홀 마커 표시
