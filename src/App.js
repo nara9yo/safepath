@@ -3,6 +3,7 @@ import MapView from './components/Map';
 import TabPanel from './components/TabPanel';
 import MapSettings from './components/MapSettings';
 import SinkholeList from './components/SinkholeList';
+import SimulationPanel from './components/SimulationPanel';
 import { getGradientByName } from './utils/heatmapPresets';
 import { enhanceSinkholesWithWeight } from './utils/sinkholeAnalyzer';
 import { applySubwayRiskWeights } from './utils/subwayAnalyzer';
@@ -54,6 +55,9 @@ function App() {
   
   // 지하철 영향도 필터 상태 (싱크홀 목록용)
   const [selectedInfluenceLevels, setSelectedInfluenceLevels] = useState([]);
+  
+  // 시뮬레이션 상태
+  const [simulationData, setSimulationData] = useState([]);
 
   // 마커 위험도 필터 변경 시 싱크홀 목록 필터 동기화
   const handleMarkerRiskFilterChange = useCallback((newFilter) => {
@@ -133,19 +137,26 @@ function App() {
   }, [sinkholesWithSubwayWeights, selectedSido, selectedSigungu, selectedDong, selectedRiskLevels, selectedInfluenceLevels]);
 
 
-  // 지도에 표시할 싱크홀
+  // 지도에 표시할 싱크홀 (시뮬레이션 탭일 때는 시뮬레이션 데이터 사용)
   const displayedSinkholes = useMemo(() => {
+    if (activeTab === 'simulation' && simulationData.length > 0) {
+      return simulationData;
+    }
     return filteredSinkholes;
-  }, [filteredSinkholes]);
+  }, [activeTab, simulationData, filteredSinkholes]);
 
   // 히트맵 범례용 min/max (weight 기준)
   const legendDomain = useMemo(() => {
-    const arr = (displayedSinkholes || []).map(s => Number(s.weight) || 0).filter(Number.isFinite);
+    const arr = (displayedSinkholes || []).map(s => {
+      // 시뮬레이션 데이터는 finalWeight 사용, 일반 데이터는 weight 사용
+      const weight = activeTab === 'simulation' ? s.finalWeight : s.weight;
+      return Number(weight) || 0;
+    }).filter(Number.isFinite);
     if (!arr.length) return { min: 0, max: 10 };
     const min = Math.min(...arr);
     const max = Math.max(...arr);
     return { min: Math.floor(min), max: Math.ceil(max) };
-  }, [displayedSinkholes]);
+  }, [displayedSinkholes, activeTab]);
 
   // 지도 인스턴스 설정
   const handleMapReady = useCallback((mapInstance) => {
@@ -321,6 +332,15 @@ function App() {
             sinkWidth: Number(sizeW) || 0,
             sinkExtend: Number(sizeE) || 0,
             sinkDepth: Number(sizeD) || 0,
+            // 최대규모 정보 추가 (폭 x 연장 x 깊이 형식)
+            maxSize: (() => {
+              const width = Number(sizeW) || 0;
+              const length = Number(sizeE) || 0;
+              const depth = Number(sizeD) || 0;
+              return (width > 0 || length > 0 || depth > 0) 
+                ? `${width.toFixed(1)}m x ${length.toFixed(1)}m x ${depth.toFixed(1)}m`
+                : 'N/A';
+            })(),
             // 피해 지표를 가중치 계산에 활용하기 위해 보존
             deathCnt: Number(death) || 0,
             injuryCnt: Number(injury) || 0,
@@ -363,15 +383,16 @@ function App() {
 
   // 탭 정의
   const tabs = [
-    { id: 'map-settings', label: '지도 설정', icon: '⚙️' },
-    { id: 'sinkhole-list', label: '싱크홀 목록', icon: '📋' }
+    { id: 'map-settings', label: '지도설정', icon: '⚙️' },
+    { id: 'sinkhole-list', label: '싱크홀목록', icon: '📋' },
+    { id: 'simulation', label: '시뮬레이션', icon: '🎛️' }
   ];
 
   return (
     <div className="app">
       <div className="control-panel">
         <h1>🚧 싱크홀 안전 지도</h1>
-
+        
         <TabPanel
           tabs={tabs}
           activeTab={activeTab}
@@ -413,6 +434,14 @@ function App() {
               onRiskLevelChange={handleRiskLevelChange}
               selectedInfluenceLevels={selectedInfluenceLevels}
               onInfluenceLevelChange={handleInfluenceLevelChange}
+            />
+          )}
+          
+          {activeTab === 'simulation' && (
+            <SimulationPanel
+              sinkholes={sinkholes}
+              subwayStations={subwayStations}
+              onSimulationDataChange={setSimulationData}
             />
           )}
         </TabPanel>

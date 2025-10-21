@@ -365,14 +365,21 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
           return config.shortLabel;
         };
 
+        // 시뮬레이션 데이터는 finalWeight 사용, 일반 데이터는 weight 사용
+        const weight = sinkhole.finalWeight !== undefined ? sinkhole.finalWeight : sinkhole.weight;
+        
         // 위험도 레벨 확인 (constants.js의 함수 사용)
         const effectiveRiskLevel = sinkhole.riskLevel || 
-                                  getRiskLevelFromWeight(sinkhole.weight) || 
+                                  getRiskLevelFromWeight(weight) || 
                                   visualStyle.riskLevel || 
                                   'low';
         
         // 그라데이션 색상 사용 (히트맵과 동일한 로직)
-        const riskColor = getGradientColor(sinkhole.weight);
+        // legendMin, legendMax를 사용하여 정규화
+        const normalizedWeight = legendMin !== undefined && legendMax !== undefined ? 
+          Math.min(Math.max((weight - legendMin) / (legendMax - legendMin), 0), 1) :
+          Math.min(Math.max((weight || 0) / 10, 0), 1);
+        const riskColor = getGradientColor(normalizedWeight * 10);
         const riskLabel = getRiskLabel(effectiveRiskLevel);
         const riskShortLabel = getRiskShortLabel(effectiveRiskLevel);
 
