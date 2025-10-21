@@ -310,10 +310,18 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
     // 위험도 필터 적용
     const filteredSinkholes = filterSinkholesByRisk(sinkholes, markerRiskFilter);
-    console.log(`📍 ${filteredSinkholes.length}개 싱크홀 마커 생성 중... (필터: ${markerRiskFilter})`);
+    
+    // 위험도 순으로 정렬 (낮은 위험도부터 높은 위험도 순)
+    const sortedSinkholes = [...filteredSinkholes].sort((a, b) => {
+      const weightA = Number(a.weight) || 0;
+      const weightB = Number(b.weight) || 0;
+      return weightA - weightB; // 오름차순 정렬 (낮은 위험도가 먼저)
+    });
+    
+    console.log(`📍 ${sortedSinkholes.length}개 싱크홀 마커 생성 중... (필터: ${markerRiskFilter})`);
     let createdCount = 0;
 
-    filteredSinkholes.forEach((sinkhole) => {
+    sortedSinkholes.forEach((sinkhole) => {
       if (!Number.isFinite(sinkhole.lat) || !Number.isFinite(sinkhole.lng)) {
         console.warn('⚠️ 유효하지 않은 좌표:', sinkhole);
         return;
