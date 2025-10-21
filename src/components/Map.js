@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import HeatmapLegend from './HeatmapLegend';
+import MapTypeControl from './MapTypeControl';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
 const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady, selectedInputType, inspectionRadiusKm, activeTab, startPoint, endPoint, showHeatmap, heatmapGradient, showRouteHeatband, rescaleMethod, legendMin, legendMax }) => {
@@ -18,6 +19,7 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
   const startMarkerRef = useRef(null);
   const endMarkerRef = useRef(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [mapType, setMapType] = useState('normal');
 
   // onLocationSelect가 변경될 때마다 ref 업데이트
   useEffect(() => {
@@ -29,6 +31,27 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
     console.log('🔄 selectedInputType 변경됨:', selectedInputType);
     selectedInputTypeRef.current = selectedInputType;
   }, [selectedInputType]);
+
+  // 지도 유형 변경 핸들러
+  const handleMapTypeChange = useCallback((newMapType) => {
+    console.log('🗺️ 지도 유형 변경:', newMapType);
+    setMapType(newMapType);
+    
+    if (mapInstance.current && window.naver && window.naver.maps) {
+      try {
+        // 네이버 지도 API의 MapTypeId 사용
+        const mapTypeId = window.naver.maps.MapTypeId[newMapType.toUpperCase()];
+        if (mapTypeId) {
+          mapInstance.current.setMapTypeId(mapTypeId);
+          console.log('✅ 지도 유형 변경 완료:', mapTypeId);
+        } else {
+          console.warn('⚠️ 지원하지 않는 지도 유형:', newMapType);
+        }
+      } catch (error) {
+        console.error('❌ 지도 유형 변경 실패:', error);
+      }
+    }
+  }, []);
 
   // 지도 초기화
   useEffect(() => {
@@ -140,7 +163,7 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
           center: gwangjuCenter,
           zoom: 10,
           zoomControl: true,
-          zoomControlOptions: { position: window.naver.maps.Position.TOP_RIGHT }
+          zoomControlOptions: { position: window.naver.maps.Position.TOP_RIGHT },
         };
 
         mapInstance.current = new window.naver.maps.Map(mapRef.current, options);
@@ -808,6 +831,14 @@ const Map = ({ sinkholes, selectedSinkhole, route, onLocationSelect, onMapReady,
       ref={mapRef} 
       style={{ width: '100%', height: '100%', position: 'relative' }}
     >
+      {/* 지도 유형 컨트롤 */}
+      <MapTypeControl
+        mapType={mapType}
+        onMapTypeChange={handleMapTypeChange}
+        isVisible={isMapReady}
+      />
+      
+      {/* 히트맵 범례 */}
       {showHeatmap && Array.isArray(heatmapGradient) && heatmapGradient.length > 0 && (
         <div
           style={{
