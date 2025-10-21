@@ -331,6 +331,7 @@ input:checked + .slider:before {
   box-sizing: border-box;
   padding: 16px;
   overflow: hidden;
+  height: 100%; /* 시뮬레이션 탭이 활성화되었을 때 패널이 전체 높이를 차지하도록 설정 */
 }
 
 .simulation-header,
@@ -368,8 +369,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -779,7 +779,6 @@ input:checked + .slider:before {
   align-items: center;
   margin-bottom: 14px; /* 헤더와 첫 옵션 간 여백 확장 */
 }
-
 .filter-header.clickable {
   cursor: pointer;
 }
@@ -1573,7 +1572,6 @@ input:checked + .slider:before {
   background: rgba(255,255,255,0.8) !important;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important;
 }
-
 .nm_balloon button[title="닫기"]:hover {
   background: rgba(255,255,255,1) !important;
   border-color: rgba(0,0,0,0.2) !important;
@@ -1599,6 +1597,7 @@ input:checked + .slider:before {
   box-sizing: border-box;
   padding: 16px;
   overflow: hidden;
+  height: 100%; /* 시뮬레이션 탭이 활성화되었을 때 패널이 전체 높이를 차지하도록 설정 */
 }
 .simulation-header,
 .settings-content {
@@ -1634,8 +1633,13 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
 .simulation-header.clickable {
@@ -2104,7 +2108,7 @@ input:checked + .slider:before {
 /* 통계 카드 */
 .stats-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-bottom: 20px;
 }
@@ -3177,8 +3181,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -4236,8 +4239,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -4654,7 +4656,6 @@ input:checked + .slider:before {
   overflow-y: auto;
   padding: 20px 0;
 }
-
 .factor-category {
   margin-bottom: 24px;
 }
@@ -5304,8 +5305,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -5437,7 +5437,6 @@ input:checked + .slider:before {
 .top-regions-section {
   margin-top: 24px;
 }
-
 .top-regions-section h5 {
   margin: 0 0 12px 0;
   font-size: 13px;
@@ -6368,8 +6367,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -7447,8 +7445,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -8516,8 +8513,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -9208,7 +9204,6 @@ input:checked + .slider:before {
     gap: 4px;
   }
 }
-
 .settings-content {
   animation: fadeIn 0.3s ease-in-out;
 }
@@ -9591,8 +9586,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -9990,7 +9984,6 @@ input:checked + .slider:before {
   align-items: center;
   justify-content: center;
 }
-
 .popup-close:hover {
   background: #e9ecef;
   color: #495057;
@@ -10653,8 +10646,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -10771,7 +10763,6 @@ input:checked + .slider:before {
 .distribution-label {
   color: #495057;
 }
-
 .distribution-count {
   background: white;
   color: #2196F3;
@@ -11571,11 +11562,6 @@ input:checked + .slider:before {
 .range-input-1::-moz-range-thumb {
   background: #DC143C;
 }
-
-.range-input-2::-moz-range-thumb {
-  background: #FF6B35;
-}
-
 .range-input-1::-moz-range-thumb:hover {
   background: #B22222;
   transform: scale(1.1);
@@ -11730,8 +11716,7 @@ input:checked + .slider:before {
 .stats-scroll-content {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
-  margin-right: -8px;
+  overflow-x: hidden; /* 가로 스크롤바 숨김 */
 }
 
 .stats-cards {
@@ -11784,7 +11769,6 @@ input:checked + .slider:before {
   flex-direction: column;
   gap: 8px;
 }
-
 .distribution-item {
   display: flex;
   justify-content: space-between;
