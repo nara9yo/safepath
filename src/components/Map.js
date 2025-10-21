@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import HeatmapLegend from './HeatmapLegend';
+import SubwayInfluenceLegend from './SubwayInfluenceLegend';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
 const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, markerRiskFilter = 'all', showHeatmap, heatmapGradient, legendMin, legendMax, mapType: externalMapType = 'terrain', showSubway = false, showSubwayInfluence = false, subwayStations = [] }) => {
@@ -896,7 +897,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
             // 3차 영향권 (300~500m) - 가장 큰 굵기, 진한 금색
             const zone500mLine = new window.naver.maps.Polyline({
-              map: mapInstance.current,
+            map: mapInstance.current,
               path,
               strokeColor: '#FFD700', // 진한 금색
               strokeWeight: strokeWeight500m, // 500m 전체 굵기
@@ -1186,7 +1187,28 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
             min={Number(legendMin ?? 0)}
             max={Number(legendMax ?? 10)}
             title="위험도"
-            barWidth={320}
+            barWidth={200}
+          />
+        </div>
+      )}
+
+      {/* 지하철 영향권 범례 */}
+      {showSubway && showSubwayInfluence && (
+        <div
+          style={{
+            position: 'absolute',
+            right: 12,
+            bottom: showHeatmap && Array.isArray(heatmapGradient) && heatmapGradient.length > 0 ? '108px' : '12px',
+            background: 'rgba(255,255,255,0.95)',
+            borderRadius: 8,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            zIndex: 10001,
+            pointerEvents: 'auto'
+          }}
+        >
+          <SubwayInfluenceLegend
+            title="지하철 영향권"
+            barWidth={200}
           />
         </div>
       )}
