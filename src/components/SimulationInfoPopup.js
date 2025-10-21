@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 
 const SimulationInfoPopup = ({ isOpen, onClose, initialCategory = 'sinkhole-factors' }) => {
   const [selectedFactor, setSelectedFactor] = useState('sinkhole-size');
@@ -130,7 +131,7 @@ const SimulationInfoPopup = ({ isOpen, onClose, initialCategory = 'sinkhole-fact
 
   const currentDescription = factorDescriptions[selectedFactor];
 
-  return (
+  return ReactDOM.createPortal((
     <div className="simulation-info-overlay">
       <div className="simulation-info-popup">
         <div className="popup-header">
@@ -207,7 +208,7 @@ const SimulationInfoPopup = ({ isOpen, onClose, initialCategory = 'sinkhole-fact
         </div>
       </div>
     </div>
-  );
+  ), document.body);
 };
 
 export default SimulationInfoPopup;
