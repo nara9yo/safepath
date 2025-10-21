@@ -13,6 +13,8 @@ const MapSettings = ({
   onHeatmapPresetChange,
   showSubway,
   onShowSubwayChange,
+  showSubwayInfluence,
+  onShowSubwayInfluenceChange,
   sinkholes = []
 }) => {
   const mapTypes = [
@@ -144,6 +146,31 @@ const MapSettings = ({
           </div>
         </div>
       </div>
+
+      {showSubway && (
+        <div className="settings-row" style={{ paddingLeft: '20px', marginTop: '-8px', border: 'none', background: 'transparent' }}>
+          <span className="settings-label">영향권:</span>
+          <div className="text-controls">
+            <div className="switch-container">
+              <input
+                type="checkbox"
+                id="subway-influence-switch"
+                checked={!!showSubwayInfluence}
+                onChange={(e) => onShowSubwayInfluenceChange?.(e.target.checked)}
+                className="switch-input"
+              />
+              <label htmlFor="subway-influence-switch" className="switch-label">
+                <span className="switch-slider"></span>
+              </label>
+            </div>
+            <div className="influence-info">
+              <small style={{ color: '#666', fontSize: '12px' }}>
+                1차(100m) 2차(300m) 3차(500m) 영향권 표시
+              </small>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

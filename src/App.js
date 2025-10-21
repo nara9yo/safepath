@@ -25,7 +25,21 @@ function App() {
   
   // 지하철 노선 설정 상태
   const [showSubway, setShowSubway] = useState(false);
+  const [showSubwayInfluence, setShowSubwayInfluence] = useState(true); // 기본값 true
   const [subwayStations, setSubwayStations] = useState([]);
+
+  // 지하철 노선 변경 핸들러 (노선 활성화 시 영향권도 함께 활성화)
+  const handleShowSubwayChange = useCallback((checked) => {
+    console.log('🚇 지하철 노선 변경:', checked);
+    setShowSubway(checked);
+    if (checked) {
+      console.log('✅ 영향권 자동 활성화');
+      setShowSubwayInfluence(true);
+    } else {
+      console.log('❌ 영향권 자동 비활성화');
+      setShowSubwayInfluence(false);
+    }
+  }, []);
   
   // 싱크홀 마커 표시 상태
   const [showMarkers, setShowMarkers] = useState(true);
@@ -378,7 +392,9 @@ function App() {
               heatmapPreset={heatmapPreset}
               onHeatmapPresetChange={setHeatmapPreset}
               showSubway={showSubway}
-              onShowSubwayChange={setShowSubway}
+              onShowSubwayChange={handleShowSubwayChange}
+              showSubwayInfluence={showSubwayInfluence}
+              onShowSubwayInfluenceChange={setShowSubwayInfluence}
               sinkholes={sinkholes}
             />
           )}
@@ -414,6 +430,7 @@ function App() {
           legendMax={legendDomain.max}
           mapType={mapType}
           showSubway={showSubway}
+          showSubwayInfluence={showSubwayInfluence}
           subwayStations={subwayStations}
         />
       </div>

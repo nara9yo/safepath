@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import HeatmapLegend from './HeatmapLegend';
 import { getSinkholeVisualStyle } from '../utils/sinkholeAnalyzer';
 
-const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, markerRiskFilter = 'all', showHeatmap, heatmapGradient, legendMin, legendMax, mapType: externalMapType = 'terrain', showSubway = false, subwayStations = [] }) => {
+const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, markerRiskFilter = 'all', showHeatmap, heatmapGradient, legendMin, legendMax, mapType: externalMapType = 'terrain', showSubway = false, showSubwayInfluence = false, subwayStations = [] }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
@@ -735,12 +735,14 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
     }
   }, [selectedSinkhole, isMapReady]);
 
+
   // 지하철 노선 표시
   useEffect(() => {
     if (!isMapReady || !mapInstance.current || !window.naver || !window.naver.maps) {
       console.log('⚠️ 지도 인스턴스가 준비되지 않음', { isMapReady, hasMapInstance: !!mapInstance.current });
       return;
     }
+
 
     // 기존 지하철 관련 요소들 제거
     if (subwayLineRef.current) {
@@ -769,6 +771,8 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
     });
     subwayMarkersRef.current = [];
 
+    // 영향권은 이제 노선과 함께 관리되므로 별도 제거 불필요
+
     // 지하철 노선 표시가 비활성화된 경우
     if (!showSubway) {
       console.log('ℹ️ 지하철 노선 표시 비활성화됨');
@@ -790,8 +794,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       // 지하철 역 마커 표시 및 노선 연결
       subwayStations.forEach((station, index) => {
         const position = new window.naver.maps.LatLng(station.lat, station.lng);
-
-        console.log(station)
         
         const markerSize = 12; // 노선보다 조금 더 큰 크기 (노선 두께 6px보다 큰 12px)
 
@@ -823,18 +825,123 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
         subwayMarkersRef.current.push(marker);
 
+        // 영향권 표시가 활성화된 경우 각 역 주위에 원형 영향권 생성
+        if (showSubwayInfluence) {
+          // 원형 영향권 반지름 계산 (미터 단위 - Circle은 미터 단위 사용)
+          const radius500m = 500; // 500m
+          const radius300m = 300; // 300m
+          const radius100m = 100; // 100m
+
+          // 3차 영향권 (300~500m) - 진한 금색 (더 진한 색상, 높은 대비)
+          const circle500m = new window.naver.maps.Circle({
+            center: position,
+            radius: radius500m, // 500m 반지름
+            fillColor: '#FFD700', // 더 진한 금색
+            fillOpacity: 0.25, // 투명도 증가
+            strokeColor: '#FF8C00', // 진한 주황색 테두리
+            strokeWeight: 2,
+            strokeOpacity: 0.8,
+            zIndex: 45
+          });
+          subwayLines.push(circle500m);
+
+          // 2차 영향권 (100~300m) - 진한 주황색 (3차 위에 겹쳐서)
+          const circle300m = new window.naver.maps.Circle({
+            center: position,
+            radius: radius300m, // 300m 반지름 (3차 영향권 위에 겹쳐짐)
+            fillColor: '#FF6B35', // 더 진한 주황색
+            fillOpacity: 0.35, // 투명도 증가
+            strokeColor: '#FF4500', // 진한 빨간색 테두리
+            strokeWeight: 2,
+            strokeOpacity: 0.9,
+            zIndex: 46
+          });
+          subwayLines.push(circle300m);
+
+          // 1차 영향권 (0~100m) - 진한 빨간색 (2차 위에 겹쳐서)
+          const circle100m = new window.naver.maps.Circle({
+            center: position,
+            radius: radius100m, // 100m 반지름 (2차 영향권 위에 겹쳐짐)
+            fillColor: '#DC143C', // 진한 빨간색
+            fillOpacity: 0.45, // 가장 높은 투명도
+            strokeColor: '#8B0000', // 진한 마론색 테두리
+            strokeWeight: 3,
+            strokeOpacity: 1.0,
+            zIndex: 47
+          });
+          subwayLines.push(circle100m);
+        }
+
         // 이전 역과 현재 역을 연결하는 선 그리기
         if (previousPosition) {
-          const lineSegment = new window.naver.maps.Polyline({
+          const path = [previousPosition, position];
+          
+          // 영향권 표시가 활성화된 경우 여러 굵기로 노선 그리기
+          if (showSubwayInfluence) {
+            // 현재 줌 레벨에 따른 픽셀당 미터 계산
+            const currentZoom = mapInstance.current.getZoom();
+            const metersPerPixel = 156543.03392 * Math.cos(35.1595 * Math.PI / 180) / Math.pow(2, currentZoom);
+            
+            // 실제 거리에 맞는 굵기 계산 (픽셀 단위)
+            // Polyline은 중앙을 기준으로 양쪽으로 굵기가 적용되므로 2배로 계산
+            // 3차 영향권: 500m 반지름 = 1000m 직경
+            // 2차 영향권: 300m 반지름 = 600m 직경  
+            // 1차 영향권: 100m 반지름 = 200m 직경
+            const strokeWeight500m = Math.max(2, Math.round((500 * 2) / metersPerPixel));
+            const strokeWeight300m = Math.max(2, Math.round((300 * 2) / metersPerPixel));
+            const strokeWeight100m = Math.max(2, Math.round((100 * 2) / metersPerPixel));
+            
+            console.log(`줌 레벨: ${currentZoom}, 픽셀당 미터: ${metersPerPixel.toFixed(2)}m`);
+            console.log(`영향권 굵기 - 100m: ${strokeWeight100m}px, 300m: ${strokeWeight300m}px, 500m: ${strokeWeight500m}px`);
+
+            // 3차 영향권 (300~500m) - 가장 큰 굵기, 진한 금색
+            const zone500mLine = new window.naver.maps.Polyline({
+              map: mapInstance.current,
+              path,
+              strokeColor: '#FFD700', // 진한 금색
+              strokeWeight: strokeWeight500m, // 500m 전체 굵기
+              strokeOpacity: 0.3,
+              strokeStyle: 'solid',
+              zIndex: 45
+            });
+            subwayLines.push(zone500mLine);
+
+            // 2차 영향권 (100~300m) - 중간 굵기, 진한 주황색 (3차 위에 겹쳐서)
+            const zone300mLine = new window.naver.maps.Polyline({
+              map: mapInstance.current,
+              path,
+              strokeColor: '#FF6B35', // 진한 주황색
+              strokeWeight: strokeWeight300m, // 300m 굵기 (3차 영향권 위에 겹쳐짐)
+              strokeOpacity: 0.4,
+              strokeStyle: 'solid',
+              zIndex: 46
+            });
+            subwayLines.push(zone300mLine);
+
+            // 1차 영향권 (0~100m) - 작은 굵기, 진한 빨간색 (2차 위에 겹쳐서)
+            const zone100mLine = new window.naver.maps.Polyline({
+              map: mapInstance.current,
+              path,
+              strokeColor: '#DC143C', // 진한 빨간색
+              strokeWeight: strokeWeight100m, // 100m 굵기 (2차 영향권 위에 겹쳐짐)
+              strokeOpacity: 0.5,
+              strokeStyle: 'solid',
+              zIndex: 47
+            });
+            subwayLines.push(zone100mLine);
+          }
+
+          // 원래 지하철 노선 (가장 위에)
+          const mainLine = new window.naver.maps.Polyline({
             map: mapInstance.current,
-            path: [previousPosition, position],
+            path,
             strokeColor: '#4CAF50', // 녹색
             strokeWeight: 6,
             strokeOpacity: 0.8,
             strokeStyle: 'solid',
             zIndex: 100
           });
-          subwayLines.push(lineSegment);
+          subwayLines.push(mainLine);
         }
 
         // 현재 위치를 다음 반복을 위해 저장
@@ -844,11 +951,216 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       // 생성된 모든 노선을 저장
       subwayLineRef.current = subwayLines;
 
+      // 영향권은 이제 노선 그리기 로직에서 처리됨
+      console.log(`✅ 지하철 노선 표시 완료 (영향권: ${showSubwayInfluence ? '활성화' : '비활성화'})`);
+
       console.log(`✅ ${subwayStations.length}개 지하철 역 표시 완료`);
     } catch (error) {
       console.error('❌ 지하철 노선 표시 오류:', error);
     }
-  }, [isMapReady, showSubway, subwayStations]);
+  }, [isMapReady, showSubway, showSubwayInfluence, subwayStations]);
+
+  // 줌 레벨 변경 시 지하철 영향권 다시 그리기
+  useEffect(() => {
+    if (!isMapReady || !mapInstance.current || !showSubway || !showSubwayInfluence || !subwayStations || subwayStations.length === 0) {
+      return;
+    }
+
+    const handleZoomChange = () => {
+      console.log('🔍 줌 레벨 변경 감지, 지하철 영향권 다시 그리기');
+      
+      // 기존 지하철 관련 요소들 제거
+      if (subwayLineRef.current) {
+        try {
+          if (Array.isArray(subwayLineRef.current)) {
+            subwayLineRef.current.forEach(line => {
+              if (line && line.setMap) {
+                line.setMap(null);
+              }
+            });
+          } else {
+            subwayLineRef.current.setMap(null);
+          }
+        } catch (e) {
+          console.error('지하철 노선 제거 오류:', e);
+        }
+      }
+      subwayMarkersRef.current.forEach(marker => {
+        try {
+          marker.setMap(null);
+        } catch (e) {
+          console.error('지하철 역 마커 제거 오류:', e);
+        }
+      });
+      subwayMarkersRef.current = [];
+
+      // 지하철 노선과 영향권 다시 그리기
+      try {
+        const subwayLines = [];
+        let previousPosition = null;
+
+        subwayStations.forEach((station, index) => {
+          const position = new window.naver.maps.LatLng(station.lat, station.lng);
+          
+          const markerSize = 12;
+          const markerContent = `
+            <div style="
+              width: ${markerSize}px;
+              height: ${markerSize}px;
+              border-radius: 50%;
+              background: white;
+              border: 2px solid #4CAF50;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              cursor: pointer;
+              transition: all 0.3s ease;
+            " onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+            </div>
+          `;
+
+          const marker = new window.naver.maps.Marker({
+            position,
+            map: mapInstance.current,
+            title: station.name,
+            icon: {
+              content: markerContent,
+              anchor: new window.naver.maps.Point(markerSize / 2, markerSize / 2)
+            },
+            zIndex: 200
+          });
+
+          subwayMarkersRef.current.push(marker);
+
+          // 영향권 표시가 활성화된 경우 각 역 주위에 원형 영향권 생성
+          if (showSubwayInfluence) {
+            // 원형 영향권 반지름 계산 (미터 단위 - Circle은 미터 단위 사용)
+            const radius500m = 500; // 500m
+            const radius300m = 300; // 300m
+            const radius100m = 100; // 100m
+
+            // 3차 영향권 (500m) - 노란색 (더 진한 색상, 높은 대비)
+            const circle500m = new window.naver.maps.Circle({
+              center: position,
+              radius: radius500m,
+              fillColor: '#FFD700', // 더 진한 금색
+              fillOpacity: 0.25, // 투명도 증가
+              strokeColor: '#FF8C00', // 진한 주황색 테두리
+              strokeWeight: 2,
+              strokeOpacity: 0.8,
+              zIndex: 45
+            });
+            subwayLines.push(circle500m);
+
+            // 2차 영향권 (300m) - 주황색 (더 진한 색상, 높은 대비)
+            const circle300m = new window.naver.maps.Circle({
+              center: position,
+              radius: radius300m,
+              fillColor: '#FF6B35', // 더 진한 주황색
+              fillOpacity: 0.35, // 투명도 증가
+              strokeColor: '#FF4500', // 진한 빨간색 테두리
+              strokeWeight: 2,
+              strokeOpacity: 0.9,
+              zIndex: 46
+            });
+            subwayLines.push(circle300m);
+
+            // 1차 영향권 (100m) - 빨간색 (가장 진한 색상, 최고 대비)
+            const circle100m = new window.naver.maps.Circle({
+              center: position,
+              radius: radius100m,
+              fillColor: '#DC143C', // 진한 빨간색
+              fillOpacity: 0.45, // 가장 높은 투명도
+              strokeColor: '#8B0000', // 진한 마론색 테두리
+              strokeWeight: 3,
+              strokeOpacity: 1.0,
+              zIndex: 47
+            });
+            subwayLines.push(circle100m);
+          }
+
+          // 이전 역과 현재 역을 연결하는 선 그리기
+          if (previousPosition) {
+            const path = [previousPosition, position];
+            
+            // 영향권 표시가 활성화된 경우 여러 굵기로 노선 그리기
+            if (showSubwayInfluence) {
+              const currentZoom = mapInstance.current.getZoom();
+              const metersPerPixel = 156543.03392 * Math.cos(35.1595 * Math.PI / 180) / Math.pow(2, currentZoom);
+              
+              // 실제 거리에 맞는 굵기 계산 (픽셀 단위)
+              // Polyline은 중앙을 기준으로 양쪽으로 굵기가 적용되므로 2배로 계산
+              const strokeWeight500m = Math.max(2, Math.round((500 * 2) / metersPerPixel));
+              const strokeWeight300m = Math.max(2, Math.round((300 * 2) / metersPerPixel));
+              const strokeWeight100m = Math.max(2, Math.round((100 * 2) / metersPerPixel));
+
+            // 3차 영향권 (300~500m) - 가장 큰 굵기, 진한 금색
+            const zone500mLine = new window.naver.maps.Polyline({
+              map: mapInstance.current,
+              path,
+              strokeColor: '#FFD700', // 진한 금색
+              strokeWeight: strokeWeight500m, // 500m 전체 굵기
+              strokeOpacity: 0.3,
+              strokeStyle: 'solid',
+              zIndex: 45
+            });
+            subwayLines.push(zone500mLine);
+
+            // 2차 영향권 (100~300m) - 중간 굵기, 진한 주황색 (3차 위에 겹쳐서)
+            const zone300mLine = new window.naver.maps.Polyline({
+              map: mapInstance.current,
+              path,
+              strokeColor: '#FF6B35', // 진한 주황색
+              strokeWeight: strokeWeight300m, // 300m 굵기 (3차 영향권 위에 겹쳐짐)
+              strokeOpacity: 0.4,
+              strokeStyle: 'solid',
+              zIndex: 46
+            });
+            subwayLines.push(zone300mLine);
+
+            // 1차 영향권 (0~100m) - 작은 굵기, 진한 빨간색 (2차 위에 겹쳐서)
+            const zone100mLine = new window.naver.maps.Polyline({
+              map: mapInstance.current,
+              path,
+              strokeColor: '#DC143C', // 진한 빨간색
+              strokeWeight: strokeWeight100m, // 100m 굵기 (2차 영향권 위에 겹쳐짐)
+              strokeOpacity: 0.5,
+              strokeStyle: 'solid',
+              zIndex: 47
+            });
+            subwayLines.push(zone100mLine);
+            }
+
+            // 원래 지하철 노선 (가장 위에)
+            const mainLine = new window.naver.maps.Polyline({
+              map: mapInstance.current,
+              path,
+              strokeColor: '#4CAF50', // 녹색
+              strokeWeight: 6,
+              strokeOpacity: 0.8,
+              strokeStyle: 'solid',
+              zIndex: 100
+            });
+            subwayLines.push(mainLine);
+          }
+
+          // 현재 위치를 다음 반복을 위해 저장
+          previousPosition = position;
+        });
+
+        // 생성된 모든 노선을 저장
+        subwayLineRef.current = subwayLines;
+        console.log('✅ 줌 레벨 변경으로 지하철 영향권 다시 그리기 완료');
+      } catch (error) {
+        console.error('❌ 줌 레벨 변경 시 지하철 영향권 다시 그리기 오류:', error);
+      }
+    };
+
+    // 줌 변경 이벤트 리스너 등록
+    const zoomListener = window.naver.maps.Event.addListener(mapInstance.current, 'zoom_changed', handleZoomChange);
+
+    return () => {
+      window.naver.maps.Event.removeListener(zoomListener);
+    };
+  }, [isMapReady, showSubway, showSubwayInfluence, subwayStations]);
 
   return (
     <div 

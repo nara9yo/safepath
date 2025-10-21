@@ -70,20 +70,26 @@ export const getDistanceToSubwayLine = (lat, lng, subwayStations) => {
  * @returns {number} 최단 거리 (미터)
  */
 const getDistanceToLineSegment = (px, py, x1, y1, x2, y2) => {
-  // 선분의 길이
-  const lineLength = calculateDistance(x1, y1, x2, y2);
+  // 선분의 벡터
+  const dx = x2 - x1;
+  const dy = y2 - y1;
   
-  if (lineLength === 0) {
+  // 선분의 길이 제곱 (좌표 단위)
+  const lengthSquared = dx * dx + dy * dy;
+  
+  if (lengthSquared === 0) {
     return calculateDistance(px, py, x1, y1);
   }
 
-  // 선분 위의 점에서 대상 점까지의 거리 계산
+  // 선분 위의 점에서 대상 점까지의 최단 거리를 위한 t 값 계산
+  // t는 0~1 사이의 값으로, 선분 위의 위치를 나타냄
   const t = Math.max(0, Math.min(1, 
-    ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / (lineLength * lineLength)
+    ((px - x1) * dx + (py - y1) * dy) / lengthSquared
   ));
 
-  const closestX = x1 + t * (x2 - x1);
-  const closestY = y1 + t * (y2 - y1);
+  // 선분 위의 가장 가까운 점
+  const closestX = x1 + t * dx;
+  const closestY = y1 + t * dy;
 
   return calculateDistance(px, py, closestX, closestY);
 };
