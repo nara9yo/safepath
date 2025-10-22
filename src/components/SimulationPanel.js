@@ -550,7 +550,37 @@ const SimulationPanel = ({
                       <div
                         key={sinkhole.id}
                         className="sinkhole-item"
-                        onClick={() => onSinkholeClick && onSinkholeClick(sinkhole)}
+                        onClick={() => {
+                          if (onSinkholeClick) {
+                            // 원본 싱크홀 데이터 찾기 - ID로 먼저 찾기
+                            let originalSinkhole = sinkholes.find(original => 
+                              original.id === sinkhole.id
+                            );
+                            
+                            // ID로 찾지 못한 경우 좌표로 찾기
+                            if (!originalSinkhole && sinkhole.lat && sinkhole.lng) {
+                              originalSinkhole = sinkholes.find(original => 
+                                Math.abs(original.lat - sinkhole.lat) < 0.0001 && 
+                                Math.abs(original.lng - sinkhole.lng) < 0.0001
+                              );
+                            }
+                            
+                            // 이름으로 찾기 (마지막 시도)
+                            if (!originalSinkhole) {
+                              originalSinkhole = sinkholes.find(original => 
+                                original.name === sinkhole.name || 
+                                original.사고명 === sinkhole.name
+                              );
+                            }
+                            
+                            if (originalSinkhole) {
+                              onSinkholeClick(originalSinkhole);
+                            } else {
+                              // 원본을 찾지 못한 경우 시뮬레이션 데이터 사용
+                              onSinkholeClick(sinkhole);
+                            }
+                          }
+                        }}
                         style={{ cursor: 'pointer' }}
                       >
                         <div className="sinkhole-icon">

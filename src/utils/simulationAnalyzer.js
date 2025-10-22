@@ -214,6 +214,9 @@ export const calculateTopRiskSinkholes = (simulationData) => {
         id: sinkhole.id || `${sinkhole.lat}_${sinkhole.lng}`,
         name: sinkhole.name || sinkhole.사고명 || '알수없음',
         location: sinkhole.address || `${sinkhole.sigungu || '알수없음'} ${sinkhole.dong || '알수없음'}`,
+        lat: sinkhole.lat, // 좌표 정보 추가
+        lng: sinkhole.lng, // 좌표 정보 추가
+        address: sinkhole.address, // 주소 정보 추가
         finalWeight: sinkhole.finalWeight, // finalWeight 추가
         sinkholeRisk: sinkhole.sinkholeRisk, // sinkholeRisk 추가
         riskLevel: sinkhole.riskLevel,

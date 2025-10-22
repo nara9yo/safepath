@@ -444,6 +444,9 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                  visualStyle.riskLevel === 'medium' ? 200 : 150
         });
 
+        // 마커에 원본 싱크홀 데이터 저장 (참조용)
+        marker._sinkholeData = sinkhole;
+
         const sizeLabel = (() => {
           const w = Number(sinkhole.sinkWidth) || 0;
           const e = Number(sinkhole.sinkExtend) || 0;
@@ -742,10 +745,22 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
     // 선택된 싱크홀의 마커 찾기
     const targetMarker = markersRef.current.find((marker, index) => {
       try {
+        // 마커에 저장된 원본 싱크홀 데이터 사용
+        if (marker._sinkholeData) {
+          const markerData = marker._sinkholeData;
+          // 좌표와 ID로 비교 (더 정확한 매칭)
+          const latMatch = Math.abs(markerData.lat - selectedSinkhole.lat) < 0.0001;
+          const lngMatch = Math.abs(markerData.lng - selectedSinkhole.lng) < 0.0001;
+          const idMatch = markerData.id === selectedSinkhole.id || 
+                         (markerData.name === selectedSinkhole.name && 
+                          markerData.address === selectedSinkhole.address);
+          return (latMatch && lngMatch) || idMatch;
+        }
+        
+        // 원본 데이터가 없는 경우 좌표 비교
         const markerPosition = marker.getPosition();
         if (!markerPosition) return false;
         
-        // 좌표 비교 정밀도를 낮춤 (약 1m 오차 허용)
         const latDiff = Math.abs(markerPosition.y - selectedSinkhole.lat);
         const lngDiff = Math.abs(markerPosition.x - selectedSinkhole.lng);
         return latDiff < 0.0001 && lngDiff < 0.0001;
@@ -768,7 +783,6 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       mapInstance.current.setCenter(position);
       mapInstance.current.setZoom(15);
     } else {
-      
       // 마커를 찾지 못해도 지도 중심은 이동
       const position = new window.naver.maps.LatLng(selectedSinkhole.lat, selectedSinkhole.lng);
       mapInstance.current.setCenter(position);
