@@ -369,28 +369,64 @@ const SimulationPanel = ({
                 <div className="distribution-chart">
                   <div 
                     className={`distribution-item low ${selectedRiskFilter === 'low' ? 'selected' : ''}`}
-                    onClick={() => handleRiskFilterClick('low')}
+                    onClick={() => {
+                      handleRiskFilterClick('low');
+                      try {
+                        const rows = (simulationData || [])
+                          .filter(s => s.riskLevel === 'low')
+                          .map(s => ({ id: s.id, name: s.name, finalWeight: s.finalWeight, sinkholeRisk: s.sinkholeRisk, subwayWeight: s.subwayWeight, subwayDistanceM: s.subwayDistance, address: s.address }))
+                          .sort((a, b) => b.finalWeight - a.finalWeight);
+                        if (rows.length) console.table(rows);
+                      } catch (_) {}
+                    }}
                   >
                     <span className="distribution-label">낮음</span>
                     <span className="distribution-count">{stats.riskDistribution.low}</span>
                   </div>
                   <div 
                     className={`distribution-item medium ${selectedRiskFilter === 'medium' ? 'selected' : ''}`}
-                    onClick={() => handleRiskFilterClick('medium')}
+                    onClick={() => {
+                      handleRiskFilterClick('medium');
+                      try {
+                        const rows = (simulationData || [])
+                          .filter(s => s.riskLevel === 'medium')
+                          .map(s => ({ id: s.id, name: s.name, finalWeight: s.finalWeight, sinkholeRisk: s.sinkholeRisk, subwayWeight: s.subwayWeight, subwayDistanceM: s.subwayDistance, address: s.address }))
+                          .sort((a, b) => b.finalWeight - a.finalWeight);
+                        if (rows.length) console.table(rows);
+                      } catch (_) {}
+                    }}
                   >
                     <span className="distribution-label">중간</span>
                     <span className="distribution-count">{stats.riskDistribution.medium}</span>
                   </div>
                   <div 
                     className={`distribution-item high ${selectedRiskFilter === 'high' ? 'selected' : ''}`}
-                    onClick={() => handleRiskFilterClick('high')}
+                    onClick={() => {
+                      handleRiskFilterClick('high');
+                      try {
+                        const rows = (simulationData || [])
+                          .filter(s => s.riskLevel === 'high')
+                          .map(s => ({ id: s.id, name: s.name, finalWeight: s.finalWeight, sinkholeRisk: s.sinkholeRisk, subwayWeight: s.subwayWeight, subwayDistanceM: s.subwayDistance, address: s.address }))
+                          .sort((a, b) => b.finalWeight - a.finalWeight);
+                        if (rows.length) console.table(rows);
+                      } catch (_) {}
+                    }}
                   >
                     <span className="distribution-label">높음</span>
                     <span className="distribution-count">{stats.riskDistribution.high}</span>
                   </div>
                   <div 
                     className={`distribution-item critical ${selectedRiskFilter === 'critical' ? 'selected' : ''}`}
-                    onClick={() => handleRiskFilterClick('critical')}
+                    onClick={() => {
+                      handleRiskFilterClick('critical');
+                      try {
+                        const rows = (simulationData || [])
+                          .filter(s => s.riskLevel === 'critical')
+                          .map(s => ({ id: s.id, name: s.name, finalWeight: s.finalWeight, sinkholeRisk: s.sinkholeRisk, subwayWeight: s.subwayWeight, subwayDistanceM: s.subwayDistance, address: s.address }))
+                          .sort((a, b) => b.finalWeight - a.finalWeight);
+                        if (rows.length) console.table(rows);
+                      } catch (_) {}
+                    }}
                   >
                     <span className="distribution-label">치명적</span>
                     <span className="distribution-count">{stats.riskDistribution.critical}</span>

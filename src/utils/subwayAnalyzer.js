@@ -4,7 +4,8 @@
 import { 
   SUBWAY_CALCULATION_THRESHOLDS, 
   getSubwayInfluenceLevel, 
-  getSubwayInfluenceStyle 
+  getSubwayInfluenceStyle, 
+  getRiskLevelFromWeight 
 } from './constants';
 
 /**
@@ -50,7 +51,10 @@ export const getDistanceToSubwayLine = (lat, lng, subwayStations) => {
   for (let i = 0; i < subwayStations.length - 1; i++) {
     const station1 = subwayStations[i];
     const station2 = subwayStations[i + 1];
-    
+    // 동일 노선의 연속된 역들 사이만 선분으로 간주하여 과도한 단축거리 방지
+    if (station1.line && station2.line && station1.line !== station2.line) {
+      continue;
+    }
     // 선분에서 점까지의 최단 거리 계산
     const distance = getDistanceToLineSegment(
       lat, lng,
@@ -142,12 +146,15 @@ export const applySubwayRiskWeights = (sinkholes, subwayStations) => {
     const distance = getDistanceToSubwayLine(sinkhole.lat, sinkhole.lng, subwayStations);
     const subwayWeight = calculateSubwayRiskWeight(distance);
     
-    // baseRisk에 지하철 가중치를 곱하여 finalRisk 계산
-    const baseRisk = Number(sinkhole.baseRisk) || 0;
+    // baseRiskRaw가 있으면 정밀값을 우선 사용, 없으면 표시용(baseRisk) 사용
+    const baseRisk = (sinkhole.baseRiskRaw != null ? Number(sinkhole.baseRiskRaw) : Number(sinkhole.baseRisk)) || 0;
     const finalRisk = baseRisk * (1 + subwayWeight);
     
     // 지하철 영향도 레벨 결정 (통합 상수 사용)
     const subwayInfluenceLevel = getSubwayInfluenceLevel(distance);
+    
+    // finalRisk 기준으로 위험도 등급을 재산정하여 전역 정합성 유지
+    const riskLevel = getRiskLevelFromWeight(finalRisk);
     
     return {
       ...sinkhole,
@@ -155,6 +162,7 @@ export const applySubwayRiskWeights = (sinkholes, subwayStations) => {
       subwayWeight,
       subwayDistance: distance,
       finalRisk: finalRisk, // weight -> finalRisk
+      riskLevel,
       hasSubwayRisk: subwayWeight > 0,
       subwayInfluenceLevel
     };

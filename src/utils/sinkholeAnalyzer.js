@@ -183,7 +183,8 @@ export const calculateSinkholeWeight = (cluster) => {
   const riskLevel = getRiskLevelFromWeight(finalWeight);
   
   return {
-    baseRisk: Math.round(finalWeight * 100) / 100, // weight -> baseRisk
+    baseRisk: Math.round(finalWeight * 100) / 100, // 표시용 반올림 값
+    baseRiskRaw: finalWeight, // 지하철 가중치 적용 시 정밀 계산용
     baseWeight,
     sizeWeight: Math.round(sizeWeight * 100) / 100,
     damageWeight: Math.round(damageWeight * 100) / 100,
@@ -233,7 +234,8 @@ export const enhanceSinkholesWithWeight = (sinkholes, clusterRadius = 0.01) => {
       ].filter(Boolean).join(' | '),
       
       // 가중치 정보 추가
-      baseRisk: weightInfo.baseRisk, // weight -> baseRisk
+      baseRisk: weightInfo.baseRisk, // 표시용 반올림 값
+      baseRiskRaw: weightInfo.baseRiskRaw, // 정밀 계산용 원시 값
       riskLevel: weightInfo.riskLevel,
       priority: weightInfo.priority,
       
