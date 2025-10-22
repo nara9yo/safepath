@@ -293,7 +293,7 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
       return weightA - weightB; // 오름차순 정렬 (낮은 위험도가 먼저)
     });
     
-    let createdCount = 0;
+    // 생성된 마커 수는 더 이상 사용되지 않으므로 제거
 
     sortedSinkholes.forEach((sinkhole) => {
       if (!Number.isFinite(sinkhole.lat) || !Number.isFinite(sinkhole.lng)) {
@@ -718,13 +718,13 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
 
         markersRef.current.push(marker);
         infoWindowsRef.current.push(infoWindow);
-        createdCount++;
+        // 생성된 마커 수 카운팅 제거
       } catch (error) {
         // 마커 생성 오류 무시
       }
     });
 
-  }, [sinkholes, isMapReady, showMarkers]);
+  }, [sinkholes, isMapReady, showMarkers, legendMin, legendMax]);
 
   // 선택된 싱크홀 표시 (인포윈도우 열기 및 지도 중심 이동)
   useEffect(() => {

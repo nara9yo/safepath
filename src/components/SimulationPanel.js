@@ -351,15 +351,15 @@ const SimulationPanel = ({
                 </div>
                 <div className="stat-card">
                   <div className="stat-label">평균 위험도</div>
-                  <div className="stat-value">{stats.weightStats.avg.toFixed(1)}</div>
+                  <div className="stat-value">{stats.weightStats.avg.toFixed(2)}</div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-label">최대 위험도</div>
-                  <div className="stat-value">{stats.weightStats.max.toFixed(1)}</div>
+                  <div className="stat-value">{stats.weightStats.max.toFixed(2)}</div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-label">최소 위험도</div>
-                  <div className="stat-value">{stats.weightStats.min.toFixed(1)}</div>
+                  <div className="stat-value">{stats.weightStats.min.toFixed(2)}</div>
                 </div>
               </div>
               
