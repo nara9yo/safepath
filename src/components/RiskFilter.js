@@ -68,7 +68,6 @@ const RiskFilter = ({
           address: s.address
         }))
         .sort((a, b) => (b.finalRisk - a.finalRisk));
-      if (rows.length) console.table(rows);
     } catch (e) {
       // 콘솔 출력 실패는 무시
     }

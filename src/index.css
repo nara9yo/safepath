@@ -10246,3 +10246,49 @@ input:checked + .slider:before {
   overflow-y: auto !important;
   overflow-x: hidden !important;
 }
+
+/* ----------------------------------------------------------------------------
+   Mobile overrides: make entire control panel tab-content scroll
+   - For '싱크홀 목록' and '시뮬레이션' tabs on small screens, remove nested
+     inner scrolling and enable scrolling on the outer tab-content only.
+   ------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  /* Enable outer scroll on tab-content */
+  .control-panel .tab-content[data-tab="sinkhole-list"],
+  .control-panel .tab-content[data-tab="simulation"] {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Disable inner scroll containers to avoid nested scrolls */
+  .control-panel .tab-content[data-tab="simulation"] .simulation-panel,
+  .control-panel .tab-content[data-tab="simulation"] .stats-section,
+  .control-panel .tab-content[data-tab="simulation"] .stats-scroll-content,
+  .control-panel .tab-content[data-tab="sinkhole-list"] .sinkhole-panel,
+  .control-panel .tab-content[data-tab="sinkhole-list"] .panel-content,
+  .control-panel .tab-content[data-tab="sinkhole-list"] .sinkhole-list-section,
+  .control-panel .tab-content[data-tab="sinkhole-list"] .sinkhole-list {
+    max-height: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Keep panel/map split while allowing panel scroll */
+  .control-panel {
+    overflow: hidden; /* scroll is handled by tab-content */
+  }
+
+  /* Allow simulation panel to grow so outer tab-content can scroll */
+  .control-panel .tab-content[data-tab="simulation"] .simulation-panel {
+    height: auto !important;
+  }
+
+  /* Allow results section to expand naturally so outer container can scroll */
+  .control-panel .tab-content[data-tab="simulation"] .stats-section {
+    flex: 0 0 auto !important;
+  }
+  .control-panel .tab-content[data-tab="simulation"] .stats-section .panel-content {
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
