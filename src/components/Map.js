@@ -379,10 +379,11 @@ const Map = ({ sinkholes, selectedSinkhole, onMapReady, showMarkers = true, mark
                                   'low';
         
         // 그라데이션 색상 사용 (히트맵과 동일한 로직)
-        // legendMin, legendMax를 사용하여 정규화
-        const normalizedWeight = legendMin !== undefined && legendMax !== undefined ? 
-          Math.min(Math.max((weight - legendMin) / (legendMax - legendMin), 0), 1) :
-          Math.min(Math.max((weight || 0) / 10, 0), 1);
+        // legendMin, legendMax를 사용하여 정규화 (분모 0 보호)
+        const hasLegend = Number.isFinite(legendMin) && Number.isFinite(legendMax) && legendMax > legendMin;
+        const normalizedWeight = hasLegend
+          ? Math.min(Math.max((weight - legendMin) / (legendMax - legendMin), 0), 1)
+          : Math.min(Math.max((weight || 0) / 10, 0), 1);
         const riskColor = getGradientColor(normalizedWeight * 10);
         const riskLabel = getRiskLabel(effectiveRiskLevel);
         const riskShortLabel = getRiskShortLabel(effectiveRiskLevel);

@@ -67,6 +67,7 @@ function App() {
   
   // 시뮬레이션 상태
   const [simulationData, setSimulationData] = useState([]);
+  const [simulationLegendSource, setSimulationLegendSource] = useState([]);
   
   // 프로젝트 도움말 팝업 상태
   const [showProjectHelp, setShowProjectHelp] = useState(false);
@@ -157,17 +158,21 @@ function App() {
     return filteredSinkholes.map(s => ({ ...s, weight: s.finalRisk })); // 호환성을 위해 weight 추가
   }, [activeTab, simulationData, filteredSinkholes]);
 
-  // 히트맵 범례용 min/max (weight 기준)
+  // 히트맵 범례용 min/max (전체 데이터 기준으로 고정)
   const legendDomain = useMemo(() => {
-    const arr = (displayedSinkholes || []).map(s => {
-      // 이제 displayedSinkholes에 항상 weight가 있음
-      return Number(s.weight) || 0;
-    }).filter(Number.isFinite);
+    const base = (activeTab === 'simulation' && (simulationLegendSource?.length || 0) > 0)
+      ? simulationLegendSource.map(s => Number(s.finalWeight) || 0)
+      : (sinkholesWithSubwayWeights || []).map(s => Number(s.finalRisk) || 0);
+
+    const arr = base.filter(Number.isFinite);
     if (!arr.length) return { min: 0, max: 10 };
+
     const min = Math.min(...arr);
     const max = Math.max(...arr);
+    if (min === max) return { min: 0, max: 10 }; // 단일값 범위 보호
+
     return { min: Math.floor(min), max: Math.ceil(max) };
-  }, [displayedSinkholes]);
+  }, [activeTab, simulationLegendSource, sinkholesWithSubwayWeights]);
 
   // 지도 인스턴스 설정
   const handleMapReady = useCallback((mapInstance) => {
@@ -510,6 +515,7 @@ function App() {
               sinkholes={sinkholes}
               subwayStations={subwayStations}
               onSimulationDataChange={setSimulationData}
+              onSimulationLegendSourceChange={setSimulationLegendSource}
               onSinkholeClick={handleSinkholeClick} // 클릭 핸들러 전달
             />
           )}

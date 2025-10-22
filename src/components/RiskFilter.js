@@ -53,24 +53,6 @@ const RiskFilter = ({
     
     // 선택 상태 반영
     onRiskLevelChange(newSelectedLevels);
-
-    // 콘솔 출력: 클릭한 위험도에 해당하는 싱크홀 목록
-    try {
-      const matched = (sinkholes || []).filter(s => (s.riskLevel || 'low') === riskLevel);
-      const rows = matched
-        .map(s => ({
-          id: s.id,
-          name: s.name,
-          riskLevel: s.riskLevel,
-          baseRisk: Number(s.baseRiskRaw ?? s.baseRisk) || 0,
-          finalRisk: Number(s.finalRisk ?? s.baseRisk) || 0,
-          subwayDistanceM: s.subwayDistance != null ? Math.round(Number(s.subwayDistance)) : null,
-          address: s.address
-        }))
-        .sort((a, b) => (b.finalRisk - a.finalRisk));
-    } catch (e) {
-      // 콘솔 출력 실패는 무시
-    }
   };
 
   const handleClearAll = () => {

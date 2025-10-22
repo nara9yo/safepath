@@ -17,6 +17,7 @@ const SimulationPanel = ({
   sinkholes = [],
   subwayStations = [],
   onSimulationDataChange,
+  onSimulationLegendSourceChange,
   onSinkholeClick // 새로 추가된 prop
 }) => {
   // 시뮬레이션 파라미터 상태
@@ -38,7 +39,7 @@ const SimulationPanel = ({
   // 시뮬레이션은 고정 임계값(100/300/500m)을 사용하므로 거리 파라미터는 전달하지 않음
 
   // 시뮬레이션 데이터 생성
-  const simulationData = useMemo(() => {
+  const { rawData, filteredData: simulationData } = useMemo(() => {
     if (!sinkholes || sinkholes.length === 0) return [];
     
     const data = generateSimulationData(
@@ -61,7 +62,7 @@ const SimulationPanel = ({
       filteredData = filteredData.filter(sinkhole => sinkhole.subwayInfluenceLevel === selectedSubwayFilter);
     }
     
-    return filteredData;
+    return { rawData: data, filteredData };
   }, [sinkholes, subwayStations, sinkholeParams, subwayParams, selectedRiskFilter, selectedSubwayFilter]);
   
   // 시뮬레이션 데이터 변경 시 부모 컴포넌트에 전달
@@ -69,7 +70,10 @@ const SimulationPanel = ({
     if (onSimulationDataChange) {
       onSimulationDataChange(simulationData);
     }
-  }, [simulationData, onSimulationDataChange]);
+    if (onSimulationLegendSourceChange) {
+      onSimulationLegendSourceChange(rawData || []);
+    }
+  }, [simulationData, rawData, onSimulationDataChange, onSimulationLegendSourceChange]);
   
   // 통계 계산
   const stats = useMemo(() => {
