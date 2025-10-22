@@ -34,6 +34,7 @@ jobs:
         run: npm run build
         env:
           PUBLIC_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          REACT_APP_NAVER_MAPS_CLIENT_ID: ${{ secrets.NAVER_MAPS_CLIENT_ID }}
 
       - name: Enable SPA fallback (404.html)
         run: cp build/index.html build/404.html
