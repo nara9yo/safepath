@@ -35,13 +35,25 @@ const MapSettings = ({
     { id: 'hybrid', name: '하이브리드', icon: '🌍' }
   ];
 
-  // 실제 데이터 범위 계산
+  // 실제 데이터 범위 계산 (finalRisk → baseRisk → weight 순 폴백)
   const getDataRange = () => {
-    const weights = sinkholes.map(s => Number(s.weight) || 0).filter(Number.isFinite);
-    if (weights.length === 0) return { min: 1, max: 10 };
-    
-    const min = Math.min(...weights);
-    const max = Math.max(...weights);
+    const pickNumber = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+    const values = (sinkholes || []).map(s => {
+      return (
+        pickNumber(s.finalRisk) ??
+        pickNumber(s.baseRisk) ??
+        pickNumber(s.weight)
+      );
+    }).filter(v => v != null);
+    if (values.length === 0) return { min: 0, max: 10 };
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) {
+      return { min: 0, max: 10 };
+    }
     return { min: Math.floor(min), max: Math.ceil(max) };
   };
 
