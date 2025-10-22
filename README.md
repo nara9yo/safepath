@@ -12,6 +12,17 @@
 - 시뮬레이션: 가중치 파라미터 조정, 통계/분포/Top5 요약
 - 필터: 지역(시·군·구/읍·면·동), 위험도, 지하철 영향도
 
+## 🖼️ 목업 스크린샷
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a4f53089-c604-4002-bff2-152d6312bcd9" alt="일반 모드 화면" width="48%" />
+  <img src="https://github.com/user-attachments/assets/11bdcc68-4539-4187-b3bc-ac10018c66f4" alt="히트맵 화면" width="48%" />
+</p>
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/9ac31b64-d360-4943-95d4-b4e538ebeb2a" alt="싱크홀 필터 화면" width="48%" />
+  <img src="https://github.com/user-attachments/assets/7d9033c5-020b-472f-8927-0250db967d33" alt="시뮬레이션 화면" width="48%" />
+</p>
+
 ## 🧱 아키텍처 개요
 
 - Frontend: React 18, 네이버 지도 Web API v3
