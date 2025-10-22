@@ -2,7 +2,7 @@
   "name": "safepath",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://your-username.github.io/safepath",
+  "homepage": "https://nara9yo.github.io/safepath",
   "dependencies": {
     "gh-pages": "^6.0.0",
     "papaparse": "^5.5.3",

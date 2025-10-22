@@ -15,7 +15,7 @@
 ## 🧱 아키텍처 개요
 
 - Frontend: React 18, 네이버 지도 Web API v3
-- Server: Express(경량 상태 확인용, CORS 허용)
+- Server: 없음 (정적 호스팅, 클라이언트 단독)
 - Data: `public/sago.csv`(사고), `public/subway.csv`(지하철)
 - 배포: GitHub Pages (정적 빌드 배포)
 
@@ -41,8 +41,6 @@ src/
   utils/          # 상수/팔레트/분석기(싱크홀/지하철/시뮬)
   App.js          # CSV 로드→가중치→필터→표시 파이프라인
   index.js        # React DOM 부트스트랩
-server/
-  index.js        # CORS 허용, 상태 확인 기본 라우트
 public/
   sago.csv        # 싱크홀 데이터
   subway.csv      # 지하철 노선/역 데이터
@@ -67,17 +65,7 @@ cp env.example .env.local
 REACT_APP_NAVER_MAPS_CLIENT_ID=your_ncp_key_id
 ```
 
-3) 개발 서버 실행
-```
-npm start
-```
-
-4) 경량 API 서버(선택)
-```
-npm run start:server
-```
-
-5) 프로덕션 빌드/배포
+3) 프로덕션 빌드/배포
 ```
 npm run build
 npm run deploy
@@ -106,48 +94,16 @@ npm run deploy
 - 조치: UTF-8 실패 시 EUC-KR 디코딩 폴백 적용(내장됨)
 
 3) 포트 충돌
-- CRA: 3000, 서버: 4000
+- 개발 서버(CRA): 3000
 - 사용 중 프로세스 종료 후 재시작
 
 ## 🔒 보안
 
 - 환경변수로 API 키 관리(.env.local, Git 미추적)
 - 사용자 입력 미사용(지도 UI 중심), XSS 방지 기본 원칙 준수
-- CORS: 개발 편의를 위한 와일드카드 허용(운영 시 도메인 제한 권장)
 
 ## ⚡ 성능 최적화
 
 - 지도 이동/줌 중 히트맵 임시 해제로 렌더 최적화
 - 등급/팔레트/색상 계산 유틸 재사용으로 중복 최소화
-
-## 🧪 테스트(가이드)
-
-- 유닛: 분석 유틸 함수 단위 테스트 권장
-- 통합: CSV 로드→파이프라인→표시 검증
-
-## 🚀 업데이트/배포
-
-- 최신 코드 반영: `git pull`
-- 정적 빌드/배포: `npm run build && npm run deploy`
-
-## 🤝 기여 방법
-
-1) Fork → 2) feature 브랜치 생성 → 3) 커밋
-→ 4) PR 생성 → 5) 코드 리뷰
-
-커밋 메시지 규칙(예시)
-- feat/fix/docs/style/refactor/perf/test/build/ci/chore 접두어
-
-## 📜 라이선스
-
-- MIT
-
-## 📞 문의
-
-- Issues 사용
-
----
-
-본 문서는 [MOYAK 프로젝트 문서 스타일](https://github.com/nara9yo/moyak)
-를 참고해 구성되었습니다.
 
