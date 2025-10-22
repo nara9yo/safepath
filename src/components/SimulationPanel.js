@@ -21,8 +21,8 @@ const SimulationPanel = ({
   const [showStats, setShowStats] = useState(true);
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   const [popupCategory, setPopupCategory] = useState('sinkhole-factors');
-  const [isSinkholeSectionExpanded, setIsSinkholeSectionExpanded] = useState(true);
-  const [isSubwaySectionExpanded, setIsSubwaySectionExpanded] = useState(true);
+  const [isSinkholeSectionExpanded, setIsSinkholeSectionExpanded] = useState(false);
+  const [isSubwaySectionExpanded, setIsSubwaySectionExpanded] = useState(false);
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(true);
   
   // 필터 상태
