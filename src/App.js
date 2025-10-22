@@ -1,3 +1,11 @@
+// 엔트리(클라이언트): App
+// 역할:
+//  - CSV 로드/정규화 → 싱크홀 가중치/클러스터링 → 지하철 가중치 적용 파이프라인
+//  - 지도/목록/시뮬레이션 3개 탭 구성 및 상태 동기화
+//  - 히트맵 프리셋/범례 도메인 계산, 필터 상태(지역/위험/영향) 관리
+// 데이터 흐름:
+//  - public/sago.csv → enhanceSinkholesWithWeight → applySubwayRiskWeights → filteredSinkholes
+//  - public/subway.csv → subwayStations → 지도/분석 모듈로 전달
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import MapView from './components/Map';
 import TabPanel from './components/TabPanel';

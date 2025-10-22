@@ -1,3 +1,9 @@
+// 컴포넌트: 시뮬레이션 패널
+// 역할:
+//  - 사용자 가중치 파라미터(UI 슬라이더) → 시뮬레이션 데이터 생성
+//  - 결과 통계/분포/Top5 요약 제공 및 지도/리스트와 상호작용
+// 입력 props: sinkholes, subwayStations, onSimulationDataChange, onSinkholeClick
+// 내부 상태: sinkholeParams, subwayParams, 필터/섹션 토글
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
   generateSimulationData, 

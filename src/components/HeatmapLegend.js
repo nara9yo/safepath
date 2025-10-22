@@ -1,3 +1,8 @@
+// 컴포넌트: 히트맵 범례
+// 역할:
+//  - 히트맵 그라디언트 시각화 및 최소/중앙/최대 레이블 표시
+//  - 도움말 팝업(MapInfoPopup) 연동
+// 입력 props: gradient, min, max, title, barWidth
 import React, { useState } from 'react';
 import MapInfoPopup from './MapInfoPopup';
 

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
-// 프로젝트 전체 도움말 팝업 (기존 팝업 형식 재사용)
+// 컴포넌트: 프로젝트 도움말 팝업
+// 역할:
+//  - 프로젝트 목적/활용처/데이터/향후계획을 개조식으로 설명
+//  - 사이드 탭 전환 및 포탈 렌더링
 const ProjectHelpPopup = ({ isOpen, onClose }) => {
   const [selected, setSelected] = useState('purpose');
 

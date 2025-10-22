@@ -1,5 +1,11 @@
 /**
- * 지하철 노선 반경별 위험도 가중치 계산 유틸리티
+ * 모듈: 지하철 영향도 분석기
+ * 역할:
+ *  - 역/구간 대비 최단거리 산출(점-선분 포함)로 물리적 근접성 평가
+ *  - 거리권역(100/300/500m)별 선형보간 가중치 계산 및 baseRisk에 적용
+ *  - 영향권 레벨/스타일/설명 조회 유틸 제공
+ * 입력/출력:
+ *  - applySubwayRiskWeights(sinkholes, stations) → finalRisk/riskLevel/subwayDistance 등 부가필드
  */
 import { 
   SUBWAY_CALCULATION_THRESHOLDS, 

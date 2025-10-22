@@ -1,3 +1,13 @@
+// 컴포넌트: 지도 설정(MapSettings)
+// 역할:
+//  - 지도 유형/마커 표시/위험도 필터/히트맵 프리셋 토글 UI 제공
+//  - 지하철 노선/영향권 표시 토글 및 도움말 팝업 연동
+// 입력 props:
+//  - mapType, showMarkers, markerRiskFilter, showHeatmap, heatmapPreset
+//  - showSubway, showSubwayInfluence, sinkholes
+// 출력 props:
+//  - onMapTypeChange, onShowMarkersChange, onMarkerRiskFilterChange
+//  - onShowHeatmapChange, onHeatmapPresetChange, onShowSubwayChange, onShowSubwayInfluenceChange
 import React, { useState } from 'react';
 import MapInfoPopup from './MapInfoPopup';
 

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
-// 싱크홀 안전지도 도움말 팝업 (시뮬레이션 팝업 룩앤필 재사용)
+// 컴포넌트: 지도 도움말 팝업
+// 역할:
+//  - 위험도/히트맵/영향권 카테고리별 설명을 개조식으로 제공
+//  - 사이드 탭 전환, 포탈 렌더링, 외부 트리거로 카테고리 초기화
 const MapInfoPopup = ({ isOpen, onClose, category = 'risk' }) => {
   const [selected, setSelected] = useState('risk');
 

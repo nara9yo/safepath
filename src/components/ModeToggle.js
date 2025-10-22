@@ -1,3 +1,7 @@
+// 컴포넌트: 모드 토글(히트맵)
+// 역할:
+//  - 히트맵 표시 여부 및 스펙트럼 프리셋 드롭다운 제공(경량 UI)
+// 입력 props: showHeatmap, onShowHeatmapChange, heatmapPreset, onHeatmapPresetChange
 import React from 'react';
 
 const ModeToggle = ({ showHeatmap, onShowHeatmapChange, heatmapPreset, onHeatmapPresetChange }) => {

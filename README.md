@@ -1,148 +1,153 @@
-# 🚧 싱크홀 안전지도
+# 🚧 싱크홀 안전지도 (SafePath)
 
-광주광역시 싱크홀 데이터를 활용한 안전지도 및 길찾기 서비스입니다.
+싱크홀 위험도를 시각화하고, 영향 요인을 분석하며, 도시 안전 판단을 돕는
+웹 애플리케이션입니다. [MOYAK README 형식](https://github.com/nara9yo/moyak)
+을 참고해 문서를 구성했습니다.
 
-## 🌟 주요 기능
+## ✨ 주요 기능
 
-- **싱크홀 마커 표시**: 광주 지역의 싱크홀 위치를 지도에 시각적으로 표시
-- **안전 길찾기**: 싱크홀을 피하는 우회 경로 제공 (일반 운전자 모드)
-- **안전점검 길찾기**: 싱크홀을 포함한 최단 경로 제공 (안전점검 운전자 모드)
-- **실시간 경로 분석**: 경로상 싱크홀 감지 및 자동 우회 경로 계산
-- **반응형 디자인**: 모바일과 데스크톱 환경 모두 지원
+- 위험도 히트맵: 프리셋(위험도/최근성/색각이상/고대비) 지원
+- 싱크홀 마커: 위험도 기반 색/아이콘/애니메이션, 상세 팝업
+- 지하철 영향권: 1·2·3차 권역(100/300/500m) 시각화 및 가중 반영
+- 시뮬레이션: 가중치 파라미터 조정, 통계/분포/Top5 요약
+- 필터: 지역(시·군·구/읍·면·동), 위험도, 지하철 영향도
 
-## 🛠 기술 스택
+## 🧱 아키텍처 개요
 
-- **Frontend**: React (JavaScript)
-- **지도 API**: 네이버 지도 Web API (v3)
-- **배포**: GitHub Pages
-- **스타일링**: CSS3 (Flexbox, Grid)
+- Frontend: React 18, 네이버 지도 Web API v3
+- Server: Express(경량 상태 확인용, CORS 허용)
+- Data: `public/sago.csv`(사고), `public/subway.csv`(지하철)
+- 배포: GitHub Pages (정적 빌드 배포)
 
-## 🚀 설치 및 실행
+## 📢 운영 공지: 공공데이터 API 일시 중단 및 전환 계획
 
-### 1. 프로젝트 클론
-```bash
-git clone https://github.com/your-username/safepath.git
-cd safepath
-```
+- 현재: 국가정보자원관리원 화재로 공공데이터 API가 정상 제공되지 않아
+  정적 CSV(`public/sago.csv`, `public/subway.csv`) 기반으로 서비스를 운영합니다.
+- 복구 후 계획: 공공데이터 API 연계를 통해 정기(또는 준실시간) 동기화로
+  최신 자료를 반영할 예정입니다.
+- 안전장치(계획): API 장애 시 자동 정적 CSV 폴백, 지수 백오프 재시도,
+  호출 제한 준수, 기본 캐시 활용.
+- 환경변수(계획):
+  - `REACT_APP_USE_REALTIME` = `true|false` (실시간 모드 토글)
+  - `REACT_APP_PUBLIC_API_BASE_URL` = 공공데이터 API Base URL
+  - `REACT_APP_PUBLIC_API_KEY` = 발급받은 API 키
+- 로드맵: v0.1 정적 데이터 → v0.3 실시간(가능 시) 전환
 
-### 2. 의존성 설치
-```bash
-npm install
-```
-
-### 3. 네이버 API 키 설정
-1. 네이버 클라우드 플랫폼에서 지도 서비스 `ncpKeyId` 발급
-2. 환경변수 파일 생성 및 API 키 설정
-
-```bash
-# .env.local 파일 생성
-cp env.example .env.local
-
-# .env.local 파일에서 네이버 키 설정
-REACT_APP_NAVER_MAPS_CLIENT_ID=your_ncp_key_id
-```
-
-참고 문서: [네이버 지도 API 시작하기](https://navermaps.github.io/maps.js.ncp/docs/tutorial-2-Getting-Started.html)
-
-### 4. 개발 서버 실행
-```bash
-npm start
-```
-
-브라우저에서 `http://localhost:3000`으로 접속
-
-### 5. 프로덕션 빌드
-```bash
-npm run build
-```
-
-## 📱 사용 방법
-
-
-## 🗂 프로젝트 구조
+## 📦 프로젝트 구조
 
 ```
 src/
-├── components/
-│   ├── Map.js              # 네이버 지도 컴포넌트
-│   ├── ModeToggle.js       # 히트맵 설정
-│   ├── SinkholeList.js     # 싱크홀 목록
-│   └── RiskFilter.js       # 위험도 필터
-├── utils/
-│   └── sinkholeAnalyzer.js # 싱크홀 분석 로직
-├── data/
-│   └── sago.csv            # 싱크홀 데이터
-├── App.js                  # 메인 앱 컴포넌트
-└── index.js               # 앱 진입점
+  components/     # 지도/필터/범례/시뮬레이션/도움말 UI
+  utils/          # 상수/팔레트/분석기(싱크홀/지하철/시뮬)
+  App.js          # CSV 로드→가중치→필터→표시 파이프라인
+  index.js        # React DOM 부트스트랩
+server/
+  index.js        # CORS 허용, 상태 확인 기본 라우트
+public/
+  sago.csv        # 싱크홀 데이터
+  subway.csv      # 지하철 노선/역 데이터
 ```
 
-## 🔧 주요 기능 설명
+## 🔑 환경 변수
 
-### 싱크홀 분석 알고리즘
-- Haversine 공식을 사용한 정확한 거리 계산
-- 싱크홀 발생 빈도와 피해 규모를 기반으로 한 위험도 평가
-- 클러스터링을 통한 중복 데이터 정리
+- `REACT_APP_NAVER_MAPS_CLIENT_ID`: 네이버 지도 API 키
+- 설정 예시: `.env.example` → `.env.local` 복사 후 값 채움
 
-### 히트맵 시각화
-- 싱크홀 밀도와 위험도를 색상으로 표현
-- 다양한 색상 스펙트럼 프리셋 제공
-- 실시간 필터링 및 재스케일링 지원
+## 🛠 실행 방법 (Windows)
 
-### 지역별 필터링
-- 시도, 시군구, 동 단위 필터링
-- 위험도별 싱크홀 분류 및 표시
-- 상세 정보 팝업 및 지도 연동
+1) 의존성 설치
+```
+npm install
+```
 
-## 🎨 UI/UX 특징
+2) 환경변수 설정
+```
+cp env.example .env.local
+# .env.local 내 키 설정
+REACT_APP_NAVER_MAPS_CLIENT_ID=your_ncp_key_id
+```
 
-- **직관적인 인터페이스**: 한눈에 파악할 수 있는 깔끔한 디자인
-- **색상 코딩**: 
-  - 🔴 고위험 싱크홀 (빨간색)
-  - 🟠 중위험 싱크홀 (주황색)
-  - 🟡 저위험 싱크홀 (노란색)
-  - 🟢 안전 지역 (초록색)
-- **반응형 디자인**: 모바일과 데스크톱 환경 최적화
-- **실시간 필터링**: 지역 및 위험도별 즉시 필터링
+3) 개발 서버 실행
+```
+npm start
+```
 
-## 🚀 배포
+4) 경량 API 서버(선택)
+```
+npm run start:server
+```
 
-### GitHub Pages 배포
-```bash
+5) 프로덕션 빌드/배포
+```
+npm run build
 npm run deploy
 ```
 
-배포 후 `https://your-username.github.io/safepath`에서 확인 가능
+## 🧮 분석 로직 하이라이트
 
-### 환경변수 설정
-- `.env.local` 파일에 네이버 지도 `REACT_APP_NAVER_MAPS_CLIENT_ID` 설정
-- `env.example` 파일을 참고하여 환경변수 구성
+- 클러스터링: 10m 반경 근접 점 통합, 발생횟수/규모/피해/최근성/반복 반영
+- 지하철 가중치: 거리권역별 선형보간(100/300/500m)
+- 등급/스타일: 전역 상수 기반 일관성 유지(색/아이콘/크기/펄스)
 
-## 🔮 향후 개선 사항
+## 🧩 브랜치 전략
 
-- [ ] **실제 길찾기 API 연동**: 카카오 모빌리티 API로 실제 도로 기반 경로 제공
-- [ ] **공공데이터포털 연동**: 국가정보자원관리원 복구 후 실시간 싱크홀 데이터 연동
-- [ ] **사용자 제보 기능**: 시민이 직접 싱크홀 위치를 신고할 수 있는 기능
-- [ ] **알림 기능**: 경로 변경 시 푸시 알림 제공
-- [ ] **통계 대시보드**: 싱크홀 발생 현황 및 트렌드 분석
-- [ ] **다국어 지원**: 영어, 중국어 등 다국어 인터페이스
+- main: 배포 브랜치
+- dev: 개발 브랜치
+- feature/*: 기능 개발
+- hotfix/*: 긴급 수정
 
-## 📄 라이선스
+## 🧰 문제 해결
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다.
+1) 지도 API 키 경고
+- 증상: "네이버 지도 API 키가 설정되지 않았습니다" 알림
+- 조치: `.env.local`에 키 설정 후 재실행
 
-## 🤝 기여하기
+2) CSV 한글 깨짐
+- 조치: UTF-8 실패 시 EUC-KR 디코딩 폴백 적용(내장됨)
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+3) 포트 충돌
+- CRA: 3000, 서버: 4000
+- 사용 중 프로세스 종료 후 재시작
+
+## 🔒 보안
+
+- 환경변수로 API 키 관리(.env.local, Git 미추적)
+- 사용자 입력 미사용(지도 UI 중심), XSS 방지 기본 원칙 준수
+- CORS: 개발 편의를 위한 와일드카드 허용(운영 시 도메인 제한 권장)
+
+## ⚡ 성능 최적화
+
+- 지도 이동/줌 중 히트맵 임시 해제로 렌더 최적화
+- 등급/팔레트/색상 계산 유틸 재사용으로 중복 최소화
+
+## 🧪 테스트(가이드)
+
+- 유닛: 분석 유틸 함수 단위 테스트 권장
+- 통합: CSV 로드→파이프라인→표시 검증
+
+## 🚀 업데이트/배포
+
+- 최신 코드 반영: `git pull`
+- 정적 빌드/배포: `npm run build && npm run deploy`
+
+## 🤝 기여 방법
+
+1) Fork → 2) feature 브랜치 생성 → 3) 커밋
+→ 4) PR 생성 → 5) 코드 리뷰
+
+커밋 메시지 규칙(예시)
+- feat/fix/docs/style/refactor/perf/test/build/ci/chore 접두어
+
+## 📜 라이선스
+
+- MIT
 
 ## 📞 문의
 
-프로젝트에 대한 문의사항이 있으시면 이슈를 생성해 주세요.
+- Issues 사용
 
 ---
 
-**⚠️ 주의사항**: 이 서비스는 POC(Proof of Concept) 목적으로 제작되었습니다. 실제 운전 시에는 정확한 내비게이션 서비스를 사용하시기 바랍니다.
+본 문서는 [MOYAK 프로젝트 문서 스타일](https://github.com/nara9yo/moyak)
+를 참고해 구성되었습니다.
 

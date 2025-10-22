@@ -1,3 +1,7 @@
+// 컴포넌트: 탭 패널
+// 역할:
+//  - 탭 헤더/활성 탭 상태 제어 및 children 렌더링 컨테이너
+// 입력 props: tabs[{id,label,icon}], activeTab, onTabChange, children
 import React from 'react';
 
 const TabPanel = ({ 

@@ -1,4 +1,13 @@
-// 싱크홀 분석 및 가중치 계산 유틸리티
+// 모듈: 싱크홀 클러스터링/가중치 분석기
+// 역할:
+//  - 좌표 근접 기반 클러스터링(기본 10m)으로 중복/재발 지점 통합
+//  - 규모/피해/최근성/반복 발생 요인을 가중합해 baseRisk 산출
+//  - 전역 임계값과 등급 상수를 사용하여 일관된 riskLevel 제공
+// 노출 함수:
+//  - clusterSinkholes: 근접 클러스터 배열 생성
+//  - calculateSinkholeWeight: 클러스터 → 가중치/등급 계산
+//  - enhanceSinkholesWithWeight: 단일 지점 형태로 리치 데이터 매핑
+//  - getSinkholeVisualStyle: 등급 → 마커 스타일 반환
 import { 
   RISK_CALCULATION_THRESHOLDS, 
   getRiskLevelFromWeight, 

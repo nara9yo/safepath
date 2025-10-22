@@ -1,3 +1,8 @@
+// 컴포넌트: 지하철 영향도 필터
+// 역할:
+//  - 영향권 레벨(level1/2/3) 선택 토글/초기화/요약 제공
+//  - 전역 상수 기반 옵션/라벨/색상 사용, 도움말 팝업 연동
+// 입력 props: selectedInfluenceLevels, onInfluenceLevelChange, sinkholes
 import React, { useState, useMemo } from 'react';
 import MapInfoPopup from './MapInfoPopup';
 import { getSubwayInfluenceOptions } from '../utils/constants';

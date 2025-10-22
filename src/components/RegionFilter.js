@@ -1,3 +1,8 @@
+// 컴포넌트: 지역 필터
+// 역할:
+//  - 시도/시군구/읍면동 3단 필터 제공 및 요약/카운트 표시
+//  - 선택 변경 시 상위 선택에 맞춰 하위 옵션/선택 초기화
+// 입력/출력 props: selectedSido/sigungu/dong, onSidoChange/onSigunguChange/onDongChange, sinkholes
 import React, { useState, useMemo } from 'react';
 
 const RegionFilter = ({

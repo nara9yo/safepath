@@ -1,6 +1,16 @@
 /**
- * 프로젝트 전역 상수 정의
- * 범례, 필터, 마커 등에서 사용하는 등급 표현, 색상 코드, 기준값을 일원화
+ * 모듈: 전역 상수/스타일/유틸 집합
+ * 역할:
+ *  - 위험도/지하철 영향도 등급과 시각 스타일의 단일 출처 제공
+ *  - 히트맵 팔레트, 등급 임계값, 마커/애니메이션 스타일 상수화
+ *  - 공통 계산 유틸: 등급 계산, 스타일 조회, 팔레트 조회, 색상 보간
+ * 노출 개체:
+ *  - RISK_LEVELS, RISK_LEVEL_CONFIG, RISK_CALCULATION_THRESHOLDS
+ *  - SUBWAY_INFLUENCE_LEVELS, SUBWAY_INFLUENCE_CONFIG, SUBWAY_CALCULATION_THRESHOLDS
+ *  - HEATMAP_GRADIENTS, VISUAL_STYLES
+ *  - getRiskLevelStyle, getSubwayInfluenceStyle, getSubwayInfluenceLevel
+ *  - getRiskLevelFromWeight, getHeatmapGradient, getRiskLevelOptions, getSubwayInfluenceOptions
+ *  - getGradientColor (히트맵 SEVERITY 기준 보간)
  */
 
 // ============================================================================

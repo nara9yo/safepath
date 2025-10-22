@@ -1,3 +1,10 @@
+// 컴포넌트: 싱크홀 목록/필터 패널
+// 역할:
+//  - 위험도/지하철영향/지역 필터 UI를 제공하고 결과 리스트 표시
+//  - 전역 상수/색상 보간을 사용해 일관된 라벨/색/요약 제공
+// 입력 props:
+//  - sinkholes(필터링된), allSinkholes(카운트용), selectedSinkhole, onSinkholeClick
+//  - 지역/위험도/영향도 필터 상태와 변경 핸들러
 import React, { useEffect, useState } from 'react';
 import RiskFilter from './RiskFilter';
 import RegionFilter from './RegionFilter';

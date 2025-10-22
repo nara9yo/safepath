@@ -1,3 +1,15 @@
+// 모듈: 시뮬레이션 분석기
+// 역할:
+//  - 사용자 가중치 파라미터를 적용하여 최종 위험도(finalWeight) 계산
+//  - 지하철 영향권 가중치(거리-선형보간)를 싱크홀 위험도에 합산
+//  - 결과 통계(분포/요약/Top5) 산출 및 UI에 전달
+// 입력:
+//  - sinkholes: 클러스터 가중치가 반영된 싱크홀 배열(enhanceSinkholesWithWeight 결과)
+//  - subwayStations: 지하철 역/구간 좌표 배열
+//  - sinkholeParams, subwayParams: UI에서 조정되는 가중치 배수
+// 출력:
+//  - generateSimulationData: finalWeight, riskLevel, subwayInfluenceLevel 포함한 배열
+//  - calculateSimulationStats: 개수/분포/상하한/Top5 요약
 import { getRiskLevelFromWeight, RISK_CALCULATION_THRESHOLDS, SUBWAY_CALCULATION_THRESHOLDS, getSubwayInfluenceLevel } from './constants';
 
 // 시뮬레이션 파라미터 기본값 (기본 상태에서는 기존 로직과 동일한 결과를 위해 1.0으로 설정)

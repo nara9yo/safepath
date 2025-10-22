@@ -1,3 +1,8 @@
+// 컴포넌트: 위험도 필터
+// 역할:
+//  - 전역 등급 상수 기반 옵션/라벨/색상 사용
+//  - 선택 토글/전체 초기화, 접힘 요약, 결과 개수 표시
+// 입력 props: selectedRiskLevels, onRiskLevelChange, sinkholes
 import React, { useState, useMemo } from 'react';
 import MapInfoPopup from './MapInfoPopup';
 import { getRiskLevelOptions, getGradientColor } from '../utils/constants';

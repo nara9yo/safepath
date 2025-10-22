@@ -1,3 +1,15 @@
+// 컴포넌트: 지도(Map)
+// 역할:
+//  - 네이버 지도 초기화/타입 전환/준비상태 관리
+//  - 히트맵 레이어 표시 및 이동 중 성능 최적화(임시 해제)
+//  - 싱크홀 마커 렌더링(가중치 기반 컬러/애니메이션/인포윈도우)
+//  - 지하철 노선/역/영향권(100/300/500m) 시각화 및 줌 반응 리렌더
+// 입력 props:
+//  - sinkholes, selectedSinkhole, showMarkers, markerRiskFilter
+//  - showHeatmap, heatmapGradient, legendMin, legendMax
+//  - mapType, showSubway, showSubwayInfluence, subwayStations
+// 출력:
+//  - onMapReady(mapInstance) 콜백, 지도 상호작용 기반 UI 제공
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import HeatmapLegend from './HeatmapLegend';
 import SubwayInfluenceLegend from './SubwayInfluenceLegend';

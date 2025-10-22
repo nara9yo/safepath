@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 
+// 컴포넌트: 시뮬레이션 도움말 팝업
+// 역할:
+//  - 싱크홀/지하철 각 가중치 요인의 의미/범위/해석을 개조식으로 제공
+//  - 사이드 탭 방식 요인 선택, 포탈로 렌더링
 const SimulationInfoPopup = ({ isOpen, onClose, initialCategory = 'sinkhole-factors' }) => {
   const [selectedFactor, setSelectedFactor] = useState('sinkhole-size');
 

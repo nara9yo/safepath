@@ -1,3 +1,8 @@
+// 컴포넌트: 지하철 영향권 범례
+// 역할:
+//  - 1/2/3차 영향권 색상바와 눈금 표시
+//  - 도움말 팝업(MapInfoPopup) 연동
+// 입력 props: title, barWidth
 import React, { useState } from 'react';
 import { SUBWAY_INFLUENCE_CONFIG, SUBWAY_INFLUENCE_LEVELS } from '../utils/constants';
 import MapInfoPopup from './MapInfoPopup';
