@@ -16,11 +16,11 @@
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/a4f53089-c604-4002-bff2-152d6312bcd9" alt="일반 모드 화면" width="48%" />
-  <img src="https://github.com/user-attachments/assets/11bdcc68-4539-4187-b3bc-ac10018c66f4" alt="히트맵 화면" width="48%" />
+  <img src="https://github.com/user-attachments/assets/d2907593-da1c-43fb-9c79-1a87dbdeb190" alt="히트맵 화면" width="48%" />
 </p>
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/9ac31b64-d360-4943-95d4-b4e538ebeb2a" alt="싱크홀 필터 화면" width="48%" />
-  <img src="https://github.com/user-attachments/assets/7d9033c5-020b-472f-8927-0250db967d33" alt="시뮬레이션 화면" width="48%" />
+  <img src="https://github.com/user-attachments/assets/4b6cd6de-213d-41ca-bd5c-ade1d2010cb8" alt="싱크홀 필터 화면" width="48%" />
+  <img src="https://github.com/user-attachments/assets/00078520-b2ab-41d4-baa6-0e6756ecad63" alt="시뮬레이션 화면" width="48%" />
 </p>
 
 ## 🧱 아키텍처 개요
