@@ -240,6 +240,19 @@ export const enhanceSinkholesWithWeight = (sinkholes, clusterRadius = 0.01) => {
       // 클러스터링 정보 명시적 전달
       totalOccurrences: cluster.totalOccurrences,
       maxSize: `${cluster.maxSize.width.toFixed(1)}m x ${cluster.maxSize.extend.toFixed(1)}m x ${cluster.maxSize.depth.toFixed(1)}m`,
+      // 시뮬레이션 정합성을 위한 원시 누적 지표 전달
+      firstOccurrence: cluster.firstOccurrence,
+      lastOccurrence: cluster.lastOccurrence,
+      maxSizeRaw: {
+        width: Number(cluster.maxSize.width) || 0,
+        extend: Number(cluster.maxSize.extend) || 0,
+        depth: Number(cluster.maxSize.depth) || 0
+      },
+      totalDamage: {
+        deaths: Number(cluster.totalDamage.deaths) || 0,
+        injuries: Number(cluster.totalDamage.injuries) || 0,
+        vehicles: Number(cluster.totalDamage.vehicles) || 0
+      },
       
       occurrences: cluster.occurrences,
       

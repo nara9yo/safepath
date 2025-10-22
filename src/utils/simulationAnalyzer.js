@@ -1,4 +1,4 @@
-import { getRiskLevelFromWeight, RISK_CALCULATION_THRESHOLDS } from './constants';
+import { getRiskLevelFromWeight, RISK_CALCULATION_THRESHOLDS, SUBWAY_CALCULATION_THRESHOLDS, getSubwayInfluenceLevel } from './constants';
 
 // 시뮬레이션 파라미터 기본값 (기본 상태에서는 기존 로직과 동일한 결과를 위해 1.0으로 설정)
 export const SIMULATION_DEFAULTS = {
@@ -9,7 +9,7 @@ export const SIMULATION_DEFAULTS = {
     FREQUENCY_WEIGHT_MULTIPLIER: 1.0
   },
   SUBWAY: {
-    LEVEL1_WEIGHT: 0.8,
+    LEVEL1_WEIGHT: 1.0,
     LEVEL2_WEIGHT: 0.4,
     LEVEL3_WEIGHT: 0.1,
     LEVEL1_DISTANCE: 100,
@@ -18,12 +18,8 @@ export const SIMULATION_DEFAULTS = {
   }
 };
 
-const getSubwayInfluenceLevel = (distance, params) => {
-  if (distance <= params.LEVEL1_DISTANCE) return 'level1';
-  if (distance <= params.LEVEL2_DISTANCE) return 'level2';
-  if (distance <= params.LEVEL3_DISTANCE) return 'level3';
-  return 'none';
-};
+// 거리 임계값은 전역 상수(SUBWAY_CALCULATION_THRESHOLDS)를 사용하여
+// 다른 탭(싱크홀 목록/지도)과 정합성을 유지한다.
 
 const haversineDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371e3;
@@ -74,25 +70,40 @@ const findNearestSubwayLine = (lat, lng, subwayStations) => {
 };
 
 export const calculateSizeWeight = (sinkhole) => {
-  const width = parseFloat(sinkhole.sinkWidth) || 0;
-  const length = parseFloat(sinkhole.sinkExtend) || 0;
-  const depth = parseFloat(sinkhole.sinkDepth) || 0;
+  const width = (sinkhole.maxSizeRaw?.width != null)
+    ? Number(sinkhole.maxSizeRaw.width) || 0
+    : parseFloat(sinkhole.sinkWidth) || 0;
+  const length = (sinkhole.maxSizeRaw?.extend != null)
+    ? Number(sinkhole.maxSizeRaw.extend) || 0
+    : parseFloat(sinkhole.sinkExtend) || 0;
+  const depth = (sinkhole.maxSizeRaw?.depth != null)
+    ? Number(sinkhole.maxSizeRaw.depth) || 0
+    : parseFloat(sinkhole.sinkDepth) || 0;
   const sizeScore = width * length * depth;
   return Math.min(sizeScore * 0.1, 3);
 };
 
 export const calculateDamageWeight = (sinkhole) => {
   const damageWeights = RISK_CALCULATION_THRESHOLDS.DAMAGE_WEIGHTS;
-  const rawDamageScore = (parseFloat(sinkhole.deathCnt) || 0) * damageWeights.DEATH + 
-                        (parseFloat(sinkhole.injuryCnt) || 0) * damageWeights.INJURY + 
-                        (parseFloat(sinkhole.vehicleCnt) || 0) * damageWeights.VEHICLE;
+  const deaths = (sinkhole.totalDamage?.deaths != null)
+    ? Number(sinkhole.totalDamage.deaths) || 0
+    : parseFloat(sinkhole.deathCnt) || 0;
+  const injuries = (sinkhole.totalDamage?.injuries != null)
+    ? Number(sinkhole.totalDamage.injuries) || 0
+    : parseFloat(sinkhole.injuryCnt) || 0;
+  const vehicles = (sinkhole.totalDamage?.vehicles != null)
+    ? Number(sinkhole.totalDamage.vehicles) || 0
+    : parseFloat(sinkhole.vehicleCnt) || 0;
+  const rawDamageScore = deaths * damageWeights.DEATH + 
+                        injuries * damageWeights.INJURY + 
+                        vehicles * damageWeights.VEHICLE;
   const damageScore = Math.sqrt(rawDamageScore);
   const maxWeightMultiplier = RISK_CALCULATION_THRESHOLDS.CLUSTERING.MAX_WEIGHT_MULTIPLIER;
   return Math.min(damageScore * 0.6, maxWeightMultiplier);
 };
 
 export const calculateTimeWeight = (sinkhole) => {
-  const dateStr = sinkhole.sagoDate || sinkhole.date;
+  const dateStr = sinkhole.lastOccurrence || sinkhole.sagoDate || sinkhole.date;
   const timeWeights = RISK_CALCULATION_THRESHOLDS.TIME_WEIGHTS;
   let timeWeight = timeWeights.DEFAULT;
   
@@ -128,15 +139,21 @@ export const calculateFrequencyWeight = (sinkhole) => {
 };
 
 export const calculateSimulationSubwayWeight = (distance, params) => {
-  const { LEVEL1_DISTANCE, LEVEL2_DISTANCE, LEVEL3_DISTANCE, LEVEL1_WEIGHT, LEVEL2_WEIGHT, LEVEL3_WEIGHT } = params;
-  if (distance <= LEVEL1_DISTANCE) return LEVEL1_WEIGHT;
-  if (distance <= LEVEL2_DISTANCE) {
-    const ratio = (distance - LEVEL1_DISTANCE) / (LEVEL2_DISTANCE - LEVEL1_DISTANCE);
-    return LEVEL1_WEIGHT - (ratio * (LEVEL1_WEIGHT - LEVEL2_WEIGHT));
+  const thresholds = SUBWAY_CALCULATION_THRESHOLDS.DISTANCE_THRESHOLDS;
+  const L1 = thresholds.LEVEL1_MAX;
+  const L2 = thresholds.LEVEL2_MAX;
+  const L3 = thresholds.LEVEL3_MAX;
+  const W1 = params.LEVEL1_WEIGHT;
+  const W2 = params.LEVEL2_WEIGHT;
+  const W3 = params.LEVEL3_WEIGHT;
+  if (distance <= L1) return W1;
+  if (distance <= L2) {
+    const ratio = (distance - L1) / (L2 - L1);
+    return W1 - (ratio * (W1 - W2));
   }
-  if (distance <= LEVEL3_DISTANCE) {
-    const ratio = (distance - LEVEL2_DISTANCE) / (LEVEL3_DISTANCE - LEVEL2_DISTANCE);
-    return LEVEL2_WEIGHT - (ratio * (LEVEL2_WEIGHT - LEVEL3_WEIGHT));
+  if (distance <= L3) {
+    const ratio = (distance - L2) / (L3 - L2);
+    return W2 - (ratio * (W2 - W3));
   }
   return 0.0;
 };
@@ -151,9 +168,9 @@ export const generateSimulationData = (sinkholes, subwayStations, sinkholeParams
     const lng = parseFloat(sinkhole.lng) || 0;
     const { minDistance } = findNearestSubwayLine(lat, lng, subwayStations);
     const subwayInfluenceWeight = calculateSimulationSubwayWeight(minDistance, subwayParams);
-    const subwayInfluenceLevel = getSubwayInfluenceLevel(minDistance, subwayParams);
+    const subwayInfluenceLevel = getSubwayInfluenceLevel(minDistance);
     
-    // 항상 재계산을 수행하여 일관성을 보장
+    // 클러스터 누적 지표를 우선 활용하여 일관성 유지
     const sizeWeight = calculateSizeWeight(sinkhole);
     const damageWeight = calculateDamageWeight(sinkhole);
     const timeWeight = calculateTimeWeight(sinkhole);

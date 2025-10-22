@@ -29,11 +29,7 @@ const SimulationPanel = ({
   const [selectedRiskFilter, setSelectedRiskFilter] = useState(null);
   const [selectedSubwayFilter, setSelectedSubwayFilter] = useState(null);
   
-  // 시뮬레이션에 전달할 지하철 파라미터 (LEVEL3_DISTANCE 포함)
-  const effectiveSubwayParams = useMemo(() => ({
-    ...subwayParams,
-    LEVEL3_DISTANCE: subwayParams.LEVEL2_DISTANCE + 200
-  }), [subwayParams]);
+  // 시뮬레이션은 고정 임계값(100/300/500m)을 사용하므로 거리 파라미터는 전달하지 않음
 
   // 시뮬레이션 데이터 생성
   const simulationData = useMemo(() => {
@@ -43,7 +39,7 @@ const SimulationPanel = ({
       sinkholes, 
       subwayStations, 
       sinkholeParams, 
-      effectiveSubwayParams
+      subwayParams
     );
     
     // 필터링 적용
@@ -60,7 +56,7 @@ const SimulationPanel = ({
     }
     
     return filteredData;
-  }, [sinkholes, subwayStations, sinkholeParams, effectiveSubwayParams, selectedRiskFilter, selectedSubwayFilter]);
+  }, [sinkholes, subwayStations, sinkholeParams, subwayParams, selectedRiskFilter, selectedSubwayFilter]);
   
   // 시뮬레이션 데이터 변경 시 부모 컴포넌트에 전달
   useEffect(() => {
@@ -91,19 +87,12 @@ const SimulationPanel = ({
     setSelectedSubwayFilter(null);
   }, []);
   
-  // 2차 영향권 변경 시 3차 영향권 자동 조정
   const handleSubwayParamChange = useCallback((param, value) => {
     setSubwayParams(prev => {
       const newParams = {
         ...prev,
         [param]: Number(value)
       };
-      
-      // 2차 영향권 변경 시 3차 영향권을 2차 + 200m로 설정
-      if (param === 'LEVEL2_DISTANCE') {
-        newParams.LEVEL3_DISTANCE = Number(value) + 200;
-      }
-      
       return newParams;
     });
   }, []);
@@ -335,71 +324,7 @@ const SimulationPanel = ({
                   <div className="parameter-range">0.0 - 0.5</div>
                 </div>
                 
-                {/* 거리 설정 섹션 */}
-                <div className="parameter-subsection">
-                  <h5 className="parameter-subsection-title">영향권 거리 설정</h5>
-                  
-                  <div className="parameter-item">
-                    <label className="parameter-label">
-                      <div className="distance-values">
-                        <span className="distance-value">1차: {subwayParams.LEVEL1_DISTANCE}m</span>
-                        <span className="distance-value">2차: {subwayParams.LEVEL2_DISTANCE}m</span>
-                        <span className="distance-value">3차: {subwayParams.LEVEL2_DISTANCE + 200}m+</span>
-                      </div>
-                    </label>
-                    <div className="dual-range-container">
-                      <div className="dual-range-track">
-                        {/* 색상 영역 표시 - 실제 핸들 위치에 맞춤 */}
-                        <div className="dual-range-fill" style={{
-                          left: '0%',
-                          width: `${((subwayParams.LEVEL1_DISTANCE - 50) / 950) * 100}%`,
-                          backgroundColor: '#DC143C'
-                        }}></div>
-                        <div className="dual-range-fill" style={{
-                          left: `${((subwayParams.LEVEL1_DISTANCE - 50) / 950) * 100}%`,
-                          width: `${((subwayParams.LEVEL2_DISTANCE - subwayParams.LEVEL1_DISTANCE) / 950) * 100}%`,
-                          backgroundColor: '#FF6B35'
-                        }}></div>
-                        <div className="dual-range-fill" style={{
-                          left: `${((subwayParams.LEVEL2_DISTANCE - 50) / 950) * 100}%`,
-                          width: `${((1000 - subwayParams.LEVEL2_DISTANCE) / 950) * 100}%`,
-                          backgroundColor: '#FFD700'
-                        }}></div>
-                      </div>
-                      <input
-                        type="range"
-                        min="50"
-                        max="1000"
-                        step="10"
-                        value={subwayParams.LEVEL1_DISTANCE}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (value < subwayParams.LEVEL2_DISTANCE - 50) {
-                            handleSubwayParamChange('LEVEL1_DISTANCE', value);
-                          }
-                        }}
-                        className="dual-range-input range-input-1"
-                        style={{ zIndex: 3 }}
-                      />
-                      <input
-                        type="range"
-                        min="50"
-                        max="1000"
-                        step="10"
-                        value={subwayParams.LEVEL2_DISTANCE}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (value > subwayParams.LEVEL1_DISTANCE + 50) {
-                            handleSubwayParamChange('LEVEL2_DISTANCE', value);
-                          }
-                        }}
-                        className="dual-range-input range-input-2"
-                        style={{ zIndex: 2 }}
-                      />
-                    </div>
-                    <div className="parameter-range">50m - 1000m (최소 50m 간격)</div>
-                  </div>
-                </div>
+                {/* 거리 설정 제거됨: 시뮬레이션은 고정 임계값(100/300/500m)을 사용 */}
               </div>
             )}
           </div>
